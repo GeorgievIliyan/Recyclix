@@ -6,12 +6,12 @@ export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 dark:from-gray-950 dark:via-gray-900 dark:to-black">
-      {/* Navigation Bar */}
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 dark:from-gray-950 dark:via-gray-900 dark:to-black">
+      {/* Навигация */}
       <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 border-b border-gray-200/50 dark:border-gray-800/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            {/* Logo */}
+            {/* Лого */}
             <div className="flex items-center">
               <div className="flex items-center gap-2">
                 <img src="/logos/logo.svg" alt="Logo" className="aspect-1/1 h-7" />
@@ -21,7 +21,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Desktop Navigation */}
+            {/* Навигация за десктоп */}
             <div className="hidden md:flex items-center gap-8">
               <a
                 href="#hero"
@@ -63,7 +63,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Mobile menu button */}
+            {/* Бутони за мобилни у-ва */}
             <div className="md:hidden">
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -81,7 +81,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Mobile menu */}
+        {/* меню за мобилни у-ва */}
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-gray-200/50 dark:border-gray-800/50">
             <div className="px-4 py-4 space-y-3">
@@ -126,18 +126,18 @@ export default function Home() {
         )}
       </nav>
 
-      {/* Hero Section */}
+      {/* Начална секция */}
       <div id="hero" className="relative min-h-[85vh] flex items-center justify-center p-4 overflow-hidden pt-16">
-        {/* Decorative gradient orbs */}
+        {/* Декорации */}
         <div className="absolute top-20 -left-32 w-96 h-96 bg-[#00CD56]/20 dark:bg-[#00CD56]/10 rounded-full blur-3xl" />
         <div className="absolute bottom-20 -right-32 w-96 h-96 bg-[#00CD56]/15 dark:bg-[#00CD56]/8 rounded-full blur-3xl" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#00CD56]/5 dark:bg-[#00CD56]/3 rounded-full blur-3xl" />
 
         <div className="relative z-10 max-w-6xl mx-auto text-center">
-          {/* Main Heading */}
+          {/* Главно заглавие */}
           <div className="mb-6">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 dark:from-white dark:via-gray-100 dark:to-white bg-clip-text text-transparent mb-4 leading-tight">
-              Рециклирай за по-добро бъдеще
+            <h1 className="text-5xl md:text-5xl lg:text-6xl font-semibold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 dark:from-white dark:via-gray-100 dark:to-white bg-clip-text text-transparent mb-4 leading-tight">
+              Рециклирай за <br></br>по-добро бъдеще
             </h1>
             <p className="text-lg md:text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed">
               Присъединете се към нашата платформа за рециклиране и помогнете за опазване на околната среда. Лесно,
@@ -145,7 +145,7 @@ export default function Home() {
             </p>
           </div>
 
-          {/* CTA Buttons */}
+          {/* Бутони */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
             <a
               href="/auth/register"
@@ -161,7 +161,7 @@ export default function Home() {
             </a>
           </div>
 
-          {/* Stats Section */}
+          {/* Статус */}
           <div className="backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 rounded-3xl p-8 border border-gray-200/50 dark:border-gray-800/50 shadow-2xl dark:shadow-[0_0_50px_rgba(0,205,86,0.1)]">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="text-center">
@@ -187,7 +187,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Features Section */}
+      {/* Функции */}
       <div id="features" className="relative py-20 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
@@ -200,7 +200,6 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Card 1 */}
             <div className="backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 rounded-3xl p-8 border border-gray-200/50 dark:border-gray-800/50 shadow-xl dark:shadow-[0_0_30px_rgba(0,205,86,0.1)] hover:shadow-2xl dark:hover:shadow-[0_0_50px_rgba(0,205,86,0.15)] transition-all duration-300 hover:scale-105">
               <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-[#00CD56] to-[#00b849] rounded-2xl flex items-center justify-center shadow-lg shadow-[#00CD56]/30">
                 <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -219,7 +218,6 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Card 2 */}
             <div className="backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 rounded-3xl p-8 border border-gray-200/50 dark:border-gray-800/50 shadow-xl dark:shadow-[0_0_30px_rgba(0,205,86,0.1)] hover:shadow-2xl dark:hover:shadow-[0_0_50px_rgba(0,205,86,0.15)] transition-all duration-300 hover:scale-105">
               <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-[#00CD56] to-[#00b849] rounded-2xl flex items-center justify-center shadow-lg shadow-[#00CD56]/30">
                 <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -237,7 +235,6 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Card 3 */}
             <div className="backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 rounded-3xl p-8 border border-gray-200/50 dark:border-gray-800/50 shadow-xl dark:shadow-[0_0_30px_rgba(0,205,86,0.1)] hover:shadow-2xl dark:hover:shadow-[0_0_50px_rgba(0,205,86,0.15)] transition-all duration-300 hover:scale-105">
               <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-[#00CD56] to-[#00b849] rounded-2xl flex items-center justify-center shadow-lg shadow-[#00CD56]/30">
                 <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -258,7 +255,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* How It Works Section */}
       <div
         id="how-it-works"
         className="relative py-20 px-4 bg-gradient-to-b from-transparent via-gray-100/50 to-transparent dark:via-gray-900/50"
@@ -274,7 +270,7 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Step 1 */}
+
             <div className="relative">
               <div className="backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 rounded-3xl p-8 border border-gray-200/50 dark:border-gray-800/50 shadow-xl dark:shadow-[0_0_30px_rgba(0,205,86,0.1)] hover:shadow-2xl dark:hover:shadow-[0_0_50px_rgba(0,205,86,0.15)] transition-all duration-300">
                 <div className="absolute -top-6 left-8 w-12 h-12 bg-gradient-to-br from-[#00CD56] to-[#00b849] rounded-xl flex items-center justify-center shadow-lg shadow-[#00CD56]/30">
@@ -289,7 +285,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Step 2 */}
             <div className="relative">
               <div className="backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 rounded-3xl p-8 border border-gray-200/50 dark:border-gray-800/50 shadow-xl dark:shadow-[0_0_30px_rgba(0,205,86,0.1)] hover:shadow-2xl dark:hover:shadow-[0_0_50px_rgba(0,205,86,0.15)] transition-all duration-300">
                 <div className="absolute -top-6 left-8 w-12 h-12 bg-gradient-to-br from-[#00CD56] to-[#00b849] rounded-xl flex items-center justify-center shadow-lg shadow-[#00CD56]/30">
@@ -304,7 +299,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Step 3 */}
             <div className="relative">
               <div className="backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 rounded-3xl p-8 border border-gray-200/50 dark:border-gray-800/50 shadow-xl dark:shadow-[0_0_30px_rgba(0,205,86,0.1)] hover:shadow-2xl dark:hover:shadow-[0_0_50px_rgba(0,205,86,0.15)] transition-all duration-300">
                 <div className="absolute -top-6 left-8 w-12 h-12 bg-gradient-to-br from-[#00CD56] to-[#00b849] rounded-xl flex items-center justify-center shadow-lg shadow-[#00CD56]/30">
@@ -322,7 +316,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Impact Section */}
       <div id="impact" className="relative py-20 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
@@ -335,7 +328,7 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-            {/* Environmental Impact */}
+            {/* Принос */}
             <div className="backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 rounded-3xl p-10 border border-gray-200/50 dark:border-gray-800/50 shadow-xl dark:shadow-[0_0_30px_rgba(0,205,86,0.1)]">
               <div className="flex items-center gap-4 mb-6">
                 <div className="w-14 h-14 bg-gradient-to-br from-[#00CD56] to-[#00b849] rounded-2xl flex items-center justify-center shadow-lg shadow-[#00CD56]/30">
