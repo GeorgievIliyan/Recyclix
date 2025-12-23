@@ -1,6 +1,6 @@
 "use client"
 
-import { supabaseBrowser } from "@/lib/supabase-browser"
+import { supabase } from "@/lib/supabase-browser"
 import { useState, useEffect } from "react"
 
 export default function LoginPage() {
@@ -27,7 +27,7 @@ export default function LoginPage() {
     setMessage(null)
 
     try {
-      const { data, error } = await supabaseBrowser.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
@@ -46,7 +46,7 @@ export default function LoginPage() {
 
   const handleGoogleLogin = async () => {
     try {
-      const { error } = await supabaseBrowser.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: { redirectTo: `${window.location.origin}/dashboard` },
       })

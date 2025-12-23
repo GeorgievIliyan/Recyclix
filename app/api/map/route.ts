@@ -1,9 +1,11 @@
+import { supabase } from '@/lib/supabase-browser';
+import { SupabaseClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server'
 // параметри | query params
 const query = `
-[out:json][timeout:60];
+[out:json][timeout:300];
 
-area["name"="Варна"]["admin_level"="8"]->.searchArea;
+area["name"="България"]["boundary"="administrative"]->.searchArea;
 
 (
   node["amenity"="recycling"](area.searchArea);
@@ -51,4 +53,32 @@ export async function GET(req: NextRequest) {
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
+}
+
+interface Bin {
+  id: number;
+  lat: number
+  lon: number
+  tags: Record<string, any>
+  osm_type: "node" | "way" | "relation"
+}
+
+async function storeBins(bins:Bin[]) {
+  const { data, error } = await supabase
+    .from('bins')
+    .upsert(
+      bins.map((b) => ({
+        id: b.id,
+        osm_type: b.osm_type,
+        lat: b.lat,
+        lon: b.lon,
+        tags: b.tags,
+        updated_at: new Date().toISOString(),
+      })),
+      {
+        onConflict: 'id,osm_type',
+      }
+    );
+    if (error) console.error('Supabase upsert error:', error);
+    else console.log(`Upserted ${bins.length} bins`);
 }

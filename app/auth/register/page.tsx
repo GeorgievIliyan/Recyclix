@@ -1,6 +1,6 @@
 "use client"
 
-import { supabaseBrowser } from "@/lib/supabase-browser"
+import { supabase } from "@/lib/supabase-browser"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 
@@ -60,7 +60,7 @@ function RegisterPage() {
 
   const handleGoogleRegister = async () => {
     try {
-      const { data, error } = await supabaseBrowser.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: { redirectTo: window.location.origin + "/dashboard" },
       })
