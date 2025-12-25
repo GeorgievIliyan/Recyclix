@@ -9,6 +9,17 @@
   width: 100%;
 }
 
+@layer components {
+  .marker-recycling {
+    @apply w-6 h-6 rounded-full bg-green-500 border-2 border-white shadow-md;
+  }
+
+  .marker-trash {
+    @apply w-6 h-6 rounded-full bg-gray-500 border-2 border-white shadow-md;
+  }
+}
+
+
 .leaflet-container img,
 .leaflet-tile {
   max-width: none !important;

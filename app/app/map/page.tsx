@@ -10,13 +10,38 @@ const MapComponent = dynamic(
   { ssr: false }
 );
 
-async function getBins() {
-  const { data, error } = await supabase
-    .from("recycling_bins")
-    .select("lat, lon, tags");
+export async function getBins(): Promise<Bin[]> {
+  const pageSize = 1000;
+  let allBins: Bin[] = [];
+  let from = 0;
+  let hasMore = true;
 
-  if (error) throw error;
-  return data as Bin[];
+  while (hasMore) {
+    const { data, error } = await supabase
+      .from("recycling_bins")
+      .select("id, lat, lon, tags")
+      .range(from, from + pageSize - 1);
+
+    if (error) throw error;
+
+    const mapped: Bin[] = (data ?? []).map(d => ({
+      id: d.id,
+      lat: d.lat,
+      lon: d.lon,
+      tags: d.tags,
+      osm_type: "node"
+    }));
+
+    allBins.push(...mapped);
+
+    if (!data || data.length < pageSize) {
+      hasMore = false;
+    } else {
+      from += pageSize;
+    }
+  }
+
+  return allBins;
 }
 
 export default function MapPage() {
@@ -33,14 +58,13 @@ export default function MapPage() {
 
   return (
     <main className="p-4 dark:bg-neutral-950">
-      <h1 className="text-xl font-bold mb-4">Recycling Points</h1>
 
-      <div className="h-[500px] w-full border rounded-lg">
+      <div className="h-screen w-full border">
         <MapComponent bins={bins} />
       </div>
 
       <p className="mt-2 text-sm text-gray-600">
-        Showing {bins.length} locations
+        Показване на {bins.length} локации
       </p>
     </main>
   );
