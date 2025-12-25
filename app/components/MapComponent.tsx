@@ -547,6 +547,6 @@ function getMaterialColor(material: string): string {
   if (material.includes("glass")) return "#34d399"; // green-400
   if (material.includes("organic") || material.includes("bio") || material.includes("compost")) return "#fbbf24"; // amber-400
   if (material.includes("electr") || material.includes("batter")) return "#c084fc"; // purple-400
-  if (material.includes("textile") || material.includes("cloth")) return "#f472b6"; // pink-400
+  if (material.includes("textile") || material.includes("cloth") || material.includes("clothes") || material.includes("shoes")) return "#f472b6"; // pink-400
   return "#9ca3af"; // gray-400 за неизвестни
 }
