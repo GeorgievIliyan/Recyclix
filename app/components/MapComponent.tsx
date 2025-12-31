@@ -199,7 +199,7 @@ const createIconForBin = (bin: Bin): L.DivIcon => {
 export default function MapComponent({ bins }: MapProps) {
   const mapRef = useRef<L.Map | null>(null);
   const [isMounted, setIsMounted] = useState(false);
-  const jawgApiKey = process.env.NEXT_PUBLIC_JAWG_KEY;
+  const jawgApiKey = process.env.JAWG_KEY;
 
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const [prefersDark, setPrefersDark] = useState(false);
