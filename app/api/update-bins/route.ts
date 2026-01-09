@@ -2,75 +2,91 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { nanoid } from "nanoid";
 
-// Вземаме текущата среда (development / production)
-const state = process.env.NODE_ENV;
-
-// Създаваме сървърен Supabase клиент с service key
+// Supabase server client със service role ключ
 export const supabaseServer = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_KEY!
+)
 
 export async function GET(req: Request) {
-  // Ако не сме в development среда, проверяваме x-api-key заглавие
-  if (state !== "development") {
+  // Защита на endpoint-а в production чрез API key
+  if (process.env.NODE_ENV !== "development") {
     const apiKey = req.headers.get("x-api-key");
     if (!apiKey || apiKey !== process.env.SECURE_API_KEY) {
-      return NextResponse.json({ error: "Неоторизиран достъп" }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
   }
-
-  // Overpass QL заявка за България
+  // Overpass QL заявка за всички рециклиращи кошчета в България
   const query = `
-    [out:json][timeout:300];
-    area["name"="България"]["boundary"="administrative"]->.searchArea;
+    [out:json][timeout:600];
+    area["ISO3166-1"="BG"]->.searchArea;
     (
       node["amenity"="recycling"](area.searchArea);
       way["amenity"="recycling"](area.searchArea);
-      rel["amenity"="recycling"](area.searchArea);
-      node["recycling"="yes"](area.searchArea);
-      way["recycling"="yes"](area.searchArea);
-      node["waste"="recycling"](area.searchArea);
-      way["waste"="recycling"](area.searchArea);
     );
     out body center;
   `;
 
   try {
-    // Изпращаме POST заявката към Overpass API
+    // Изпращане на заявка към Overpass API
     const res = await fetch("https://overpass-api.de/api/interpreter", {
       method: "POST",
       headers: {
-        "Content-Type": "application/x-www-form-urlencoded", // задължително
+        "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: new URLSearchParams({ data: query }), // query се изпраща като form data
+      body: new URLSearchParams({ data: query }),
     });
 
-    // Парсваме отговора като JSON
-    const data = await res.json();
+    // Вземаме raw текста от отговора
+    const text = await res.text();
 
-    // Форматиране на кошчетата за Supabase
-    const bins = data.elements.map((el: any) => ({
-      osm_id: el.id.toString(),
-      lat: el.lat ?? el.center?.lat, // ако е way/rel вземаме center
-      lon: el.lon ?? el.center?.lon,
-      tags: el.tags ?? {},
-      code: nanoid(6),
-    }));
+    // Опит за парсване като JSON
+    let data: any;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      // Overpass е върнал HTML/XML (грешка или rate limit)
+      console.error("Overpass не върна JSON:", text);
+      return NextResponse.json(
+        { error: "Overpass не върна валиден JSON" },
+        { status: 500 }
+      );
+    }
 
-    // Записваме или обновяваме в Supabase (upsert)
+    // Подготовка на данните за запис в Supabase
+    const bins = data.elements
+      .map((el: any) => ({
+        osm_id: el.id.toString(),
+        lat: el.lat ?? el.center?.lat,
+        lon: el.lon ?? el.center?.lon,
+        tags: el.tags ?? {},
+        code: nanoid(6),
+      }))
+      // Филтър срещу невалидни координати
+      .filter(
+        (b: any) =>
+          typeof b.lat === "number" && typeof b.lon === "number"
+      );
+
+    // Upsert по osm_id (без дублиране)
     const { error } = await supabaseServer
       .from("recycling_bins")
       .upsert(bins, { onConflict: "osm_id" });
 
     if (error) {
+      console.error("Supabase upsert error:", error.message);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     // Успешен отговор
-    return NextResponse.json({ inserted: bins.length });
+    return NextResponse.json({
+      inserted: bins.length,
+    });
   } catch (err: any) {
-    console.error("Грешка при Overpass заявка:", err);
-    return NextResponse.json({ error: "Грешка при Overpass заявка" }, { status: 500 });
+    console.error("Грешка при Overpass заявката:", err);
+    return NextResponse.json(
+      { error: "Грешка при Overpass заявката" },
+      { status: 500 }
+    );
   }
 }

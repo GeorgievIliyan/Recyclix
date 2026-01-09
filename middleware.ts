@@ -1,69 +1,55 @@
-import { NextResponse } from "next/server"
-import type { NextRequest } from "next/server"
-import { createServerClient } from "@supabase/ssr"
+import { createServerClient } from "@supabase/ssr";
+import { NextResponse, type NextRequest } from "next/server";
 
 export async function middleware(req: NextRequest) {
-  // Създаваме отговор, който ще върнем в края
-  const res = NextResponse.next()
+  let response = NextResponse.next({
+    request: { headers: req.headers },
+  });
 
-  // Създаваме Supabase клиент за SSR (server-side)
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        // Функция за четене на cookie
-        get(name: string) {
-          return req.cookies.get(name)?.value
+        getAll() {
+          return req.cookies.getAll();
         },
-        // Функция за задаване на cookie
-        set(name: string, value: string, options: any) {
-          res.cookies.set({ name, value, ...options })
-        },
-        // Функция за премахване на cookie
-        remove(name: string, options: any) {
-          res.cookies.set({ name, value: "", ...options })
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) => req.cookies.set(name, value));
+          response = NextResponse.next({
+            request: { headers: req.headers },
+          });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          );
         },
       },
     }
-  )
+  );
 
-  // Вземаме текущата сесия на потребителя
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
+  // This refreshes the session if it's expired
+  const { data: { user } } = await supabase.auth.getUser();
 
-  const pathname = req.nextUrl.pathname
+  const pathname = req.nextUrl.pathname;
 
-  // Проверка дали страницата е част от auth (логин/регистрация)
-  const isAuthPage = pathname.startsWith("/auth")
-
-  // Проверка дали маршрута е защитен (dashboard или частно API)
-  const isProtectedRoute =
-    pathname.startsWith("/dashboard") ||
-    pathname.startsWith("/api/private")
-
-  // Защита на защитените маршрути
-  if (isProtectedRoute && !session) {
-    // Ако потребителят не е логнат, го пренасочваме към login
-    return NextResponse.redirect(new URL("/auth/login", req.url))
+  // Protect Dashboard
+  if (pathname.startsWith("/dashboard") && !user) {
+    return NextResponse.redirect(new URL("/auth/login", req.url));
   }
 
-  // Предотвратяване на достъп до auth страници за вече логнати потребители
-  if (isAuthPage && session) {
-    // Пренасочваме логнатите потребители към dashboard
-    return NextResponse.redirect(new URL("/dashboard", req.url))
+  // Redirect logged-in users away from auth pages
+  if (pathname.startsWith("/auth") && user) {
+    return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
-  // Връщаме отговора по подразбиране
-  return res
+  return response;
 }
 
-// Конфигурация за маршрути, на които се прилага middleware-а
 export const config = {
   matcher: [
-    "/dashboard/:path*",   // Всички dashboard маршрути
-    "/api/private/:path*", // Всички private API маршрути
-    "/auth/:path*",        // Всички auth маршрути
+    "/dashboard/:path*",
+    "/auth/:path*",
+    "/api/gemini-confirm", // Added explicitly
+    "/api/private/:path*",
   ],
-}
+};
