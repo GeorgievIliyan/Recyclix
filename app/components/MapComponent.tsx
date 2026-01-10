@@ -5,7 +5,7 @@ import L from "leaflet"
 import { useEffect, useRef, useState, useMemo, useCallback, memo } from "react"
 import { renderToString } from "react-dom/server"
 import { Trash2 } from "@/components/animate-ui/icons/trash-2"
-import { Recycle, Home, Filter, X } from "lucide-react"
+import { Recycle, MapPin, Filter, X, Home, Flag, PenLine } from "lucide-react"
 
 // Типизация за данни от OpenStreetMap (OSM)
 export interface Bin {
@@ -137,6 +137,25 @@ const FILTER_OPTIONS = [
   },
 ]
 
+const materialTranslations: Record<string, string> = {
+  plastic: "пластмаса",
+  glass: "стъкло",
+  paper: "хартия",
+  metal: "метал",
+  residual: "общи отпадъци",
+  clothes: "дрехи",
+  shoes: "обувки",
+  magazines: "списания",
+  "paper packaging": "опаковки",
+  cardboard: "картон",
+  newspaper: "вестници",
+  books: "книги",
+  "glass bottles": "стъклени бутилки",
+  "electrical appliances": "ел. уреди",
+  cans: "кенове",
+  "plastic bottles": "пластмасови бутилки"
+};
+
 // Контейнер за маркери с визуален ефект на пръстен
 const MarkerWrapperWithRing = ({
   color,
@@ -181,7 +200,7 @@ const UserMarkerIcon = L.divIcon({
     <div className="relative">
       <div className="absolute inset-0 rounded-full" style={{ border: '2px solid rgba(255, 255, 255, 0.3)', margin: '-2px' }} />
       <div className="w-8 h-8 rounded-full bg-gradient-to-r from-cyan-400 to-cyan-500 shadow-lg flex items-center justify-center relative z-10">
-        <Home className="w-5 h-5 text-white" />
+        <MapPin className="w-5 h-5 text-white" />
       </div>
     </div>
   ),
@@ -300,6 +319,10 @@ function getMaterialColor(material: string): string {
   return "#9ca3af"
 }
 
+const handleReport = (bin: any) => {}
+
+const handleEdit = (bin: any) => {}
+
 // Оптимизиран компонент за рендиране само на маркерите във видимата част на екрана
 const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
   filteredBins,
@@ -391,92 +414,112 @@ const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
           .map(([k]) => k.replace("recycling:", "").replace(/_/g, " "))
 
         const popupContent = (
-          <div className="p-4 min-w-[200px]">
-            <div className="flex items-start gap-3 mb-4">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getColorForBin(bin)}`}>
+          <div className="relative p-4 min-w-[220px]">
+            {/* Action icons */}
+            <div className="absolute top-3 right-3 flex gap-2">
+              <button
+                className="p-1.5 rounded-md hover:bg-red-50 text-red-500 transition"
+                title="Докладвай проблем"
+                onClick={() => handleReport(bin)}
+              >
+                <Flag className="w-4 h-4" />
+              </button>
+
+              <button
+                className="p-1.5 rounded-md hover:bg-gray-100 text-gray-600 transition"
+                title="Редактирай"
+                onClick={() => handleEdit(bin)}
+              >
+                <PenLine className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Header */}
+            <div className="flex items-start gap-3 pr-10">
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center ${getColorForBin(bin)}`}
+              >
                 {bin.tags?.amenity === "waste_basket" ? (
                   <Trash2 className="w-5 h-5 text-white" />
                 ) : (
                   <Recycle className="w-5 h-5 text-white" strokeWidth={2.5} />
                 )}
               </div>
+
               <div>
-                <h3 className="font-bold text-lg text-gray-800">
-                  {bin.tags?.amenity === "waste_basket" ? "Кошче за боклук" : "Място за рециклиране"}
+                <h3 className="font-bold text-base text-gray-800">
+                  {bin.tags?.amenity === "waste_basket"
+                    ? "Кошче за боклук"
+                    : "Място за рециклиране"}
                 </h3>
-                {bin.tags?.name && <p className="text-sm text-gray-600 mt-1">{bin.tags.name}</p>}
+                {bin.tags?.name && (
+                  <p className="text-sm text-gray-600">{bin.tags.name}</p>
+                )}
               </div>
             </div>
 
-            <div className="space-y-3">
+            {/* Content */}
+            <div className="mt-3 space-y-3">
               {bin.tags?.opening_hours && (
                 <div className="bg-blue-50 p-2 rounded-md">
-                  <div className="flex items-center gap-2">
-                    <div className="text-blue-500">
-                      <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    <p className="text-sm text-blue-700">
-                      <span className="font-medium">Работно време:</span> {bin.tags.opening_hours}
-                    </p>
+                  <div className="flex items-center gap-2 text-blue-700 text-sm">
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    <span>
+                      <strong>Работно време:</strong> {bin.tags.opening_hours}
+                    </span>
                   </div>
                 </div>
               )}
 
               {acceptedMaterials.length > 0 && (
                 <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-4 h-4 text-green-500">
-                      <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    <p className="text-sm font-semibold text-gray-800">Приема материали:</p>
-                  </div>
+                  <p className="text-sm font-semibold text-gray-800 mb-2">
+                    Приема:
+                  </p>
+
                   <div className="grid grid-cols-2 gap-1.5">
                     {acceptedMaterials.slice(0, 6).map((material, idx) => {
-                      const cleanMaterial = material.trim().toLowerCase()
-                      const color = getMaterialColor(cleanMaterial)
+                      const translated =
+                        materialTranslations[material.trim().toLowerCase()] ||
+                        material
+                      const color = getMaterialColor(translated)
+
                       return (
                         <div
                           key={idx}
-                          className="flex items-center gap-2 px-2 py-1.5 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors"
+                          className="flex items-center gap-2 px-2 py-1.5 bg-gray-50 rounded-md"
                         >
                           <div
                             className="w-3 h-3 rounded-full flex-shrink-0"
                             style={{ backgroundColor: color }}
                           />
-                          <span className="text-xs text-gray-700 truncate">
-                            {material.charAt(0).toUpperCase() + material.slice(1)}
+                          <span className="text-xs text-gray-700 truncate capitalize">
+                            {translated}
                           </span>
                         </div>
                       )
                     })}
+
                     {acceptedMaterials.length > 6 && (
-                      <div className="col-span-2 text-center">
-                        <span className="text-xs text-gray-500">
-                          +{acceptedMaterials.length - 6} още
-                        </span>
+                      <div className="col-span-2 text-center text-xs text-gray-500">
+                        +{acceptedMaterials.length - 6} още
                       </div>
                     )}
                   </div>
                 </div>
               )}
-
-              {bin.tags?.ref && (
-                <div className="pt-2 border-t border-gray-200">
-                  <p className="text-xs text-gray-500">
-                    <span className="font-medium">ID:</span> {bin.tags.ref}
-                  </p>
-                </div>
-              )}
-            </div>
-
-            <div className="mt-4 pt-3 border-t border-gray-200">
-              <p className="text-xs text-gray-400 text-center">
-                Кликнете извън popup-а, за да го затворите
-              </p>
             </div>
           </div>
         )
@@ -921,10 +964,74 @@ export default function MapComponent({ bins, onNewBinCreated, jawgApiKey }: MapP
     setActiveFilters((prev) => prev.filter((id) => id !== filterId))
   }, [])
 
-  /* Нулиране на изгледа */
   const handleZoomHome = () => {
-    mapRef.current?.setView(DEFAULT_CENTER, DEFAULT_ZOOM, { animate: true })
-  }
+    const map = mapRef.current;
+    if (!map) return; // Ако картата не е заредена, не правим нищо
+
+    // Запазваме текущия изглед за fallback при неуспех
+    const previousBounds = map.getBounds();
+    let isLocationFound = false; // Флаг за успешно намиране на локация
+
+    // Функция, която се извиква при успешно намиране на местоположението
+    const onLocationFound = (e: L.LocationEvent) => {
+      isLocationFound = true;
+      const targetZoom = 20; // Максимален zoom (улично ниво)
+      const targetLatLng = e.latlng; // Координати на потребителя
+      
+      // Плавно преместване към локацията с анимация
+      map.flyTo(targetLatLng, targetZoom, {
+        animate: true,
+        duration: 2.5, // Оптимално време за плавност
+        easeLinearity: 0.25, // Коефициент за естествено движение
+        noMoveStart: true // Избягва рязко начално движение
+      });
+    };
+
+    // Функция за обработка на грешки при определяне на местоположение
+    const onLocationError = (e: L.ErrorEvent) => {
+      console.warn("Грешка при определяне на локация:", e.message);
+      // Може да се добави визуална нотификация за потребителя
+    };
+
+    // Регистрираме еднократни слушатели за събитията
+    map.once("locationfound", onLocationFound);
+    map.once("locationerror", onLocationError);
+
+    // Стартираме търсене на геолокация
+    map.locate({
+      setView: false, // Не променяме изгледа веднага
+      watch: false, // Еднократно търсене
+      enableHighAccuracy: true, // По-висока точност за zoom 20
+      timeout: 10000 // 10 секунди максимално време за търсене
+    });
+
+    // Fallback таймер - ако локацията не се намери навреме
+    const fallbackTimeoutId = setTimeout(() => {
+      // Проверяваме дали картата все още съществува и локация не е намерена
+      if (!isLocationFound && map) {
+        // Премахваме слушателите, за да не се извикат повече от веднъж
+        map.off("locationfound", onLocationFound);
+        map.off("locationerror", onLocationError);
+        
+        // Връщаме се към предишния изглед с анимация
+        map.flyToBounds(previousBounds, {
+          animate: true,
+          duration: 1.5,
+          padding: [50, 50] // Отстъп от краищата на екрана
+        });
+      }
+    }, 5000); // Изчакваме 5 секунди преди fallback
+
+    // Функция за почистване на ресурсите
+    return () => {
+      clearTimeout(fallbackTimeoutId); // Спираме таймера
+      if (map) {
+        // Премахваме слушателите за събития
+        map.off("locationfound", onLocationFound);
+        map.off("locationerror", onLocationError);
+      }
+    };
+  };
 
   const handleMapClick = useCallback((latlng: L.LatLng) => {
     setTempMarkerPosition([latlng.lat, latlng.lng])
@@ -1087,6 +1194,10 @@ export default function MapComponent({ bins, onNewBinCreated, jawgApiKey }: MapP
               : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           }
           attribution="&copy; OpenStreetMap contributors"
+          maxNativeZoom={20}
+          maxZoom={22}
+          minZoom={4}
+          minNativeZoom={4}
         />
 
         {/* Локация на потребителя */}
