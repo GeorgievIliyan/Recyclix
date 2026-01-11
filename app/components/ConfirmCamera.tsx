@@ -3,7 +3,7 @@
 import { useRef, useState, useEffect } from "react";
 
 interface ConfirmCameraProps {
-  userDailyTaskId: string; // must be primary key from user_daily_tasks
+  userDailyTaskId: string;
   onConfirm: (success: boolean) => void;
 }
 

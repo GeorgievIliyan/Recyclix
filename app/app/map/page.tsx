@@ -60,7 +60,7 @@ export default function MapPage() {
     <main className="p-4 dark:bg-neutral-950">
 
       <div className="h-screen w-full border">
-        <MapComponent bins={bins} />
+        <MapComponent bins={bins} jawgApiKey={process.env.NEXT_PUBLIC_JAWG_KEY}/>
       </div>
 
       <p className="mt-2 text-sm text-gray-600">
