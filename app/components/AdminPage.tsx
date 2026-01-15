@@ -4,14 +4,12 @@ import { useState, useEffect, type ReactNode } from "react"
 import {
   CheckCircle,
   XCircle,
-  Edit2,
   MapPin,
   User,
   Eye,
   EyeOff,
   Search,
   Loader2,
-  HardDrive,
   Package,
   RefreshCw,
   Shield,
@@ -21,7 +19,6 @@ import {
   Hash,
   Navigation,
   Building,
-  AlertTriangle,
   Trash2,
   Globe,
   CircleCheck,
@@ -31,8 +28,6 @@ import {
   Trash,
   Flag,
   MessageCircle,
-  AlertCircle,
-  Check,
   X,
 } from "lucide-react"
 import LeafletMap from "./LeafletMap"
@@ -46,20 +41,16 @@ export interface Bin {
   operator?: string
   count?: number
 
-  // Информация за потребителя
   user_username?: string
   user_email?: string
 
-  // Информация за рециклиране
   amenity?: "recycling" | "trash"
   recycling_type?: string
   recycling_clothes?: boolean
   recycling_shoes?: boolean
 
-  // Таговете могат да бъдат всякакъв обект
   tags?: Record<string, any>
 
-  // Допълнителни полета от API-то
   [key: string]: any
 }
 
@@ -93,13 +84,20 @@ interface EditSuggestion {
   reviewed_at?: string
   review_notes?: string
   bin?: Bin
-  field_name?: string // Added for edit suggestions display
-  old_value?: any // Added for edit suggestions display
-  new_value?: any // Added for edit suggestions display
-  reason?: string // Added for edit suggestions display
+  field_name?: string
+  old_value?: any
+  new_value?: any
+  reason?: string
 }
 
-// Интерфейс за отчети за проблеми
+interface ReportImage {
+  id: string
+  report_id: string
+  photo_url: string
+  created_at: string
+  user_id: string
+}
+
 interface Report {
   id: string
   bin_id: string
@@ -115,6 +113,8 @@ interface Report {
   bin_lat?: number
   bin_lon?: number
   bin?: Bin
+  photo_url?: string // Директно поле в reports таблицата
+  images?: ReportImage[] // От report_photos таблицата
 }
 
 export async function checkAdminStatus(userId: string): Promise<boolean> {
@@ -183,13 +183,22 @@ export async function getPendingBins(): Promise<Bin[]> {
         let userEmail = "Анонимен"
         let userUsername = "Анонимен"
         if (bin.user_id) {
-          const { data: userData } = await supabase
-            .from("profiles")
-            .select("email, username")
-            .eq("id", bin.user_id)
-            .single()
-          userEmail = userData?.email || "Анонимен"
-          userUsername = userData?.username || userData?.email || "Анонимен"
+          // Първо опитване от auth.users
+          const { data: authUser, error: authError } = await supabase.auth.admin.getUserById(bin.user_id)
+          
+          if (!authError && authUser?.user) {
+            userEmail = authUser.user.email || "Анонимен"
+            userUsername = authUser.user.user_metadata?.username || authUser.user.email || "Анонимен"
+          } else {
+            // Резервен вариант към profiles таблицата
+            const { data: profileData } = await supabase
+              .from("profiles")
+              .select("email, username")
+              .eq("id", bin.user_id)
+              .single()
+            userEmail = profileData?.email || "Анонимен"
+            userUsername = profileData?.username || profileData?.email || "Анонимен"
+          }
         }
 
         return {
@@ -223,12 +232,20 @@ export async function getEditSuggestions(): Promise<EditSuggestion[]> {
       (data || []).map(async (suggestion) => {
         let userEmail = "Анонимен"
         if (suggestion.user_id) {
-          const { data: userData } = await supabase
-            .from("profiles")
-            .select("email")
-            .eq("id", suggestion.user_id)
-            .single()
-          userEmail = userData?.email || "Анонимен"
+          // Първо опитай да вземеш от auth.users
+          const { data: authUser, error: authError } = await supabase.auth.admin.getUserById(suggestion.user_id)
+          
+          if (!authError && authUser?.user) {
+            userEmail = authUser.user.email || "Анонимен"
+          } else {
+            // Резервен вариант към profiles таблицата
+            const { data: profileData } = await supabase
+              .from("profiles")
+              .select("email")
+              .eq("id", suggestion.user_id)
+              .single()
+            userEmail = profileData?.email || "Анонимен"
+          }
         }
 
         // Вземане на информация за коша
@@ -271,8 +288,8 @@ export async function getEditSuggestions(): Promise<EditSuggestion[]> {
 // Функция за зареждане на отчети за проблеми
 export async function getReports(): Promise<Report[]> {
   try {
-    // Вземане на всички отчети (неразрешени по подразбиране)
-    const { data, error } = await supabase
+    // Вземане на всички отчети
+    const { data: reportsData, error } = await supabase
       .from("reports")
       .select("*")
       .order("created_at", { ascending: false })
@@ -281,18 +298,22 @@ export async function getReports(): Promise<Report[]> {
 
     // Обогатяване на всяко предложение със детайли за потребителя и коша
     const reportsWithDetails = await Promise.all(
-      (data || []).map(async (report) => {
+      (reportsData || []).map(async (report) => {
         // Детайли за потребителя
         let userEmail = "Анонимен"
         let userUsername = "Анонимен"
         if (report.user_id) {
-          const { data: userData } = await supabase
-            .from("profiles")
-            .select("email, username")
-            .eq("id", report.user_id)
-            .single()
-          userEmail = userData?.email || "Анонимен"
-          userUsername = userData?.username || userData?.email || "Анонимен"
+          try {
+            // Опитай да вземеш от auth.users
+            const { data: authUser, error: authError } = await supabase.auth.admin.getUserById(report.user_id)
+            
+            if (!authError && authUser?.user) {
+              userEmail = authUser.user.email || "Анонимен"
+              userUsername = authUser.user.user_metadata?.username || authUser.user.email || "Анонимен"
+            }
+          } catch (authError) {
+            console.log("Неуспешно извличане на потребител от auth:", authError)
+          }
         }
 
         // Детайли за коша
@@ -300,27 +321,35 @@ export async function getReports(): Promise<Report[]> {
         let binCode = ""
         let binLat = 0
         let binLon = 0
-        
+
         if (report.bin_id) {
           const { data: binFromRecycling } = await supabase
             .from("recycling_bins")
-            .select("*")
+            .select("code, lat, lon")
             .eq("id", report.bin_id)
             .single()
 
           if (binFromRecycling) {
-            binData = {
-              id: binFromRecycling.id,
-              code: binFromRecycling.code,
-              lat: binFromRecycling.lat,
-              lon: binFromRecycling.lon,
-              tags: binFromRecycling.tags,
-              created_at: binFromRecycling.created_at,
-            }
             binCode = binFromRecycling.code
-            binLat = binFromRecycling.lat
-            binLon = binFromRecycling.lon
+            binLat = binFromRecycling.lat || 0
+            binLon = binFromRecycling.lon || 0
           }
+        }
+
+        // Извличане на снимки от report_photos таблицата
+        let images: ReportImage[] = []
+        try {
+          const { data: imagesData, error: imagesError } = await supabase
+            .from("report_photos")
+            .select("*")
+            .eq("report_id", report.id)
+            .order("created_at", { ascending: true })
+          
+          if (!imagesError && imagesData) {
+            images = imagesData
+          }
+        } catch (imgError) {
+          console.error("Грешка при извличане на снимки от report_photos:", imgError)
         }
 
         return {
@@ -331,6 +360,7 @@ export async function getReports(): Promise<Report[]> {
           bin_lat: binLat,
           bin_lon: binLon,
           bin: binData,
+          images: images,
         }
       }),
     )
@@ -344,12 +374,7 @@ export async function getReports(): Promise<Report[]> {
 
 export async function getStats() {
   try {
-    const [
-      { count: pending }, 
-      { count: approved }, 
-      { count: suggestions },
-      { count: reports }
-    ] = await Promise.all([
+    const [{ count: pending }, { count: approved }, { count: suggestions }, { count: reports }] = await Promise.all([
       supabase.from("pending_bins").select("*", { count: "exact", head: true }).eq("status", "pending"),
       supabase.from("recycling_bins").select("*", { count: "exact", head: true }),
       supabase.from("edit_suggestions").select("*", { count: "exact", head: true }).eq("status", "pending"),
@@ -467,6 +492,25 @@ export async function resolveReport(reportId: string): Promise<boolean> {
 // Функция за изтриване на отчет
 export async function deleteReport(reportId: string): Promise<boolean> {
   try {
+    // Първо изтрий свързаните снимки от report_photos
+    const { data: images } = await supabase
+      .from("report_photos")
+      .select("id, photo_url")
+      .eq("report_id", reportId)
+    
+    if (images && images.length > 0) {
+      // Изтриване на записите от report_photos
+      const { error: deleteImagesError } = await supabase
+        .from("report_photos")
+        .delete()
+        .eq("report_id", reportId)
+      
+      if (deleteImagesError) {
+        console.error("Грешка при изтриване на снимки:", deleteImagesError)
+      }
+    }
+
+    // След това изтрий отчета от reports
     const { error } = await supabase.from("reports").delete().eq("id", reportId)
 
     if (error) {
@@ -495,7 +539,7 @@ async function approveSuggestion(suggestionId: string, suggestionData: EditSugge
     }
 
     // Вземане на текущите данни на коша - използвайте suggestion.bin_id
-    const { data: binData, error: binFetchError } = await supabase
+    let { data: binData, error: binFetchError } = await supabase
       .from("recycling_bins")
       .select("*")
       .eq("id", suggestionData.bin_id) // Променено от .eq("code", suggestionData.bin_id)
@@ -504,7 +548,7 @@ async function approveSuggestion(suggestionId: string, suggestionData: EditSugge
     if (binFetchError) {
       // Ако не намерим кош, проверяваме по код
       console.log("[v0] Опитваме се да намерим кош по код:", suggestionData.bin_id)
-      
+
       const { data: binByCode, error: codeError } = await supabase
         .from("recycling_bins")
         .select("*")
@@ -515,18 +559,19 @@ async function approveSuggestion(suggestionId: string, suggestionData: EditSugge
         console.error("[v0] Грешка при четене на кош:", codeError || "Кошът не е намерен")
         return false
       }
-      
+
       // Използваме намерения кош
-      var currentBinData = binByCode
-    } else {
-      var currentBinData = binData
+      binData = binByCode
     }
 
     // Проверка дали имаме валидни данни за коша
-    if (!currentBinData) {
+    if (!binData) {
       console.error("[v0] Няма намерен кош с ID:", suggestionData.bin_id)
       return false
     }
+
+    // Променлива за данните на коша
+    const currentBinData = binData
 
     // Подготовка на обновените тагове
     const currentTags = currentBinData?.tags || {}
@@ -635,8 +680,18 @@ function BinDetails({
   const [showDetails, setShowDetails] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
   const [showMapModal, setShowMapModal] = useState(false)
+  const [isMapMounted, setIsMapMounted] = useState(false)
 
   const formData = parseTagsObject(bin.tags)
+
+  // Зареждане на LeafletMap само когато модалът е отворен
+  useEffect(() => {
+    if (showMapModal) {
+      setIsMapMounted(true)
+    } else {
+      setIsMapMounted(false)
+    }
+  }, [showMapModal])
 
   const handleApprove = async () => {
     setIsProcessing(true)
@@ -651,7 +706,7 @@ function BinDetails({
   }
 
   const LeafletMapModal = () => {
-    if (!bin.lat || !bin.lon || !showMapModal) return null
+    if (!bin.lat || !bin.lon || !showMapModal || !isMapMounted) return null
 
     return (
       <div
@@ -673,7 +728,13 @@ function BinDetails({
           </div>
 
           <div className="p-4">
-            <LeafletMap lat={bin.lat} lon={bin.lon} />
+            {/* Използвай твоя LeafletMap компонент */}
+            <LeafletMap 
+              lat={bin.lat} 
+              lon={bin.lon} 
+              zoom={16}
+              height={500}
+            />
 
             <div className="mt-3 text-sm text-gray-600 dark:text-gray-400 flex items-center justify-center gap-2">
               <Navigation className="w-4 h-4" />
@@ -903,6 +964,9 @@ function BinDetails({
           </button>
         </div>
       </div>
+
+      {/* Рендирай модала за картата тук */}
+      <LeafletMapModal />
     </div>
   )
 }
@@ -952,7 +1016,6 @@ function SuggestionDetails({
 
           {/* Предложени промени */}
           <div className="space-y-3">
-            {/* Displaying specific fields that were changed */}
             {suggestion.field_name && (
               <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700">
                 <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
@@ -997,7 +1060,6 @@ function SuggestionDetails({
             )}
           </div>
 
-          {/* Showing original and new values for clarity */}
           {(suggestion.old_value !== undefined || suggestion.new_value !== undefined) && (
             <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700">
               <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
@@ -1112,6 +1174,7 @@ function ReportDetails({
   const [isProcessing, setIsProcessing] = useState(false)
   const [showDetails, setShowDetails] = useState(false)
   const [showMapModal, setShowMapModal] = useState(false)
+  const [selectedImage, setSelectedImage] = useState<string | null>(null)
 
   const handleResolve = async () => {
     setIsProcessing(true)
@@ -1127,15 +1190,65 @@ function ReportDetails({
 
   const getReportTypeLabel = (type: string): string => {
     const typeMap: Record<string, string> = {
-      "incorrect_location": "Грешна локация",
-      "bin_missing": "Липсващ кош",
-      "bin_damaged": "Повреден кош",
-      "wrong_materials": "Грешни материали",
-      "overflowing": "Препълнен",
-      "duplicate": "Дубликат",
-      "other": "Друг проблем"
+      incorrect_location: "Грешна локация",
+      bin_missing: "Липсващ кош",
+      bin_damaged: "Повреден кош",
+      wrong_materials: "Грешни материали",
+      overflowing: "Препълнен",
+      duplicate: "Дубликат",
+      other: "Друг проблем",
     }
     return typeMap[type] || type
+  }
+
+  // Функция за получаване на URL на снимка - ОПРАВЕНА
+  const getImageUrl = (photoUrl: string | undefined): string => {
+    if (!photoUrl) return "/placeholder.svg";
+    
+    console.log("Обработване на photo_url:", photoUrl);
+    
+    // Ако вече е пълен URL
+    if (photoUrl.startsWith('http')) {
+      console.log("Вече е пълен URL, връщам:", photoUrl);
+      return photoUrl;
+    }
+    
+    // Ако е име на файл (без път)
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    
+    // Проверка за обикновено име на файл
+    if (photoUrl.includes('.') && !photoUrl.includes('/')) {
+      const url = `${supabaseUrl}/storage/v1/object/public/report-photos/${photoUrl}`;
+      return url;
+    }
+    
+    // Ако е път, изчисти го
+    if (photoUrl.includes('/')) {
+      // Извличане само на името на файла
+      const fileName = photoUrl.split('/').pop() || photoUrl;
+      const url = `${supabaseUrl}/storage/v1/object/public/report-photos/${fileName}`;
+      return url;
+    }
+    
+    console.log("Неразпознат формат, връщам placeholder");
+    return "/placeholder.svg";
+  };
+
+  // Събираме всички снимки
+  const allImages: string[] = [];
+  
+  // Добавяме директната снимка от reports таблицата
+  if (report.photo_url) {
+    const url = getImageUrl(report.photo_url);
+    allImages.push(url);
+  }
+  
+  // Добавяме снимките от report_photos таблицата
+  if (report.images && report.images.length > 0) {
+    report.images.forEach(img => {
+      const url = getImageUrl(img.photo_url);
+      allImages.push(url);
+    });
   }
 
   const LeafletMapModal = () => {
@@ -1175,25 +1288,49 @@ function ReportDetails({
     )
   }
 
+  const ImageModal = () => {
+    if (!selectedImage) return null
+
+    return (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+        onClick={() => setSelectedImage(null)}
+      >
+        <div className="relative max-w-4xl max-h-[90vh]">
+          <button
+            onClick={() => setSelectedImage(null)}
+            className="absolute top-2 right-2 p-2 bg-white rounded-full hover:bg-gray-100"
+          >
+            <X className="w-5 h-5 text-gray-900" />
+          </button>
+          <img
+            src={selectedImage || "/placeholder.svg"}
+            alt="Report"
+            className="max-w-full max-h-[90vh] rounded-lg"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-gray-800">
       <div className="flex flex-col lg:flex-row gap-4">
         <div className="flex-1">
           <div className="flex items-start justify-between mb-3">
             <div>
-              <h3 className="font-semibold text-lg text-gray-900 dark:text-white">{report.title}</h3>
-              <div className="flex items-center gap-2 mt-1">
-                <Flag className="w-4 h-4 text-red-500" />
-                <span className="text-gray-600 dark:text-gray-400">
-                  {getReportTypeLabel(report.type)}
-                </span>
+              <h3 className="font-semibold text-3xl mb-3 text-gray-900 dark:text-white">{report.title}</h3>
+              <div className="flex items-center justify-items-center gap-2 mt-1">
+                <Flag className="w-4 h-4 text-red-500 translate-y-[1px]" />
+                <span className="text-red-600 dark:text-red-500">{getReportTypeLabel(report.type)}</span>
               </div>
             </div>
             <span
               className={`px-3 py-1 rounded-full text-sm font-medium ${
                 report.resolved
-                  ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
-                  : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300"
+                  ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-500"
+                  : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-500"
               }`}
             >
               {report.resolved ? "Разрешен" : "Активен"}
@@ -1206,9 +1343,9 @@ function ReportDetails({
                 <User className="w-4 h-4 text-gray-400" />
                 <div>
                   <span className="text-sm text-gray-500 dark:text-gray-400">Докладван от:</span>
-                  <p className="text-gray-700 dark:text-gray-300 font-medium">{report.user_username || "Анонимен"}</p>
+                  <p className="text-blue-600 dark:text-blue-400 font-medium">{report.user_username || "Анонимен"}</p>
                   {report.user_email && report.user_email !== "Анонимен" && (
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{report.user_email}</p>
+                    <p className="text-xs text-blue-600 dark:text-blue-400">{report.user_email}</p>
                   )}
                 </div>
               </div>
@@ -1217,7 +1354,7 @@ function ReportDetails({
                 <Calendar className="w-4 h-4 text-gray-400" />
                 <div>
                   <span className="text-sm text-gray-500 dark:text-gray-400">Дата на докладване:</span>
-                  <p className="text-gray-700 dark:text-gray-300">
+                  <p className="text-blue-600 dark:text-blue-400">
                     {report.created_at
                       ? new Date(report.created_at).toLocaleDateString("bg-BG", {
                           year: "numeric",
@@ -1238,22 +1375,24 @@ function ReportDetails({
                   <Hash className="w-4 h-4 text-gray-400" />
                   <div>
                     <span className="text-sm text-gray-500 dark:text-gray-400">Код на кош:</span>
-                    <p className="text-gray-700 dark:text-gray-300 font-mono text-sm">{report.bin_code}</p>
+                    <p className="text-blue-600 dark:text-blue-400 font-mono text-sm">{report.bin_code}</p>
                   </div>
                 </div>
               )}
 
               {report.bin_lat && report.bin_lon && (
                 <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-blue-500" />
+                  <MapPin className="w-4 h-4 text-gray-400" />
                   <div>
                     <span className="text-sm text-gray-500 dark:text-gray-400">Локация:</span>
-                    <button
-                      onClick={() => setShowMapModal(true)}
-                      className="text-blue-600 dark:text-blue-400 hover:underline text-sm"
-                    >
-                      {report.bin_lat.toFixed(4)}, {report.bin_lon.toFixed(4)}
-                    </button>
+                    <div>
+                      <button
+                        onClick={() => setShowMapModal(true)}
+                        className="text-blue-600 dark:text-blue-400 hover:underline text-sm"
+                      >
+                        {report.bin_lat.toFixed(4)}, {report.bin_lon.toFixed(4)}
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -1266,18 +1405,84 @@ function ReportDetails({
                 <MessageCircle className="w-4 h-4 text-gray-400" />
                 <span className="font-medium text-gray-700 dark:text-gray-300">Описание на проблема:</span>
               </div>
-              <div className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+              <div className="px- bg-gray-50 dark:bg-gray-800/50 rounded-lg">
                 <p className="text-gray-700 dark:text-gray-300">{report.description}</p>
               </div>
             </div>
           )}
 
-          {/* Детайли */}
+          {allImages.length > 0 ? (
+            <div className="mb-4">
+              <div className="flex items-center gap-2 mb-2">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+                <span className="font-medium text-gray-700 dark:text-gray-300">
+                  Прикачена снимка: 
+                </span>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                {allImages.map((imageUrl, index) => (
+                  <div
+                    key={index}
+                    className="relative group cursor-pointer overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700"
+                    onClick={() => setSelectedImage(imageUrl)}
+                  >
+                    <img
+                      src={imageUrl}
+                      alt={`Report ${index + 1}`}
+                      className="w-full h-32 object-cover group-hover:scale-110 transition-transform duration-200"
+                      onError={(e) => {
+                        e.currentTarget.src = "/placeholder.svg";
+                        e.currentTarget.classList.add("opacity-50");
+                        
+                        fetch(imageUrl, { method: 'HEAD' })
+                          .then(res => console.log("HTTP статус:", res.status))
+                          .catch(err => console.log("Fetch грешка:", err));
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-200 flex items-center justify-center">
+                      <Eye className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-800/30 rounded-lg border border-gray-200 dark:border-gray-700">
+              <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+                <span>Няма прикачени снимки</span>
+              </div>
+            </div>
+          )}
+
           {showDetails && (
             <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
               <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-2">Технически детайли:</h4>
               <pre className="text-xs text-gray-600 dark:text-gray-400 overflow-auto">
-                {JSON.stringify(report, null, 2)}
+                {JSON.stringify({
+                  ...report,
+                  // Не показвай снимките в детайлите
+                  images: report.images?.map(img => ({ 
+                    id: img.id, 
+                    has_photo: !!img.photo_url 
+                  })),
+                  has_photo_url: !!report.photo_url,
+                  all_images_count: allImages.length
+                }, null, 2)}
               </pre>
             </div>
           )}
@@ -1287,7 +1492,7 @@ function ReportDetails({
             className="mt-3 flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:underline"
           >
             {showDetails ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            {showDetails ? "Скрий детайли" : "Покажи детайли"}
+            {showDetails ? "Скрий детайли" : "Технически детайли"}
           </button>
         </div>
 
@@ -1312,8 +1517,9 @@ function ReportDetails({
           </button>
         </div>
       </div>
-      
+
       {showMapModal && <LeafletMapModal />}
+      {selectedImage && <ImageModal />}
     </div>
   )
 }
@@ -1377,25 +1583,25 @@ export function AdminPanel() {
     if (success) loadData()
   }
 
-  // Handler for approving suggestions
+  // Одобряване на 
   const handleApproveSuggestion = async (suggestionId: string, suggestionData: EditSuggestion) => {
     const success = await approveSuggestion(suggestionId, suggestionData)
-    if (success) loadData() // Reload data after successful approval
+    if (success) loadData() // Презараждена на данните
   }
 
-  // Handler for rejecting suggestions
+  // За отказване
   const handleRejectSuggestion = async (suggestionId: string) => {
     const success = await rejectSuggestion(suggestionId)
-    if (success) loadData() // Reload data after successful rejection
+    if (success) loadData()
   }
 
-  // Handler for resolving reports
+  // За отбелязване на оправени доклади
   const handleResolveReport = async (reportId: string) => {
     const success = await resolveReport(reportId)
     if (success) loadData()
   }
 
-  // Handler for deleting reports
+  // За изтриване на доклади
   const handleDeleteReport = async (reportId: string) => {
     const success = await deleteReport(reportId)
     if (success) loadData()
@@ -1640,7 +1846,7 @@ export function AdminRoute({ children }: { children: ReactNode }) {
           data: { user },
         } = await supabase.auth.getUser()
         if (!user) {
-          window.location.href = "/login"
+          window.location.href = "/auth/login"
           return
         }
 
