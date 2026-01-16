@@ -4,10 +4,43 @@ import "./globals.css";
 import "leaflet/dist/leaflet.css";
 import { Providers } from "./providers";
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+// Fonts
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+// Metadata
+export const metadata: Metadata = {
+  title: {
+    default: "Recyclix",
+    template: "%s | Recyclix",
+  },
+  description: "A smart app for modern recycling.",
+  icons: {
+    icon: [
+      { url: "/favicon.svg", sizes: "any" },
+    ],
+  },
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="antialiased">
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
         <Providers>{children}</Providers>
       </body>
     </html>

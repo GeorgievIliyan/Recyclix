@@ -40,17 +40,15 @@ export interface Bin {
   created_at?: string
   operator?: string
   count?: number
-
   user_username?: string
   user_email?: string
-
   amenity?: "recycling" | "trash"
   recycling_type?: string
   recycling_clothes?: boolean
   recycling_shoes?: boolean
-
   tags?: Record<string, any>
-
+  image_url?: string
+  image_urls?: string[]
   [key: string]: any
 }
 
@@ -183,14 +181,12 @@ export async function getPendingBins(): Promise<Bin[]> {
         let userEmail = "Анонимен"
         let userUsername = "Анонимен"
         if (bin.user_id) {
-          // Първо опитване от auth.users
           const { data: authUser, error: authError } = await supabase.auth.admin.getUserById(bin.user_id)
           
           if (!authError && authUser?.user) {
             userEmail = authUser.user.email || "Анонимен"
             userUsername = authUser.user.user_metadata?.username || authUser.user.email || "Анонимен"
           } else {
-            // Резервен вариант към profiles таблицата
             const { data: profileData } = await supabase
               .from("profiles")
               .select("email, username")
@@ -201,10 +197,13 @@ export async function getPendingBins(): Promise<Bin[]> {
           }
         }
 
+        const imageUrls = bin.image_url ? [bin.image_url] : []
+
         return {
           ...bin,
           user_email: userEmail,
           user_username: userUsername,
+          image_urls: imageUrls
         }
       }),
     )
@@ -393,6 +392,59 @@ export async function getStats() {
   }
 }
 
+function getStorageImageUrl(filePath: string): string {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  return `${supabaseUrl}/storage/v1/object/public/bins/${filePath}`
+}
+
+async function getBinImages(binId: string): Promise<string[]> {
+  try {
+    console.log(`🔍 Fetching images for bin ID: ${binId} from bucket: bins`);
+    
+    const { data, error } = await supabase.storage
+      .from('bins')  // ✅ CORRECT: Changed from 'bins-images' to 'bins'
+      .list(binId, {
+        limit: 100,
+        offset: 0,
+        sortBy: { column: 'name', order: 'asc' }
+      })
+
+    if (error) {
+      console.error('❌ Error fetching bin images:', error);
+      console.error('Error details:', {
+        message: error.message
+      });
+      return [];
+    }
+
+    console.log(`📁 Files found for bin ${binId}:`, data);
+
+    if (!data || data.length === 0) {
+      console.log(`ℹ️ No files found in bucket 'bins' for bin ID: ${binId}`);
+      return [];
+    }
+
+    // Filter for image files and create full URLs
+    const imageUrls = data
+      .filter(file => {
+        const extension = file.name.toLowerCase().split('.').pop();
+        const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'].includes(extension || '');
+        console.log(`📄 File: ${file.name}, extension: .${extension}, isImage: ${isImage}`);
+        return isImage;
+      })
+      .map(file => {
+        const url = getStorageImageUrl(`${binId}/${file.name}`);
+        console.log(`🔗 Generated URL: ${url}`);
+        return url;
+      });
+
+    console.log(`✅ Total image URLs for bin ${binId}: ${imageUrls.length}`);
+    return imageUrls;
+  } catch (error) {
+    console.error('❌ Error in getBinImages:', error);
+    return [];
+  }
+}
 export async function approveBin(binId: string, binData: Bin): Promise<boolean> {
   try {
     console.log("одобряване на кош:", binId, binData)
@@ -681,6 +733,8 @@ function BinDetails({
   const [isProcessing, setIsProcessing] = useState(false)
   const [showMapModal, setShowMapModal] = useState(false)
   const [isMapMounted, setIsMapMounted] = useState(false)
+  const [selectedImage, setSelectedImage] = useState<string | null>(null)
+  const [imageError, setImageError] = useState<Record<string, boolean>>({})
 
   const formData = parseTagsObject(bin.tags)
 
@@ -743,6 +797,36 @@ function BinDetails({
               </span>
             </div>
           </div>
+        </div>
+      </div>
+    )
+  }
+
+  const ImageModal = () => {
+    if (!selectedImage) return null
+
+    return (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+        onClick={() => setSelectedImage(null)}
+      >
+        <div className="relative max-w-4xl max-h-[90vh]">
+          <button
+            onClick={() => setSelectedImage(null)}
+            className="absolute top-2 right-2 p-2 bg-white rounded-full hover:bg-gray-100"
+          >
+            <X className="w-5 h-5 text-gray-900" />
+          </button>
+          <img
+            src={selectedImage || "/placeholder.svg"}
+            alt="Bin"
+            className="max-w-full max-h-[90vh] rounded-lg"
+            onClick={(e) => e.stopPropagation()}
+            onError={(e) => {
+              e.currentTarget.src = "/placeholder.svg"
+              e.currentTarget.classList.add("opacity-50")
+            }}
+          />
         </div>
       </div>
     )
@@ -924,6 +1008,61 @@ function BinDetails({
             </div>
           )}
 
+          {/* Image Gallery Section */}
+          {bin.image_urls && bin.image_urls.length > 0 ? (
+            <div className="mb-4">
+              <div className="flex items-center gap-2 mb-2">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+                <span className="font-medium text-gray-700 dark:text-gray-300">Снимки на коша:</span>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                {bin.image_urls.map((imageUrl, index) => (
+                  <div
+                    key={index}
+                    className="relative group cursor-pointer overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700"
+                    onClick={() => setSelectedImage(imageUrl)}
+                  >
+                    <img
+                      src={imageUrl}
+                      alt={`Bin ${index + 1}`}
+                      className="w-full h-32 object-cover group-hover:scale-110 transition-transform duration-200"
+                      onError={(e) => {
+                        e.currentTarget.src = "/placeholder.svg"
+                        e.currentTarget.classList.add("opacity-50")
+                        setImageError(prev => ({ ...prev, [imageUrl]: true }))
+                      }}
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-200 flex items-center justify-center">
+                      <Eye className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-800/30 rounded-lg border border-gray-200 dark:border-gray-700">
+              <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+                <span>Няма прикачени снимки</span>
+              </div>
+            </div>
+          )}
+
           {typeof window !== "undefined" && <MapPreview />}
 
           {/* Детайли */}
@@ -965,8 +1104,9 @@ function BinDetails({
         </div>
       </div>
 
-      {/* Рендирай модала за картата тук */}
+      {/* Рендиране модала за картата тук */}
       <LeafletMapModal />
+      <ImageModal />
     </div>
   )
 }

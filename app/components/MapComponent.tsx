@@ -37,6 +37,7 @@ export interface NewBin {
   last_emptied: string | null
   stats_today: string
   code: string
+  image_url: string
 }
 
 // Интерфейс за данните от формата за добавяне
@@ -452,6 +453,7 @@ function getCategoryForMaterial(material: string): string {
   return "Други"
 }
 
+
 // Интерфейс за съхранение на отчети за кошче
 interface BinReportHistory {
   lastReportTime: number
@@ -846,353 +848,6 @@ const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
   )
 })
 
-// Модален прозорец за добавяне на нов контейнер от потребител
-const AddBinModal = memo(function AddBinModal({
-  isModalOpen,
-  modalMode,
-  tempMarkerPosition,
-  formData,
-  reportData,
-  editData,
-  handleModalCancel,
-  handleFormSubmit,
-  handleInputChange,
-  updateReport,
-  updateEdit,
-  isSubmitting,
-  reportLimitsInfo,
-  reportImages,
-  uploadingImages,
-  handleImageSelect,
-  handleRemoveImage,
-}: {
-  isModalOpen: boolean
-  modalMode: ModalMode
-  tempMarkerPosition: [number, number] | null
-  formData: BinFormData
-  reportData: {
-    type: string
-    title: string
-    description: string
-  }
-  editData: EditFormData
-  handleModalCancel: () => void
-  handleFormSubmit: (e: React.FormEvent) => void
-  handleInputChange: (field: keyof BinFormData, value: string | boolean | number) => void
-  updateReport: (key: string, value: string) => void
-  updateEdit: (key: string, value: string | string[]) => void
-  isSubmitting?: boolean
-  reportLimitsInfo?: {
-    binReportsToday: number
-    binReportsLimit: number
-    userReportsThisHour: number
-    userReportsLimit: number
-  }
-  reportImages: File[]
-  uploadingImages: boolean
-  handleImageSelect: (e: React.ChangeEvent<HTMLInputElement>) => void
-  handleRemoveImage: (index: number) => void
-}) {
-  if (!isModalOpen) return null
-
-  return (
-    <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold text-gray-900">
-              {modalMode === "report"
-                ? "Докладване на проблем"
-                : modalMode === "edit"
-                  ? "Предложи редактиране"
-                  : "Добавяне на ново кошче"}
-            </h2>
-            <button
-              onClick={handleModalCancel}
-              className="p-1 hover:bg-gray-100 rounded-full transition-all duration-200 hover:rotate-90"
-              type="button"
-              disabled={isSubmitting || uploadingImages}
-            >
-              <X className="w-5 h-5 text-gray-600" />
-            </button>
-          </div>
-
-          {modalMode === "report" && reportLimitsInfo && (
-            <div className="mb-4 p-3 bg-red-50 rounded-lg border border-red-100">
-              <div className="flex items-start gap-2">
-                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                <div className="text-sm text-red-700">
-                  <p className="font-medium">Лимити на отчети:</p>
-                  <div className="mt-1 space-y-1">
-                    <p>
-                      • Отчети за това кошче днес: {reportLimitsInfo.binReportsToday}/{reportLimitsInfo.binReportsLimit}
-                    </p>
-                    <p>
-                      • Ваши отчети този час: {reportLimitsInfo.userReportsThisHour}/{reportLimitsInfo.userReportsLimit}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <form onSubmit={handleFormSubmit} className="space-y-4">
-            {modalMode === "report" ? (
-              <>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Тип проблем</label>
-                  <select
-                    value={reportData.type}
-                    onChange={(e) => updateReport("type", e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
-                    required
-                    disabled={isSubmitting || uploadingImages}
-                  >
-                    <option value="">Избери</option>
-                    <option value="incorrect_location">Грешна локация</option>
-                    <option value="bin_missing">Липсва</option>
-                    <option value="bin_damaged">Повредено</option>
-                    <option value="wrong_materials">Грешни материали</option>
-                    <option value="overflowing">Препълнено</option>
-                    <option value="duplicate">Дубликат</option>
-                    <option value="other">Друго</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Заглавие</label>
-                  <input
-                    value={reportData.title}
-                    onChange={(e) => updateReport("title", e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
-                    required
-                    placeholder="Напр. Кошчето е препълнено"
-                    disabled={isSubmitting || uploadingImages}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Описание (по избор)</label>
-                  <textarea
-                    value={reportData.description}
-                    onChange={(e) => updateReport("description", e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
-                    rows={3}
-                    placeholder="Опишете по-подробно проблема..."
-                    disabled={isSubmitting || uploadingImages}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Снимки (по избор, макс. 5)</label>
-                  <div className="space-y-3">
-                    {reportImages.length < 5 && (
-                      <label className="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 hover:bg-gray-50 transition-colors">
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                          </svg>
-                          <span>Добави снимка</span>
-                        </div>
-                        <input
-                          type="file"
-                          className="hidden"
-                          accept="image/*"
-                          multiple
-                          onChange={handleImageSelect}
-                          disabled={isSubmitting || uploadingImages}
-                        />
-                      </label>
-                    )}
-
-                    {reportImages.length > 0 && (
-                      <div className="grid grid-cols-2 gap-2">
-                        {reportImages.map((image, index) => (
-                          <div key={index} className="relative group">
-                            <img
-                              src={URL.createObjectURL(image) || "/placeholder.svg"}
-                              alt={`Preview ${index + 1}`}
-                              className="w-full h-24 object-cover rounded-lg border border-gray-200"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveImage(index)}
-                              className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                              disabled={isSubmitting || uploadingImages}
-                            >
-                              <X className="w-3 h-3" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {uploadingImages && (
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                        <span>Качване на снимки...</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </>
-            ) : modalMode === "edit" ? (
-              <>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Име на обекта (по избор)</label>
-                  <input
-                    value={editData.name}
-                    onChange={(e) => updateEdit("name", e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
-                    placeholder="Например: Рециклиране за квартал 'Младост'"
-                    disabled={isSubmitting}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Работно време (по избор)</label>
-                  <input
-                    value={editData.opening_hours}
-                    onChange={(e) => updateEdit("opening_hours", e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
-                    placeholder="Например: 08:00-20:00"
-                    disabled={isSubmitting}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Материали за рециклиране (разделени със запетая)
-                  </label>
-                  <textarea
-                    value={editData.materials.join(", ")}
-                    onChange={(e) => {
-                      const materials = e.target.value
-                        .split(",")
-                        .map((m) => m.trim())
-                        .filter((m) => m.length > 0)
-                      updateEdit("materials", materials)
-                    }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
-                    placeholder="Например: пластмаса, стъкло, хартия"
-                    rows={3}
-                    disabled={isSubmitting}
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Въведете материали, разделени със запетая</p>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Допълнителни бележки</label>
-                  <textarea
-                    value={editData.notes}
-                    onChange={(e) => updateEdit("notes", e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
-                    placeholder="Други предложения или корекции..."
-                    rows={3}
-                    disabled={isSubmitting}
-                  />
-                </div>
-              </>
-            ) : (
-              <>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Тип съоръжение</label>
-                  <input
-                    value={formData.amenity}
-                    onChange={(e) => handleInputChange("amenity", e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
-                    placeholder="recycling или waste_basket"
-                    disabled={isSubmitting}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Тип рециклиране</label>
-                  <input
-                    value={formData.recycling_type}
-                    onChange={(e) => handleInputChange("recycling_type", e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
-                    placeholder="пластмаса, стъкло, хартия"
-                    disabled={isSubmitting}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Оператор</label>
-                  <input
-                    value={formData.operator}
-                    onChange={(e) => handleInputChange("operator", e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
-                    placeholder="Име на организацията"
-                    disabled={isSubmitting}
-                  />
-                </div>
-
-                <div className="space-y-3">
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={formData.recycling_clothes}
-                      onChange={(e) => handleInputChange("recycling_clothes", e.target.checked)}
-                      className="h-4 w-4 text-green-600 border-gray-300 rounded"
-                      disabled={isSubmitting}
-                    />
-                    <span className="ml-2 text-sm text-gray-700">Приема дрехи (текстил)</span>
-                  </div>
-
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={formData.recycling_shoes}
-                      onChange={(e) => handleInputChange("recycling_shoes", e.target.checked)}
-                      className="h-4 w-4 text-green-600 border-gray-300 rounded"
-                      disabled={isSubmitting}
-                    />
-                    <span className="ml-2 text-sm text-gray-700">Приема обувки</span>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Брой контейнери</label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={formData.count}
-                    onChange={(e) => handleInputChange("count", Number.parseInt(e.target.value) || 1)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
-                    disabled={isSubmitting}
-                  />
-                </div>
-              </>
-            )}
-
-            <div className="flex gap-3 pt-4">
-              <button
-                type="button"
-                onClick={handleModalCancel}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={isSubmitting || uploadingImages}
-              >
-                Отказ
-              </button>
-              <button
-                type="submit"
-                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                disabled={isSubmitting || uploadingImages}
-              >
-                {isSubmitting && (
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                )}
-                {modalMode === "report" ? "Изпрати доклад" : modalMode === "edit" ? "Предложи промени" : "Добави"}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  )
-})
-
 // Страничен панел за филтрация на обектите на картата
 const FilterPanel = memo(function FilterPanel({
   showFilterPanel,
@@ -1448,6 +1103,419 @@ const deleteReport = async (reportId: string, userId: string): Promise<boolean> 
 export default function MapComponent({ bins, onNewBinCreated, jawgApiKey }: MapProps) {
   const mapRef = useRef<L.Map | null>(null)
   const [isMounted, setIsMounted] = useState(false)
+
+  // states за изображения
+  const [binImages, setBinImages] = useState<File[]>([])
+  const [uploadingBinImages, setUploadingBinImages] = useState(false)
+
+  const handleBinImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return
+    const filesArray = Array.from(e.target.files)
+    setBinImages((prev) => [...prev, ...filesArray].slice(0, 5))
+  }
+
+  const handleRemoveBinImage = (index: number) => {
+    setBinImages((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  // Модален прозорец за добавяне на нов контейнер от потребител
+  const AddBinModal = memo(function AddBinModal({
+    isModalOpen,
+    modalMode,
+    tempMarkerPosition,
+    formData,
+    reportData,
+    editData,
+    handleModalCancel,
+    handleFormSubmit,
+    handleInputChange,
+    updateReport,
+    updateEdit,
+    isSubmitting,
+    reportLimitsInfo,
+    reportImages,
+    uploadingImages,
+    handleImageSelect,
+    handleRemoveImage,
+  }: {
+    isModalOpen: boolean
+    modalMode: ModalMode
+    tempMarkerPosition: [number, number] | null
+    formData: BinFormData
+    reportData: {
+      type: string
+      title: string
+      description: string
+    }
+    editData: EditFormData
+    handleModalCancel: () => void
+    handleFormSubmit: (e: React.FormEvent) => void
+    handleInputChange: (field: keyof BinFormData, value: string | boolean | number) => void
+    updateReport: (key: string, value: string) => void
+    updateEdit: (key: string, value: string | string[]) => void
+    isSubmitting?: boolean
+    reportLimitsInfo?: {
+      binReportsToday: number
+      binReportsLimit: number
+      userReportsThisHour: number
+      userReportsLimit: number
+    }
+    reportImages: File[]
+    uploadingImages: boolean
+    handleImageSelect: (e: React.ChangeEvent<HTMLInputElement>) => void
+    handleRemoveImage: (index: number) => void
+  }) {
+    if (!isModalOpen) return null
+
+    return (
+      <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
+          <div className="p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-semibold text-gray-900">
+                {modalMode === "report"
+                  ? "Докладване на проблем"
+                  : modalMode === "edit"
+                    ? "Предложи редактиране"
+                    : "Добавяне на ново кошче"}
+              </h2>
+              <button
+                onClick={handleModalCancel}
+                className="p-1 hover:bg-gray-100 rounded-full transition-all duration-200 hover:rotate-90"
+                type="button"
+                disabled={isSubmitting || uploadingImages}
+              >
+                <X className="w-5 h-5 text-gray-600" />
+              </button>
+            </div>
+
+            {modalMode === "report" && reportLimitsInfo && (
+              <div className="mb-4 p-3 bg-red-50 rounded-lg border border-red-100">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <div className="text-sm text-red-700">
+                    <p className="font-medium">Лимити на отчети:</p>
+                    <div className="mt-1 space-y-1">
+                      <p>
+                        • Отчети за това кошче днес: {reportLimitsInfo.binReportsToday}/{reportLimitsInfo.binReportsLimit}
+                      </p>
+                      <p>
+                        • Ваши отчети този час: {reportLimitsInfo.userReportsThisHour}/{reportLimitsInfo.userReportsLimit}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <form onSubmit={handleFormSubmit} className="space-y-4">
+              {modalMode === "report" ? (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Тип проблем</label>
+                    <select
+                      value={reportData.type}
+                      onChange={(e) => updateReport("type", e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
+                      required
+                      disabled={isSubmitting || uploadingImages}
+                    >
+                      <option value="">Избери</option>
+                      <option value="incorrect_location">Грешна локация</option>
+                      <option value="bin_missing">Липсва</option>
+                      <option value="bin_damaged">Повредено</option>
+                      <option value="wrong_materials">Грешни материали</option>
+                      <option value="overflowing">Препълнено</option>
+                      <option value="duplicate">Дубликат</option>
+                      <option value="other">Друго</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Заглавие</label>
+                    <input
+                      value={reportData.title}
+                      onChange={(e) => updateReport("title", e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
+                      required
+                      placeholder="Напр. Кошчето е препълнено"
+                      disabled={isSubmitting || uploadingImages}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Описание (по избор)</label>
+                    <textarea
+                      value={reportData.description}
+                      onChange={(e) => updateReport("description", e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
+                      rows={3}
+                      placeholder="Опишете по-подробно проблема..."
+                      disabled={isSubmitting || uploadingImages}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Снимки (по избор, макс. 5)</label>
+                    <div className="space-y-3">
+                      {reportImages.length < 5 && (
+                        <label className="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 hover:bg-gray-50 transition-colors">
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                            </svg>
+                            <span>Добави снимка</span>
+                          </div>
+                          <input
+                            type="file"
+                            className="hidden"
+                            accept="image/*"
+                            multiple
+                            onChange={handleImageSelect}
+                            disabled={isSubmitting || uploadingImages}
+                          />
+                        </label>
+                      )}
+
+                      {reportImages.length > 0 && (
+                        <div className="grid grid-cols-2 gap-2">
+                          {reportImages.map((image, index) => (
+                            <div key={index} className="relative group">
+                              <img
+                                src={URL.createObjectURL(image) || "/placeholder.svg"}
+                                alt={`Preview ${index + 1}`}
+                                className="w-full h-24 object-cover rounded-lg border border-gray-200"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveImage(index)}
+                                className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                disabled={isSubmitting || uploadingImages}
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {uploadingImages && (
+                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                          <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                          <span>Качване на снимки...</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </>
+              ) : modalMode === "edit" ? (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Име на обекта (по избор)</label>
+                    <input
+                      value={editData.name}
+                      onChange={(e) => updateEdit("name", e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
+                      placeholder="Например: Рециклиране за квартал 'Младост'"
+                      disabled={isSubmitting}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Работно време (по избор)</label>
+                    <input
+                      value={editData.opening_hours}
+                      onChange={(e) => updateEdit("opening_hours", e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
+                      placeholder="Например: 08:00-20:00"
+                      disabled={isSubmitting}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Материали за рециклиране (разделени със запетая)
+                    </label>
+                    <textarea
+                      value={editData.materials.join(", ")}
+                      onChange={(e) => {
+                        const materials = e.target.value
+                          .split(",")
+                          .map((m) => m.trim())
+                          .filter((m) => m.length > 0)
+                        updateEdit("materials", materials)
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
+                      placeholder="Например: пластмаса, стъкло, хартия"
+                      rows={3}
+                      disabled={isSubmitting}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Въведете материали, разделени със запетая</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Допълнителни бележки</label>
+                    <textarea
+                      value={editData.notes}
+                      onChange={(e) => updateEdit("notes", e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
+                      placeholder="Други предложения или корекции..."
+                      rows={3}
+                      disabled={isSubmitting}
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Тип съоръжение</label>
+                    <input
+                      value={formData.amenity}
+                      onChange={(e) => handleInputChange("amenity", e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
+                      placeholder="recycling или waste_basket"
+                      disabled={isSubmitting}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Тип рециклиране</label>
+                    <input
+                      value={formData.recycling_type}
+                      onChange={(e) => handleInputChange("recycling_type", e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
+                      placeholder="пластмаса, стъкло, хартия"
+                      disabled={isSubmitting}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Оператор</label>
+                    <input
+                      value={formData.operator}
+                      onChange={(e) => handleInputChange("operator", e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
+                      placeholder="Име на организацията"
+                      disabled={isSubmitting}
+                    />
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={formData.recycling_clothes}
+                        onChange={(e) => handleInputChange("recycling_clothes", e.target.checked)}
+                        className="h-4 w-4 text-green-600 border-gray-300 rounded"
+                        disabled={isSubmitting}
+                      />
+                      <span className="ml-2 text-sm text-gray-700">Приема дрехи (текстил)</span>
+                    </div>
+
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={formData.recycling_shoes}
+                        onChange={(e) => handleInputChange("recycling_shoes", e.target.checked)}
+                        className="h-4 w-4 text-green-600 border-gray-300 rounded"
+                        disabled={isSubmitting}
+                      />
+                      <span className="ml-2 text-sm text-gray-700">Приема обувки</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Брой контейнери</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={formData.count}
+                      onChange={(e) => handleInputChange("count", Number.parseInt(e.target.value) || 1)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
+                      disabled={isSubmitting}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Снимки кошче (по избор, макс. 5)
+                    </label>
+
+                    <div className="space-y-3">
+                      {/* Add image button */}
+                      {binImages.length < 5 && (
+                        <label className="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 hover:bg-gray-50 transition-colors">
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                            </svg>
+                            <span>Добави снимка</span>
+                          </div>
+                          <input
+                            type="file"
+                            className="hidden"
+                            accept="image/*"
+                            multiple
+                            onChange={handleBinImageSelect}
+                            disabled={isSubmitting || uploadingImages}
+                          />
+                        </label>
+                      )}
+
+                      {/* Show selected images */}
+                      {binImages.length > 0 && (
+                        <div className="grid grid-cols-2 gap-2">
+                          {binImages.map((image, index) => (
+                            <div key={index} className="relative group">
+                              <img
+                                src={URL.createObjectURL(image)}
+                                alt={`Preview ${index + 1}`}
+                                className="w-full h-24 object-cover rounded-lg border border-gray-200"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveBinImage(index)}
+                                className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                disabled={isSubmitting || uploadingImages}
+                              >
+                                X
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                </>
+              )}
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={handleModalCancel}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={isSubmitting || uploadingImages}
+                >
+                  Отказ
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  disabled={isSubmitting || uploadingImages}
+                >
+                  {isSubmitting && (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  )}
+                  {modalMode === "report" ? "Изпрати доклад" : modalMode === "edit" ? "Предложи промени" : "Добави"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    )
+  })
 
   // Филтриране на кошовете с валидни координати
   const validBins = useMemo(
@@ -2013,18 +2081,17 @@ export default function MapComponent({ bins, onNewBinCreated, jawgApiKey }: MapP
     lon: number
     tags: any
     code: string
+    images?: File[]
   }) => {
     try {
-      // Вземи текущия потребител
+      // Get current user
       const {
         data: { user },
       } = await supabase.auth.getUser()
 
-      if (!user) {
-        throw new Error("Потребителят не е влязъл в системата.")
-      }
+      if (!user) throw new Error("Потребителят не е влязъл в системата.")
 
-      // Опростен запис (без ненужни колони)
+      // Insert bin into pending_bins
       const { data, error } = await supabase
         .from("pending_bins")
         .insert({
@@ -2037,8 +2104,39 @@ export default function MapComponent({ bins, onNewBinCreated, jawgApiKey }: MapP
         })
         .select()
 
-      if (error) {
-        throw error
+      if (error) throw error
+      const newBin = data[0]
+
+      // Upload images if any
+      if (binData.images && binData.images.length > 0) {
+        for (const image of binData.images) {
+          const fileExt = image.name.split(".").pop()
+          const fileName = `${newBin.id}-${Date.now()}-${Math.random()
+            .toString(36)
+            .substring(7)}.${fileExt}`
+          const filePath = fileName
+
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from("bins")
+            .upload(filePath, image, { cacheControl: '3600', upsert: false })
+
+          if (uploadError) {
+            console.error("Error uploading bin image:", uploadError)
+            continue
+          }
+
+          // Get public URL
+          const { data: { publicUrl } } = supabase.storage.from("bins").getPublicUrl(filePath)
+
+          // Update bin with image URL (only first image for now)
+          const { error: dbUpdateError } = await supabase
+            .from("pending_bins")
+            .update({ image_url: publicUrl, updated_at: new Date().toISOString() })
+            .eq("id", newBin.id)
+
+          if (dbUpdateError) console.error("Error saving bin image URL:", dbUpdateError)
+          else console.log("✅ Bin image saved:", publicUrl)
+        }
       }
 
       return data
@@ -2053,67 +2151,38 @@ export default function MapComponent({ bins, onNewBinCreated, jawgApiKey }: MapP
       e.preventDefault()
 
       if (isSubmitting || uploadingImages) return
-
       setIsSubmitting(true)
 
-      if (modalMode === "report") {
-        if (!selectedBin) {
-          alert("Грешка: Не е избрано кошче.")
-          setIsSubmitting(false)
-          return
-        }
+      try {
+        // ===== REPORT MODE =====
+        if (modalMode === "report") {
+          if (!selectedBin) throw new Error("Грешка: Не е избрано кошче.")
+          const canReport = spamProtection.canReportBin(selectedBin.id)
+          if (!canReport.allowed) throw new Error(canReport.message || "Отчетът вече не е позволен.")
 
-        const canReport = spamProtection.canReportBin(selectedBin.id)
-        if (!canReport.allowed) {
-          alert(canReport.message || "Отчетът вече не е позволен.")
-          setIsSubmitting(false)
-          return
-        }
-
-        try {
           await submitReportToSupabase({
             bin_id: selectedBin.id.toString(),
             type: reportData.type as ReportType,
             title: reportData.title,
             description: reportData.description || null,
           })
-
           spamProtection.recordReport(selectedBin.id)
-
-          console.log("Изпращане на отчет:", reportData, "за кошче:", selectedBin)
 
           if (typeof window !== "undefined") {
             alert("Отчетът е изпратен успешно! Може да бъде прегледан от администратор.")
           }
 
           setIsModalOpen(false)
-          setReportData({
-            type: "",
-            title: "",
-            description: "",
-          })
+          setReportData({ type: "", title: "", description: "" })
           setReportImages([])
           setSelectedBin(null)
-          if (selectedBin) {
-            loadBinReports(selectedBin.id.toString())
-          }
-        } catch (error) {
-          console.error("Грешка при изпращане на отчет:", error)
-          alert("Грешка при изпращане на отчета. Моля, опитайте отново.")
-        } finally {
-          setIsSubmitting(false)
-        }
-        return
-      }
-
-      if (modalMode === "edit") {
-        if (!selectedBin) {
-          alert("Грешка: Не е избрано кошче.")
-          setIsSubmitting(false)
+          if (selectedBin) loadBinReports(selectedBin.id.toString())
           return
         }
 
-        try {
+        // ===== EDIT MODE =====
+        if (modalMode === "edit") {
+          if (!selectedBin) throw new Error("Грешка: Не е избрано кошче.")
           await submitEditSuggestionToSupabase({
             bin_id: selectedBin.id.toString(),
             name: editData.name || undefined,
@@ -2122,36 +2191,19 @@ export default function MapComponent({ bins, onNewBinCreated, jawgApiKey }: MapP
             notes: editData.notes || undefined,
           })
 
-          console.log("Изпращане на предложение за редактиране:", editData, "за кошче:", selectedBin)
-
           if (typeof window !== "undefined") {
             alert("Предложението за редактиране е изпратено успешно! Може да бъде прегледано от администратор.")
           }
 
           setIsModalOpen(false)
-          setEditData({
-            name: "",
-            opening_hours: "",
-            materials: [],
-            notes: "",
-          })
+          setEditData({ name: "", opening_hours: "", materials: [], notes: "" })
           setSelectedBin(null)
-        } catch (error) {
-          console.error("Грешка при изпращане на предложение за редактиране:", error)
-          alert("Грешка при изпращане на предложението. Моля, опитайте отново.")
-        } finally {
-          setIsSubmitting(false)
+          return
         }
-        return
-      }
 
-      // Логика за добавяне на ново кошче
-      if (!tempMarkerPosition) {
-        setIsSubmitting(false)
-        return
-      }
+        // ===== ADD NEW BIN MODE =====
+        if (!tempMarkerPosition) throw new Error("Локацията на кошчето не е зададена.")
 
-      try {
         const tags = {
           amenity: formData.amenity,
           recycling_type: formData.recycling_type,
@@ -2163,17 +2215,18 @@ export default function MapComponent({ bins, onNewBinCreated, jawgApiKey }: MapP
 
         const code = generateRandomCode()
 
-        // Запиши кошчето в pending_bins таблицата
+        // Submit bin with images
         const result = await submitBinToPending({
           lat: tempMarkerPosition[0],
           lon: tempMarkerPosition[1],
-          tags: tags,
-          code: code,
+          tags,
+          code,
+          images: binImages, // <- NEW: pass images
         })
 
         console.log("Кошчето е записано успешно в pending_bins:", result)
 
-        // Актуализирай локалния списък ако е необходимо
+        // Update local state / call callback
         if (onNewBinCreated) {
           const newBin: NewBin = {
             id: result[0].id,
@@ -2190,11 +2243,12 @@ export default function MapComponent({ bins, onNewBinCreated, jawgApiKey }: MapP
             last_emptied: null,
             stats_today: "{}",
             code: code,
+            image_url: result[0].image_url || null,
           }
           onNewBinCreated(newBin)
         }
 
-        // Затваряне на модала и нулиране
+        // Reset form
         setIsModalOpen(false)
         setTempMarkerPosition(null)
         setFormData({
@@ -2205,13 +2259,14 @@ export default function MapComponent({ bins, onNewBinCreated, jawgApiKey }: MapP
           recycling_shoes: false,
           count: 1,
         })
+        setBinImages([])
 
         if (typeof window !== "undefined") {
           alert("Кошчето е добавено успешно! Ще бъде прегледано от администратор преди да се появи на картата.")
         }
       } catch (error: any) {
-        console.error("Грешка при добавяне на кошче:", error)
-        alert(`Грешка при добавяне на кошче: ${error.message || "Моля, опитайте отново."}`)
+        console.error("Грешка при изпращане на формата:", error)
+        alert(`Грешка: ${error.message || "Моля, опитайте отново."}`)
       } finally {
         setIsSubmitting(false)
       }
@@ -2226,10 +2281,11 @@ export default function MapComponent({ bins, onNewBinCreated, jawgApiKey }: MapP
       editData,
       isSubmitting,
       uploadingImages,
+      binImages,
       spamProtection,
       currentUser,
       loadBinReports,
-    ],
+    ]
   )
 
   const handleImageSelect = useCallback(
