@@ -57,15 +57,11 @@ export default function MapPage() {
   if (error) return <p className="p-4 text-red-500">{error}</p>;
 
   return (
-    <main className="p-4 dark:bg-neutral-950">
+    <main className="dark:bg-neutral-950">
 
       <div className="h-screen w-full border">
         <MapComponent bins={bins} jawgApiKey={process.env.NEXT_PUBLIC_JAWG_KEY}/>
       </div>
-
-      <p className="mt-2 text-sm text-gray-600">
-        Показване на {bins.length} локации
-      </p>
     </main>
   );
 }

@@ -7,7 +7,7 @@ import L from "leaflet"
 import { useEffect, useRef, useState, useMemo, useCallback, memo } from "react"
 import { renderToString } from "react-dom/server"
 import { Trash2 } from "@/components/animate-ui/icons/trash-2"
-import { Recycle, MapPin, Filter, X, Home, Flag, PenLine, AlertCircle } from "lucide-react"
+import { Recycle, MapPin, Filter, X, Home, Flag, PenLine, AlertCircle, CircleCheckBig } from "lucide-react"
 import { createClient } from "@supabase/supabase-js"
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
@@ -176,6 +176,7 @@ const materialTranslations: Record<string, string> = {
   tires: "гуми",
   "fluorescent tubes": "флуресцентни туби",
   textiles: "текстил",
+  "plastic bottle caps": "пластмасови капачки"
 }
 
 // Типове отчети от вашата таблица
@@ -736,14 +737,14 @@ const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
         const isReportDisabledForThisBin = isReportDisabled(bin.id)
 
         const popupContent = (
-          <div className="relative p-4 min-w-[220px]">
+          <div className="relative p-4 min-w-[220px] dark:bg-neutral-800 bg-white dark:text-white text-gray-900">
             {/* Иконки за действие */}
             <div className="absolute top-3 right-3 flex gap-2">
               <button
                 className={`p-1.5 rounded-md transition ${
                   isReportDisabledForThisBin
-                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    : "hover:bg-red-50 text-red-500 hover:text-red-600"
+                    ? "bg-gray-100 dark:bg-neutral-700 text-gray-400 dark:text-neutral-400 cursor-not-allowed"
+                    : "hover:bg-red-50 dark:hover:bg-red-900/30 text-red-500 hover:text-red-600 dark:hover:text-red-500"
                 }`}
                 title={
                   isReportDisabledForThisBin ? "Отчетът е временно деактивиран за това кошче" : "Докладвай проблем"
@@ -755,7 +756,7 @@ const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
               </button>
 
               <button
-                className="p-1.5 rounded-md hover:bg-gray-100 text-gray-600 transition hover:text-gray-800"
+                className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-700 text-gray-600 dark:text-neutral-300 transition hover:text-gray-800 dark:hover:text-white"
                 title="Предложи редактиране"
                 onClick={() => onEdit(bin)}
               >
@@ -774,18 +775,18 @@ const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
               </div>
 
               <div>
-                <h3 className="font-bold text-base text-gray-800">
+                <h3 className="font-bold text-base text-gray-800 dark:text-white">
                   {bin.tags?.amenity === "waste_basket" ? "Кошче за боклук" : "Място за рециклиране"}
                 </h3>
-                {bin.tags?.name && <p className="text-sm text-gray-600">{bin.tags.name}</p>}
+                {bin.tags?.name && <p className="text-sm text-gray-600 dark:text-neutral-300">{bin.tags.name}</p>}
               </div>
             </div>
 
             {/* Съдържание */}
             <div className="space-y-3">
               {bin.tags?.opening_hours && (
-                <div className="bg-blue-50 p-2 rounded-md mt-3">
-                  <div className="flex items-center gap-2 text-blue-700 text-sm">
+                <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded-md mt-3">
+                  <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300 text-sm">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                       <path
                         strokeLinecap="round"
@@ -802,23 +803,26 @@ const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
 
               {acceptedMaterials.length > 0 && (
                 <div>
-                  <p className="text-sm font-semibold text-gray-800 mb-2">
-                    Приема ({acceptedMaterials.length} материали):
-                  </p>
+                  <div className="text-sm font-semibold text-gray-800 dark:text-white mb-2 flex gap-2 items-center">
+                    <CircleCheckBig className="text-green-500 w-4 h-4" /> 
+                    <p>Приема:</p>
+                  </div>
 
                   <div className="space-y-2">
                     {acceptedMaterials.map((material, idx) => {
                       const translated = materialTranslations[material.trim().toLowerCase()] || material
                       const category = getCategoryForMaterial(material)
-                      const color = getMaterialColor(translated)
+                      const color = getMaterialColor(material)
 
                       return (
                         <div key={idx} className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
-                            <span className="text-sm text-gray-700 capitalize">{translated}</span>
+                            <span className="text-sm text-gray-700 dark:text-neutral-200 capitalize">{translated}</span>
                           </div>
-                          <span className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600">{category}</span>
+                          <span className="text-xs px-2 py-1 rounded-full bg-gray-100 dark:bg-neutral-700 text-gray-600 dark:text-neutral-300">
+                            {category}
+                          </span>
                         </div>
                       )
                     })}
@@ -935,17 +939,6 @@ const FilterPanel = memo(function FilterPanel({
           )
         })}
       </div>
-
-      <div className="mt-4 pt-4 border-t text-xs text-gray-600">
-        <p>
-          Показват се {filteredBins.length} от {bins.length} кошчета
-        </p>
-        {activeFilters.length > 0 && (
-          <p className="mt-1">
-            Филтрирани по: {activeFilters.map((id) => FILTER_OPTIONS.find((f) => f.id === id)?.label).join(", ")}
-          </p>
-        )}
-      </div>
     </div>
   )
 })
@@ -954,7 +947,6 @@ const FilterPanel = memo(function FilterPanel({
 const checkAdminStatus = async (userId: string): Promise<boolean> => {
   try {
     const { data, error } = await supabase.from("profiles").select("is_admin").eq("id", userId).single()
-
     return data?.is_admin === true
   } catch (error) {
     return false
@@ -1099,80 +1091,70 @@ const deleteReport = async (reportId: string, userId: string): Promise<boolean> 
   }
 }
 
-// Основен компонент за картата
-export default function MapComponent({ bins, onNewBinCreated, jawgApiKey }: MapProps) {
-  const mapRef = useRef<L.Map | null>(null)
-  const [isMounted, setIsMounted] = useState(false)
-
-  // states за изображения
-  const [binImages, setBinImages] = useState<File[]>([])
-  const [uploadingBinImages, setUploadingBinImages] = useState(false)
-
-  const handleBinImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) return
-    const filesArray = Array.from(e.target.files)
-    setBinImages((prev) => [...prev, ...filesArray].slice(0, 5))
-  }
-
-  const handleRemoveBinImage = (index: number) => {
-    setBinImages((prev) => prev.filter((_, i) => i !== index))
-  }
-
   // Модален прозорец за добавяне на нов контейнер от потребител
-  const AddBinModal = memo(function AddBinModal({
-    isModalOpen,
-    modalMode,
-    tempMarkerPosition,
-    formData,
-    reportData,
-    editData,
-    handleModalCancel,
-    handleFormSubmit,
-    handleInputChange,
-    updateReport,
-    updateEdit,
-    isSubmitting,
-    reportLimitsInfo,
-    reportImages,
-    uploadingImages,
-    handleImageSelect,
-    handleRemoveImage,
-  }: {
-    isModalOpen: boolean
-    modalMode: ModalMode
-    tempMarkerPosition: [number, number] | null
-    formData: BinFormData
-    reportData: {
-      type: string
-      title: string
-      description: string
-    }
-    editData: EditFormData
-    handleModalCancel: () => void
-    handleFormSubmit: (e: React.FormEvent) => void
-    handleInputChange: (field: keyof BinFormData, value: string | boolean | number) => void
-    updateReport: (key: string, value: string) => void
-    updateEdit: (key: string, value: string | string[]) => void
-    isSubmitting?: boolean
-    reportLimitsInfo?: {
-      binReportsToday: number
-      binReportsLimit: number
-      userReportsThisHour: number
-      userReportsLimit: number
-    }
-    reportImages: File[]
-    uploadingImages: boolean
-    handleImageSelect: (e: React.ChangeEvent<HTMLInputElement>) => void
-    handleRemoveImage: (index: number) => void
-  }) {
+// Update the AddBinModal props interface
+const AddBinModal = memo(function AddBinModal({
+  isModalOpen,
+  modalMode,
+  tempMarkerPosition,
+  formData,
+  reportData,
+  editData,
+  handleModalCancel,
+  handleFormSubmit,
+  handleInputChange,
+  updateReport,
+  updateEdit,
+  isSubmitting,
+  reportLimitsInfo,
+  reportImages,
+  uploadingImages,
+  handleImageSelect,
+  handleRemoveImage,
+  binImages = [],
+  uploadingBinImages = false,
+  handleBinImageSelect,
+  handleRemoveBinImage,
+}: {
+  isModalOpen: boolean
+  modalMode: ModalMode
+  tempMarkerPosition: [number, number] | null
+  formData: BinFormData
+  reportData: {
+    type: string
+    title: string
+    description: string
+  }
+  editData: EditFormData
+  handleModalCancel: () => void
+  handleFormSubmit: (e: React.FormEvent) => void
+  handleInputChange: (field: keyof BinFormData, value: string | boolean | number) => void
+  updateReport: (key: string, value: string) => void
+  updateEdit: (key: string, value: string | string[]) => void
+  isSubmitting?: boolean
+  reportLimitsInfo?: {
+    binReportsToday: number
+    binReportsLimit: number
+    userReportsThisHour: number
+    userReportsLimit: number
+  }
+  reportImages: File[]
+  uploadingImages: boolean
+  handleImageSelect: (e: React.ChangeEvent<HTMLInputElement>) => void
+  handleRemoveImage: (index: number) => void
+  binImages?: File[]
+  uploadingBinImages?: boolean
+  handleBinImageSelect?: (e: React.ChangeEvent<HTMLInputElement>) => void
+  handleRemoveBinImage?: (index: number) => void
+}) {
     if (!isModalOpen) return null
 
     return (
       <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-        <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
+        <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 dark:bg-neutral-800 dark:text-white">
           <div className="p-6">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold text-gray-900">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
                 {modalMode === "report"
                   ? "Докладване на проблем"
                   : modalMode === "edit"
@@ -1181,19 +1163,19 @@ export default function MapComponent({ bins, onNewBinCreated, jawgApiKey }: MapP
               </h2>
               <button
                 onClick={handleModalCancel}
-                className="p-1 hover:bg-gray-100 rounded-full transition-all duration-200 hover:rotate-90"
+                className="p-1 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-full transition-all duration-200 hover:rotate-90"
                 type="button"
-                disabled={isSubmitting || uploadingImages}
+                disabled={isSubmitting || uploadingImages || uploadingBinImages}
               >
-                <X className="w-5 h-5 text-gray-600" />
+                <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
               </button>
             </div>
 
             {modalMode === "report" && reportLimitsInfo && (
-              <div className="mb-4 p-3 bg-red-50 rounded-lg border border-red-100">
+              <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-100 dark:border-red-800/30">
                 <div className="flex items-start gap-2">
-                  <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                  <div className="text-sm text-red-700">
+                  <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+                  <div className="text-sm text-red-700 dark:text-red-300">
                     <p className="font-medium">Лимити на отчети:</p>
                     <div className="mt-1 space-y-1">
                       <p>
@@ -1212,11 +1194,11 @@ export default function MapComponent({ bins, onNewBinCreated, jawgApiKey }: MapP
               {modalMode === "report" ? (
                 <>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Тип проблем</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Тип проблем</label>
                     <select
                       value={reportData.type}
                       onChange={(e) => updateReport("type", e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-900 dark:text-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       required
                       disabled={isSubmitting || uploadingImages}
                     >
@@ -1232,11 +1214,11 @@ export default function MapComponent({ bins, onNewBinCreated, jawgApiKey }: MapP
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Заглавие</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Заглавие</label>
                     <input
                       value={reportData.title}
                       onChange={(e) => updateReport("title", e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-900 dark:text-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       required
                       placeholder="Напр. Кошчето е препълнено"
                       disabled={isSubmitting || uploadingImages}
@@ -1244,11 +1226,11 @@ export default function MapComponent({ bins, onNewBinCreated, jawgApiKey }: MapP
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Описание (по избор)</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Описание (по избор)</label>
                     <textarea
                       value={reportData.description}
                       onChange={(e) => updateReport("description", e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-900 dark:text-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       rows={3}
                       placeholder="Опишете по-подробно проблема..."
                       disabled={isSubmitting || uploadingImages}
@@ -1256,11 +1238,11 @@ export default function MapComponent({ bins, onNewBinCreated, jawgApiKey }: MapP
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Снимки (по избор, макс. 5)</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Снимки (по избор, макс. 5)</label>
                     <div className="space-y-3">
                       {reportImages.length < 5 && (
-                        <label className="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 hover:bg-gray-50 transition-colors">
-                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <label className="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-gray-300 dark:border-neutral-600 rounded-lg cursor-pointer hover:border-gray-400 dark:hover:border-neutral-500 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors">
+                          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                             </svg>
@@ -1284,7 +1266,7 @@ export default function MapComponent({ bins, onNewBinCreated, jawgApiKey }: MapP
                               <img
                                 src={URL.createObjectURL(image) || "/placeholder.svg"}
                                 alt={`Preview ${index + 1}`}
-                                className="w-full h-24 object-cover rounded-lg border border-gray-200"
+                                className="w-full h-24 object-cover rounded-lg border border-gray-200 dark:border-neutral-700"
                               />
                               <button
                                 type="button"
@@ -1300,7 +1282,7 @@ export default function MapComponent({ bins, onNewBinCreated, jawgApiKey }: MapP
                       )}
 
                       {uploadingImages && (
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                           <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
                           <span>Качване на снимки...</span>
                         </div>
@@ -1311,29 +1293,29 @@ export default function MapComponent({ bins, onNewBinCreated, jawgApiKey }: MapP
               ) : modalMode === "edit" ? (
                 <>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Име на обекта (по избор)</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Име на обекта (по избор)</label>
                     <input
                       value={editData.name}
                       onChange={(e) => updateEdit("name", e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-900 dark:text-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Например: Рециклиране за квартал 'Младост'"
                       disabled={isSubmitting}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Работно време (по избор)</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Работно време (по избор)</label>
                     <input
                       value={editData.opening_hours}
                       onChange={(e) => updateEdit("opening_hours", e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-900 dark:text-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Например: 08:00-20:00"
                       disabled={isSubmitting}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Материали за рециклиране (разделени със запетая)
                     </label>
                     <textarea
@@ -1345,20 +1327,20 @@ export default function MapComponent({ bins, onNewBinCreated, jawgApiKey }: MapP
                           .filter((m) => m.length > 0)
                         updateEdit("materials", materials)
                       }}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-900 dark:text-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Например: пластмаса, стъкло, хартия"
                       rows={3}
                       disabled={isSubmitting}
                     />
-                    <p className="text-xs text-gray-500 mt-1">Въведете материали, разделени със запетая</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Въведете материали, разделени със запетая</p>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Допълнителни бележки</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Допълнителни бележки</label>
                     <textarea
                       value={editData.notes}
                       onChange={(e) => updateEdit("notes", e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-900 dark:text-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Други предложения или корекции..."
                       rows={3}
                       disabled={isSubmitting}
@@ -1368,33 +1350,83 @@ export default function MapComponent({ bins, onNewBinCreated, jawgApiKey }: MapP
               ) : (
                 <>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Тип съоръжение</label>
-                    <input
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Тип съоръжение</label>
+                    <select
                       value={formData.amenity}
                       onChange={(e) => handleInputChange("amenity", e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
-                      placeholder="recycling или waste_basket"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-900 dark:text-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       disabled={isSubmitting}
-                    />
+                    >
+                      <option value="">Изберете тип съоръжение</option>
+                      <option value="recycling">Рециклиране (контейнер)</option>
+                      <option value="waste_basket">Кошче за боклук</option>
+                      <option value="container">Контейнер</option>
+                      <option value="centre">Център за рециклиране</option>
+                      <option value="dropoff">Пункт за сваляне</option>
+                      <option value="other">Друго</option>
+                    </select>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Тип рециклиране</label>
-                    <input
-                      value={formData.recycling_type}
-                      onChange={(e) => handleInputChange("recycling_type", e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
-                      placeholder="пластмаса, стъкло, хартия"
-                      disabled={isSubmitting}
-                    />
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Тип рециклиране</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {[
+                        { value: "пластмаса", label: "Пластмаса" },
+                        { value: "стъкло", label: "Стъкло" },
+                        { value: "хартия", label: "Хартия" },
+                        { value: "картон", label: "Картон" },
+                        { value: "метал", label: "Метал" },
+                        { value: "алуминий", label: "Алуминий" },
+                        { value: "електроника", label: "Електроника" },
+                        { value: "батерии", label: "Батерии" },
+                        { value: "текстил", label: "Текстил" },
+                        { value: "дрехи", label: "Дрехи" },
+                        { value: "органични отпадъци", label: "Органични отпадъци" },
+                        { value: "биоотпадъци", label: "Биоотпадъци" },
+                        { value: "общи отпадъци", label: "Общи отпадъци" },
+                      ].map((option) => {
+                        const currentTypes = formData.recycling_type ? 
+                          formData.recycling_type.split(",").map(t => t.trim()) : [];
+                        const isChecked = currentTypes.includes(option.value);
+                        
+                        return (
+                          <div key={option.value} className="flex items-center">
+                            <input
+                              type="checkbox"
+                              id={`recycling-${option.value}`}
+                              checked={isChecked}
+                              onChange={(e) => {
+                                const currentTypes = formData.recycling_type ? 
+                                  formData.recycling_type.split(",").map(t => t.trim()) : [];
+                                let newTypes;
+                                if (e.target.checked) {
+                                  newTypes = [...currentTypes, option.value];
+                                } else {
+                                  newTypes = currentTypes.filter(t => t !== option.value);
+                                }
+                                handleInputChange("recycling_type", newTypes.join(", "));
+                              }}
+                              className="h-4 w-4 text-green-600 border-gray-300 dark:border-neutral-600 rounded focus:ring-green-500 dark:focus:ring-green-400 dark:bg-neutral-800"
+                              disabled={isSubmitting}
+                            />
+                            <label 
+                              htmlFor={`recycling-${option.value}`} 
+                              className="ml-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer"
+                            >
+                              {option.label}
+                            </label>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Оператор</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Оператор</label>
                     <input
                       value={formData.operator}
                       onChange={(e) => handleInputChange("operator", e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-900 dark:text-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Име на организацията"
                       disabled={isSubmitting}
                     />
@@ -1406,10 +1438,10 @@ export default function MapComponent({ bins, onNewBinCreated, jawgApiKey }: MapP
                         type="checkbox"
                         checked={formData.recycling_clothes}
                         onChange={(e) => handleInputChange("recycling_clothes", e.target.checked)}
-                        className="h-4 w-4 text-green-600 border-gray-300 rounded"
+                        className="h-4 w-4 text-green-600 border-gray-300 dark:border-neutral-600 rounded focus:ring-green-500 dark:focus:ring-green-400 dark:bg-neutral-800"
                         disabled={isSubmitting}
                       />
-                      <span className="ml-2 text-sm text-gray-700">Приема дрехи (текстил)</span>
+                      <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Приема дрехи (текстил)</span>
                     </div>
 
                     <div className="flex items-center">
@@ -1417,35 +1449,35 @@ export default function MapComponent({ bins, onNewBinCreated, jawgApiKey }: MapP
                         type="checkbox"
                         checked={formData.recycling_shoes}
                         onChange={(e) => handleInputChange("recycling_shoes", e.target.checked)}
-                        className="h-4 w-4 text-green-600 border-gray-300 rounded"
+                        className="h-4 w-4 text-green-600 border-gray-300 dark:border-neutral-600 rounded focus:ring-green-500 dark:focus:ring-green-400 dark:bg-neutral-800"
                         disabled={isSubmitting}
                       />
-                      <span className="ml-2 text-sm text-gray-700">Приема обувки</span>
+                      <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Приема обувки</span>
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Брой контейнери</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Брой контейнери</label>
                     <input
                       type="number"
                       min="1"
+                      max="10"
                       value={formData.count}
                       onChange={(e) => handleInputChange("count", Number.parseInt(e.target.value) || 1)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-900 dark:text-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       disabled={isSubmitting}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Снимки кошче (по избор, макс. 5)
                     </label>
 
                     <div className="space-y-3">
-                      {/* Add image button */}
                       {binImages.length < 5 && (
-                        <label className="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 hover:bg-gray-50 transition-colors">
-                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <label className="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-gray-300 dark:border-neutral-600 rounded-lg cursor-pointer hover:border-gray-400 dark:hover:border-neutral-500 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors">
+                          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                             </svg>
@@ -1457,12 +1489,11 @@ export default function MapComponent({ bins, onNewBinCreated, jawgApiKey }: MapP
                             accept="image/*"
                             multiple
                             onChange={handleBinImageSelect}
-                            disabled={isSubmitting || uploadingImages}
+                            disabled={isSubmitting || uploadingBinImages}
                           />
                         </label>
                       )}
 
-                      {/* Show selected images */}
                       {binImages.length > 0 && (
                         <div className="grid grid-cols-2 gap-2">
                           {binImages.map((image, index) => (
@@ -1470,18 +1501,25 @@ export default function MapComponent({ bins, onNewBinCreated, jawgApiKey }: MapP
                               <img
                                 src={URL.createObjectURL(image)}
                                 alt={`Preview ${index + 1}`}
-                                className="w-full h-24 object-cover rounded-lg border border-gray-200"
+                                className="w-full h-24 object-cover rounded-lg border border-gray-200 dark:border-neutral-700"
                               />
                               <button
                                 type="button"
-                                onClick={() => handleRemoveBinImage(index)}
+                                onClick={() => handleRemoveBinImage && handleRemoveBinImage(index)}
                                 className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                                disabled={isSubmitting || uploadingImages}
+                                disabled={isSubmitting || uploadingBinImages}
                               >
                                 X
                               </button>
                             </div>
                           ))}
+                        </div>
+                      )}
+
+                      {uploadingBinImages && (
+                        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                          <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                          <span>Качване на снимки...</span>
                         </div>
                       )}
                     </div>
@@ -1494,15 +1532,15 @@ export default function MapComponent({ bins, onNewBinCreated, jawgApiKey }: MapP
                 <button
                   type="button"
                   onClick={handleModalCancel}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={isSubmitting || uploadingImages}
+                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  disabled={isSubmitting || uploadingImages || uploadingBinImages}
                 >
                   Отказ
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                  disabled={isSubmitting || uploadingImages}
+                  className="flex-1 px-4 py-2 bg-green-600 dark:bg-green-700 text-white rounded-md hover:bg-green-700 dark:hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-colors"
+                  disabled={isSubmitting || uploadingImages || uploadingBinImages}
                 >
                   {isSubmitting && (
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -1517,6 +1555,43 @@ export default function MapComponent({ bins, onNewBinCreated, jawgApiKey }: MapP
     )
   })
 
+// Основен компонент за картата
+export default function MapComponent({ bins, onNewBinCreated, jawgApiKey }: MapProps) {
+  const mapRef = useRef<L.Map | null>(null)
+  const [isMounted, setIsMounted] = useState(false)
+
+  // states за изображения
+  const [binImages, setBinImages] = useState<File[]>([])
+  const [uploadingBinImages, setUploadingBinImages] = useState(false)
+
+  const handleBinImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return
+    const filesArray = Array.from(e.target.files)
+    setBinImages((prev) => [...prev, ...filesArray].slice(0, 5))
+  }
+
+  const handleRemoveBinImage = (index: number) => {
+    setBinImages((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  useEffect(() => {
+    const applyPopupStyles = () => {
+      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      
+      if (isDark) {
+        const popups = document.querySelectorAll('.leaflet-popup');
+        popups.forEach(popup => {
+          popup.classList.add('dark-mode-popup');
+        });
+      }
+    };
+    
+    applyPopupStyles();
+    const interval = setInterval(applyPopupStyles, 500);
+    
+    return () => clearInterval(interval);
+  }, []);
+
   // Филтриране на кошовете с валидни координати
   const validBins = useMemo(
     () => bins.filter((bin) => bin.lat != null && bin.lon != null && !isNaN(bin.lat) && !isNaN(bin.lon)),
@@ -1529,9 +1604,9 @@ export default function MapComponent({ bins, onNewBinCreated, jawgApiKey }: MapP
   const [activeFilters, setActiveFilters] = useState<string[]>([])
   const [showFilterPanel, setShowFilterPanel] = useState(false)
 
-  // Начални координати за гр. Варна
-  const DEFAULT_CENTER: [number, number] = [43.2141, 27.9147]
-  const DEFAULT_ZOOM = 12
+  // Начални координати
+  const DEFAULT_CENTER: [number, number] = [42.6, 25.11]
+  let DEFAULT_ZOOM = 8
   const [zoom, setZoom] = useState(DEFAULT_ZOOM)
 
   // Модал състояния
@@ -1540,7 +1615,7 @@ export default function MapComponent({ bins, onNewBinCreated, jawgApiKey }: MapP
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // ДОБАВЕНО: Състояние за отчети на избраното кошче
+  // Състояние за отчети на избраното кошче
   const [binReports, setBinReports] = useState<Report[]>([])
   const [isLoadingReports, setIsLoadingReports] = useState(false)
 
@@ -1643,6 +1718,7 @@ export default function MapComponent({ bins, onNewBinCreated, jawgApiKey }: MapP
       (position) => {
         const loc: [number, number] = [position.coords.latitude, position.coords.longitude]
         setUserLocation(loc)
+        DEFAULT_ZOOM = 12
         mapRef.current?.setView(loc, DEFAULT_ZOOM)
       },
       (err) => console.warn("Грешка при геолокация:", err),
@@ -2480,11 +2556,7 @@ export default function MapComponent({ bins, onNewBinCreated, jawgApiKey }: MapP
 
         {tempMarkerPosition && (
           <Marker position={tempMarkerPosition} icon={tempMarkerIcon}>
-            <Popup>
-              <div className="p-2 text-center">
-                <p className="text-sm font-medium text-orange-600">Нова локация за кошче</p>
-                <p className="text-xs text-gray-500">Попълнете формата, за да добавите</p>
-              </div>
+            <Popup className="dark:bg-neutral-800">
             </Popup>
           </Marker>
         )}
