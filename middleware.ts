@@ -27,17 +27,14 @@ export async function middleware(req: NextRequest) {
     }
   );
 
-  // This refreshes the session if it's expired
   const { data: { user } } = await supabase.auth.getUser();
 
   const pathname = req.nextUrl.pathname;
 
-  // Protect Dashboard
   if (pathname.startsWith("/dashboard") && !user) {
     return NextResponse.redirect(new URL("/auth/login", req.url));
   }
 
-  // Redirect logged-in users away from auth pages
   if (pathname.startsWith("/auth") && user) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
@@ -49,7 +46,7 @@ export const config = {
   matcher: [
     "/dashboard/:path*",
     "/auth/:path*",
-    "/api/gemini-confirm", // Added explicitly
+    "/api/gemini-confirm",
     "/api/private/:path*",
   ],
 };

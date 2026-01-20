@@ -4,12 +4,14 @@ import { useEffect, useState } from 'react'
 import { Recycle, Sparkles, Flame, Calendar } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
+import { RecyclingLoader } from '@/app/components/RecyclingLoader'
 
 import { StatCard } from '@/app/components/StatCard'
 import { RecyclingActivityChart } from '@/app/components/RecyclingActivityChart'
 import { MaterialsBreakdownChart } from '@/app/components/MaterialsBreakdownChart'
 import { GamificationProgress } from '@/app/components/GamificationProgress'
 import { RecentActivity } from '@/app/components/RecentActivity'
+import { Navigation } from '@/app/components/Navigation'
 
 type Profile = {
   username: string
@@ -70,7 +72,6 @@ export default function DashboardPage() {
             process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
         )
         
-        // First, check if we have a session
         const { data: { session }, error: sessionError } = await supabase.auth.getSession()
         
         console.log('Session check:', { hasSession: !!session, error: sessionError })
@@ -81,7 +82,6 @@ export default function DashboardPage() {
         
         if (!session) {
           console.log('No session found, trying getUser...')
-          // Try getUser as fallback
           const { data: { user }, error: userError } = await supabase.auth.getUser()
           
           if (userError) {
@@ -112,20 +112,16 @@ export default function DashboardPage() {
     async function fetchUserData(supabase: any, userId: string) {
       try {
         console.log('Fetching data for user:', userId)
-        
-        // Get user info from auth.users
         const { data: userData, error: userError } = await supabase.auth.getUser()
         
         if (userError) {
           console.error('Auth user error:', userError)
         }
         
-        // Get username from auth user (email or metadata)
         const username = userData?.user?.email?.split('@')[0] || 
                         userData?.user?.user_metadata?.username || 
                         'Guest'
         
-        // Fetch profile data (gamification)
         const { data: profile, error: profileError } = await supabase
           .from('user_profiles')
           .select('level, xp')
@@ -139,7 +135,6 @@ export default function DashboardPage() {
           }
         }
 
-        // Fetch recycling events
         const { data: events = [], error: eventsError } = await supabase
           .from('recycling_events')
           .select('material, points, co2_saved, created_at')
@@ -152,7 +147,6 @@ export default function DashboardPage() {
 
         const typedEvents = events as RecyclingEvent[]
 
-        // Calculate streak
         const calculateStreak = () => {
           if (typedEvents.length === 0) return 0
           
@@ -183,9 +177,8 @@ export default function DashboardPage() {
         const totalPoints = typedEvents.reduce((s, e) => s + e.points, 0)
         const co2Saved = typedEvents.reduce((s, e) => s + e.co2_saved, 0)
 
-        // Set user data
         setUserData({
-          username: username, // Now using username from auth
+          username: username,
           level: profile?.level || 0,
           xp: profile?.xp || 0,
           xpForNextLevel: 100,
@@ -195,7 +188,6 @@ export default function DashboardPage() {
           currentStreak: calculateStreak(),
         })
 
-        // Prepare activity chart data
         const activityMap = typedEvents.reduce<Record<string, ActivityPoint>>(
           (acc, e) => {
             const date = new Date(e.created_at)
@@ -209,7 +201,6 @@ export default function DashboardPage() {
 
         setActivityData(Object.values(activityMap))
 
-        // Prepare materials breakdown data
         const materialMap = typedEvents.reduce<Record<string, number>>(
           (acc, e) => {
             acc[e.material] = (acc[e.material] ?? 0) + 1
@@ -229,7 +220,6 @@ export default function DashboardPage() {
           }))
         )
 
-        // Prepare recent activities
         setRecentActivities(
           [...typedEvents]
             .sort((a, b) => b.created_at.localeCompare(a.created_at))
@@ -260,10 +250,7 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
-          <p className="mt-4 text-muted-foreground">Зареждане...</p>
-        </div>
+        <RecyclingLoader />
       </div>
     )
   }
@@ -288,70 +275,80 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-7xl">
-        <header className="mb-6 sm:mb-8">
-          <div className="flex items-center justify-between flex-wrap gap-4">
+    <Navigation
+      activeModule="dashboard"
+      onModuleChange={(module) => {
+        if (module === 'dashboard') return
+        if (module === 'map') router.push('/app/map')
+        if (module === 'tasks') router.push('/app/tasks')
+      }}
+      variant="default"
+    >
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-7xl">
+          <header className="mb-6 sm:mb-8">
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div>
+                <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-semibold">
+                  Добре дошъл,{' '}
+                  <span className="font-semibold text-foreground text-green-500">
+                    {userData.username}
+                  </span>
+                  !
+                </p>
+              </div>
+              <div className="bg-green-500 text-white px-4 py-2 text-base sm:text-lg rounded-full font-semibold shadow-sm">
+                Ниво {userData.level}
+              </div>
+            </div>
+          </header>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            <StatCard
+              title="Общи рециклирани"
+              value={userData.totalItems}
+              icon={<Recycle className="h-6 w-6" />}
+              iconColor="text-green-500"
+              iconBg="bg-muted"
+            />
+            <StatCard
+              title="Точки общо"
+              value={userData.totalPoints}
+              icon={<Sparkles className="h-6 w-6" />}
+              iconColor="text-amber-500"
+              iconBg="bg-muted"
+            />
+            <StatCard
+              title="Спестени CO₂"
+              value={`${userData.co2Saved.toFixed(1)} кг`}
+              icon={<Flame className="h-7 w-7" />}
+              iconColor="text-yellow-400"
+              iconBg="bg-muted"
+            />
+            <StatCard
+              title="Рекорд"
+              value={`${userData.currentStreak} дни`}
+              icon={<Calendar className="h-6 w-6" />}
+              iconColor="text-sky-500"
+              iconBg="bg-muted"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <RecyclingActivityChart data={activityData} />
+            <MaterialsBreakdownChart data={materialsData} />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <GamificationProgress totalXp={userData.totalPoints} />
+            </div>
             <div>
-              <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-semibold">
-                Добре дошъл,{' '}
-                <span className="font-semibold text-foreground text-green-500">
-                  {userData.username}
-                </span>
-                !
-              </p>
+              <RecentActivity activities={recentActivities} />
             </div>
-            <div className="bg-green-500 text-white px-4 py-2 text-base sm:text-lg rounded-full font-semibold shadow-sm">
-              Ниво {userData.level}
-            </div>
-          </div>
-        </header>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <StatCard
-            title="Общи рециклирани"
-            value={userData.totalItems}
-            icon={<Recycle className="h-6 w-6" />}
-            iconColor="text-green-500"
-            iconBg="bg-muted"
-          />
-          <StatCard
-            title="Точки общо"
-            value={userData.totalPoints}
-            icon={<Sparkles className="h-6 w-6" />}
-            iconColor="text-amber-500"
-            iconBg="bg-muted"
-          />
-          <StatCard
-            title="Спестени CO₂"
-            value={`${userData.co2Saved.toFixed(1)} кг`}
-            icon={<Flame className="h-7 w-7" />}
-            iconColor="text-yellow-400"
-            iconBg="bg-muted"
-          />
-          <StatCard
-            title="Рекорд"
-            value={`${userData.currentStreak} дни`}
-            icon={<Calendar className="h-6 w-6" />}
-            iconColor="text-sky-500"
-            iconBg="bg-muted"
-          />
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <RecyclingActivityChart data={activityData} />
-          <MaterialsBreakdownChart data={materialsData} />
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <GamificationProgress totalXp={userData.totalPoints} />
-          </div>
-          <div>
-            <RecentActivity activities={recentActivities} />
           </div>
         </div>
       </div>
-    </div>
+    </Navigation>
   )
 }

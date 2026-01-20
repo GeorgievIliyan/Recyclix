@@ -19,6 +19,16 @@ export async function OPTIONS() {
 }
 
 export async function POST(req: Request) {
+  // против нежелани заявки
+  const token = req.headers.get('x-api-token')
+  
+  if (!token || token !== process.env.SECURE_API_KEY) {
+    return NextResponse.json(
+      { error: 'Unauthorized' },
+      { status: 401 }
+    )
+  }
+
   try {
     const body = await req.json();
     const binId = body.binId;

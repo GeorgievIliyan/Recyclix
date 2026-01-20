@@ -58,7 +58,7 @@ interface MapProps {
 }
 
 // Цветово кодиране според типа материал за рециклиране
-const RECYCLING_COLORS: Record<string, string> = {
+export const RECYCLING_COLORS: Record<string, string> = {
   paper: "bg-gradient-to-r from-blue-400 to-blue-500",
   cardboard: "bg-gradient-to-r from-blue-400 to-blue-500",
   plastic: "bg-gradient-to-r from-yellow-400 to-yellow-500",

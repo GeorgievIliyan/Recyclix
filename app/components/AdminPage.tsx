@@ -399,10 +399,8 @@ function getStorageImageUrl(filePath: string): string {
 
 async function getBinImages(binId: string): Promise<string[]> {
   try {
-    console.log(`🔍 Fetching images for bin ID: ${binId} from bucket: bins`);
-    
     const { data, error } = await supabase.storage
-      .from('bins')  // ✅ CORRECT: Changed from 'bins-images' to 'bins'
+      .from('bins')
       .list(binId, {
         limit: 100,
         offset: 0,
@@ -579,27 +577,27 @@ export async function deleteReport(reportId: string): Promise<boolean> {
 
 async function approveSuggestion(suggestionId: string, suggestionData: EditSuggestion): Promise<boolean> {
   try {
-    console.log("[v0] Одобряване на предложение:", suggestionId, suggestionData)
+    console.log("Одобряване на предложение:", suggestionId, suggestionData)
 
     // Вземане на текущия потребител
     const {
       data: { user },
     } = await supabase.auth.getUser()
     if (!user) {
-      console.error("[v0] Няма автентикиран потребител")
+      console.error("Няма автентикиран потребител")
       return false
     }
 
-    // Вземане на текущите данни на коша - използвайте suggestion.bin_id
+    // Вземане на текущите данни на коша
     let { data: binData, error: binFetchError } = await supabase
       .from("recycling_bins")
       .select("*")
-      .eq("id", suggestionData.bin_id) // Променено от .eq("code", suggestionData.bin_id)
+      .eq("id", suggestionData.bin_id)
       .single()
 
     if (binFetchError) {
       // Ако не намерим кош, проверяваме по код
-      console.log("[v0] Опитваме се да намерим кош по код:", suggestionData.bin_id)
+      console.log("Опитваме се да намерим кош по код:", suggestionData.bin_id)
 
       const { data: binByCode, error: codeError } = await supabase
         .from("recycling_bins")
@@ -608,17 +606,16 @@ async function approveSuggestion(suggestionId: string, suggestionData: EditSugge
         .single()
 
       if (codeError || !binByCode) {
-        console.error("[v0] Грешка при четене на кош:", codeError || "Кошът не е намерен")
+        console.error("Грешка при четене на кош:", codeError || "Кошът не е намерен")
         return false
       }
-
       // Използваме намерения кош
       binData = binByCode
     }
 
     // Проверка дали имаме валидни данни за коша
     if (!binData) {
-      console.error("[v0] Няма намерен кош с ID:", suggestionData.bin_id)
+      console.error("Няма намерен кош с ID:", suggestionData.bin_id)
       return false
     }
 
@@ -645,7 +642,7 @@ async function approveSuggestion(suggestionId: string, suggestionData: EditSugge
       updatedTags[suggestionData.field_name] = suggestionData.new_value
     }
 
-    console.log("[v0] Обновени тагове:", updatedTags)
+    console.log("Обновени тагове:", updatedTags)
 
     // Обновяване на коша с новите данни
     const { error: binUpdateError } = await supabase
@@ -654,10 +651,10 @@ async function approveSuggestion(suggestionId: string, suggestionData: EditSugge
         tags: updatedTags,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", currentBinData.id) // Използвайте ID вместо code
+      .eq("id", currentBinData.id)
 
     if (binUpdateError) {
-      console.error("[v0] Грешка при обновяване на кош:", binUpdateError)
+      console.error("Грешка при обновяване на кош:", binUpdateError)
       return false
     }
 
@@ -673,21 +670,21 @@ async function approveSuggestion(suggestionId: string, suggestionData: EditSugge
       .eq("id", suggestionId)
 
     if (suggestionUpdateError) {
-      console.error("[v0] Грешка при обновяване на предложение:", suggestionUpdateError)
+      console.error("Грешка при обновяване на предложение:", suggestionUpdateError)
       return false
     }
 
-    console.log("[v0] Предложението е успешно одобрено")
+    console.log("Предложението е успешно одобрено")
     return true
   } catch (error) {
-    console.error("[v0] Грешка при одобряване на предложение:", error)
+    console.error("Грешка при одобряване на предложение:", error)
     return false
   }
 }
 
 async function rejectSuggestion(suggestionId: string, reviewNotes?: string): Promise<boolean> {
   try {
-    console.log("[v0] Отхвърляне на предложение:", suggestionId)
+    console.log("Отхвърляне на предложение:", suggestionId)
 
     // Вземане на текущия потребител за проследяване
     const {
@@ -708,14 +705,14 @@ async function rejectSuggestion(suggestionId: string, reviewNotes?: string): Pro
       .eq("id", suggestionId)
 
     if (updateError) {
-      console.error("[v0] Грешка при отхвърляне на предложение:", updateError)
+      console.error("Грешка при отхвърляне на предложение:", updateError)
       return false
     }
 
-    console.log("[v0] Предложението е отхвърлено успешно")
+    console.log("Предложението е отхвърлено успешно")
     return true
   } catch (error) {
-    console.error("[v0] Грешка:", error)
+    console.error("Грешка:", error)
     return false
   }
 }

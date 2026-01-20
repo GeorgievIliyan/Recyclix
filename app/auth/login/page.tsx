@@ -41,8 +41,8 @@ export default function LoginPage() {
       if (error) {
         setMessage(error.message)
       } else {
-        // Пренасочване към картата при успешен вход
-        router.push("/app/map")
+        // Пренасочване към таблото при успешен вход
+        router.push("/app/dashboard")
         router.refresh()
       }
     } catch (err: any) {

@@ -95,14 +95,21 @@ export default function Page() {
         console.log("Connected to bin:", data.id)
 
         try{
+          if (!process.env.NEXT_PUBLIC_SECURE_API_KEY) {
+            throw new Error("API key not configured");
+          }
+
           const res = await fetch('/api/temporary-qr', {
             method: "POST",
-            headers: {"Content-Type": "application/json"},
+            headers: {
+              "x-api-key": process.env.NEXT_PUBLIC_SECURE_API_KEY,
+              "Content-Type": "application/json"
+            },
             body: JSON.stringify({
               userId: user?.id,
               points: 5
             })
-          })
+          });
 
           const qrData = await res.json();
           if (qrData.token){

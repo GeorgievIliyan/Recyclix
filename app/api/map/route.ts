@@ -47,6 +47,16 @@ const fetchBins = async () => {
 };
 // GET фунцкия | GET function
 export async function GET(req: NextRequest) {
+  // против нежелани заявки
+  const token = req.headers.get('x-api-token')
+  
+  if (!token || token !== process.env.SECURE_API_KEY) {
+    return NextResponse.json(
+      { error: 'Unauthorized' },
+      { status: 401 }
+    )
+  }
+
   try {
     const bins = await fetchBins();
     return NextResponse.json({ bins });

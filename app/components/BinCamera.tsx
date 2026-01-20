@@ -72,9 +72,15 @@ export default function BinCamera({ target, binId }: Props) {
     setQrToken(null);
 
     try {
+      if (!process.env.SECURE_API_KEY) {
+        throw new Error("API key not configured");
+      }
       const res = await fetch("/api/gemini-classify", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "x-api-key": process.env.SECURE_API_KEY,
+          "Content-Type": "application/json" 
+        },
         body: JSON.stringify({ binId, image, target }),
       });
 

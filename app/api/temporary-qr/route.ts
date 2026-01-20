@@ -8,6 +8,16 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 export async function POST(req: NextRequest) {
+  // против нежелани заявки
+  const token = req.headers.get('x-api-token')
+  
+  if (!token || token !== process.env.SECURE_API_KEY) {
+    return NextResponse.json(
+      { error: 'Unauthorized' },
+      { status: 401 }
+    )
+  }
+
   try {
     const body = await req.json();
     const points = body.points ?? 10; // Стандартни 10 точки, ако не са подадени

@@ -3,6 +3,7 @@
 import { useMemo } from 'react'
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts'
 import { Recycle } from 'lucide-react'
+import { RECYCLING_COLORS } from '@/app/components/MapComponent'
 
 interface MaterialData {
   name: string
@@ -11,14 +12,121 @@ interface MaterialData {
   [key: string]: any;
 }
 
-// Keep keys lowercase here for easy matching
 const materialMap: Record<string, string> = {
   glass: 'Стъкло',
   plastic: 'Пластмаса',
   paper: 'Хартия',
   metal: 'Метал',
   organic: 'Органични отпадъци',
-  other: 'Други'
+  other: 'Други',
+  textiles: 'Текстил',
+  electronics: 'Електроника',
+  batteries: 'Батерии',
+  cardboard: 'Картон',
+  compost: 'Компост',
+  general: 'Общи отпадъци',
+  residual: 'Остатъчни отпадъци',
+  bio_waste: 'Биоотпадъци'
+}
+
+const gradientToHex: Record<string, string> = {
+  'bg-gradient-to-r from-blue-400 to-blue-500': '#3B82F6',
+  'bg-gradient-to-r from-yellow-400 to-yellow-500': '#EAB308',
+  'bg-gradient-to-r from-green-400 to-green-500': '#10B981', 
+  'bg-gradient-to-r from-emerald-400 to-emerald-500': '#10B981',
+  'bg-gradient-to-r from-gray-400 to-gray-500': '#6B7280',
+  'bg-gradient-to-r from-amber-400 to-amber-500': '#F59E0B',
+  'bg-gradient-to-r from-purple-400 to-purple-500': '#8B5CF6',
+  'bg-gradient-to-r from-orange-400 to-orange-500': '#F97316',
+  'bg-gradient-to-r from-pink-400 to-pink-500': '#EC4899',
+  'bg-gradient-to-r from-red-400 to-red-500': '#EF4444',
+  'bg-gradient-to-r from-indigo-400 to-indigo-500': '#6366F1',
+  'bg-gradient-to-r from-cyan-400 to-cyan-500': '#06B6D4',
+  'bg-gradient-to-r from-slate-400 to-slate-500': '#64748B',
+}
+
+const materialColorMap: Record<string, keyof typeof RECYCLING_COLORS> = {
+  'glass': 'glass',
+  'plastic': 'plastic',
+  'paper': 'paper',
+  'cardboard': 'cardboard',
+  'metal': 'metal',
+  'aluminum': 'metal',
+  'aluminium': 'metal',
+  'organic': 'organic',
+  'bio_waste': 'bio_waste',
+  'compost': 'compost',
+  'electronics': 'electronics',
+  'batteries': 'batteries',
+  'textiles': 'textiles',
+  'clothing': 'clothing',
+  'clothes': 'textiles',
+  'general': 'general',
+  'residual': 'residual',
+  'waste': 'general',
+  'trash': 'general',
+  
+  'стъкло': 'glass',
+  'пластмаса': 'plastic',
+  'хартия': 'paper',
+  'картон': 'cardboard',
+  'метал': 'metal',
+  'алуминий': 'metal',
+  'органични': 'organic',
+  'органични отпадъци': 'organic',
+  'биоотпадъци': 'bio_waste',
+  'компост': 'compost',
+  'електроника': 'electronics',
+  'батерии': 'batteries',
+  'текстил': 'textiles',
+  'дрехи': 'textiles',
+  'обувки': 'textiles',
+  'общи отпадъци': 'general',
+  'остатъчни отпадъци': 'residual',
+  'други': 'unknown'
+}
+
+const getMaterialHexColor = (materialName: string): string => {
+  if (!materialName) return gradientToHex[RECYCLING_COLORS.unknown]
+  
+  const normalized = materialName.toLowerCase().trim()
+
+  const colorKey = materialColorMap[normalized]
+  if (colorKey && RECYCLING_COLORS[colorKey]) {
+    const gradientClass = RECYCLING_COLORS[colorKey]
+    return gradientToHex[gradientClass] || gradientToHex[RECYCLING_COLORS.unknown]
+  }
+  
+  for (const [key, colorMapKey] of Object.entries(materialColorMap)) {
+    if (normalized.includes(key) || key.includes(normalized)) {
+      const gradientClass = RECYCLING_COLORS[colorMapKey]
+      if (gradientClass) {
+        return gradientToHex[gradientClass] || gradientToHex[RECYCLING_COLORS.unknown]
+      }
+    }
+  }
+  
+  if (normalized.includes('стъкло') || normalized.includes('glass')) {
+    return gradientToHex[RECYCLING_COLORS.glass]
+  } else if (normalized.includes('пластмаса') || normalized.includes('plastic')) {
+    return gradientToHex[RECYCLING_COLORS.plastic]
+  } else if (normalized.includes('хартия') || normalized.includes('paper') || normalized.includes('картон')) {
+    return gradientToHex[RECYCLING_COLORS.paper]
+  } else if (normalized.includes('метал') || normalized.includes('metal') || normalized.includes('алуминий')) {
+    return gradientToHex[RECYCLING_COLORS.metal]
+  } else if (normalized.includes('органич') || normalized.includes('organic') || normalized.includes('био') || normalized.includes('компост')) {
+    return gradientToHex[RECYCLING_COLORS.organic]
+  } else if (normalized.includes('електро') || normalized.includes('electron')) {
+    return gradientToHex[RECYCLING_COLORS.electronics]
+  } else if (normalized.includes('батери') || normalized.includes('batter')) {
+    return gradientToHex[RECYCLING_COLORS.batteries]
+  } else if (normalized.includes('текстил') || normalized.includes('textile') || normalized.includes('дрехи') || normalized.includes('clothes')) {
+    return gradientToHex[RECYCLING_COLORS.textiles]
+  } else if (normalized.includes('общи') || normalized.includes('general') || normalized.includes('waste')) {
+    return gradientToHex[RECYCLING_COLORS.general]
+  }
+  
+  return gradientToHex[RECYCLING_COLORS.unknown]
 }
 
 interface MaterialsBreakdownChartProps {
@@ -30,12 +138,27 @@ export function MaterialsBreakdownChart({ data }: MaterialsBreakdownChartProps) 
   
   const translatedData = useMemo(() => {
     if (!hasData) return []
+    
     return data.map(item => {
-      const normalizedKey = item.name?.toLowerCase().trim() || ''
+      const originalName = item.name?.trim() || ''
+      const normalizedKey = originalName.toLowerCase()
+      
+      let displayName = materialMap[normalizedKey] || originalName
+      
+      const isBulgarian = Object.values(materialMap).some(
+        bgName => bgName.toLowerCase() === normalizedKey
+      )
+      if (isBulgarian) {
+        displayName = originalName
+      }
+      
+      const hexColor = getMaterialHexColor(displayName) || getMaterialHexColor(originalName)
+      
       return {
         ...item,
-        name: materialMap[normalizedKey] ?? item.name,
-        originalName: item.name
+        name: displayName,
+        originalName: originalName,
+        fill: hexColor
       }
     })
   }, [data, hasData])

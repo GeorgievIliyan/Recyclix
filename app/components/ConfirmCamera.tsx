@@ -66,9 +66,15 @@ export default function ConfirmCamera({ userDailyTaskId, onConfirm }: ConfirmCam
     setLoading(true)
     setError(null)
     try {
+      if (!process.env.SECURE_API_KEY) {
+        throw new Error("API key not configured")
+      }
       const res = await fetch("/api/gemini-confirm", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "x-api-key": process.env.SECURE_API_KEY,
+          "Content-Type": "application/json" 
+        },
         body: JSON.stringify({ userDailyTaskId, image }),
       })
       const data = await res.json()

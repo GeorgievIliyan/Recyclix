@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
 // Инициализация на Supabase клиент с service key (бypass RLS)
@@ -9,7 +9,15 @@ export const supabase = createClient(
 
 export const runtime = "edge";
 
-export const GET = async () => {
+export const GET = async (req: NextRequest) => {
+  const token = req.headers.get('x-api-token')
+  
+  if (!token || token !== process.env.SECURE_API_KEY) {
+    return NextResponse.json(
+      { error: 'Unauthorized' },
+      { status: 401 }
+    )
+  }
   const today = new Date().toISOString().slice(0, 10); // Взимаме днешната дата във формат YYYY-MM-DD
 
   // Взимаме всички потребители

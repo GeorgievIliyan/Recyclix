@@ -25,6 +25,16 @@ export async function OPTIONS() {
 }
 
 export async function POST(req: NextRequest) {
+  // против нежелани заявки
+  const token = req.headers.get('x-api-token')
+  
+  if (!token || token !== process.env.SECURE_API_KEY) {
+    return NextResponse.json(
+      { error: 'Unauthorized' },
+      { status: 401 }
+    )
+  }
+
   try {
     const body = await req.json();
     const { image, userDailyTaskId, binId } = body as {
@@ -116,8 +126,8 @@ export async function POST(req: NextRequest) {
     const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
     const prompt = `You are verifying a waste disposal task.
-Task description: "${taskDescription}"
-Question: Does this image match the task description? Respond YES or NO.`;
+    Task description: "${taskDescription}"
+    Question: Does this image match the task description? Respond YES or NO.`;
 
     // Изпращане на заявка към Gemini
     const geminiRes = await fetch(API_URL, {

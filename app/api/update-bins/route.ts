@@ -9,12 +9,14 @@ export const supabaseServer = createClient(
 )
 
 export async function GET(req: Request) {
-  // Защита на endpoint-а в production чрез API key
-  if (process.env.NODE_ENV !== "development") {
-    const apiKey = req.headers.get("x-api-key");
-    if (!apiKey || apiKey !== process.env.SECURE_API_KEY) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  // защита срещу нежелани заявки
+  const token = req.headers.get('x-api-token')
+  
+  if (!token || token !== process.env.SECURE_API_KEY) {
+    return NextResponse.json(
+      { error: 'Unauthorized' },
+      { status: 401 }
+    )
   }
   // Overpass QL заявка за всички рециклиращи кошчета в България
   const query = `
