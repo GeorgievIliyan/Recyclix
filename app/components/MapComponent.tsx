@@ -84,23 +84,6 @@ const RECYCLING_COLORS: Record<string, string> = {
   unknown: "bg-gradient-to-r from-gray-400 to-gray-500",
 }
 
-// Мапиране на специфични цветове от OSM тагове
-const OSM_COLOR_MAPPING: Record<string, string> = {
-  red: "bg-gradient-to-r from-red-400 to-red-500",
-  green: "bg-gradient-to-r from-green-400 to-green-500",
-  blue: "bg-gradient-to-r from-blue-400 to-blue-500",
-  yellow: "bg-gradient-to-r from-yellow-400 to-yellow-500",
-  gray: "bg-gradient-to-r from-gray-400 to-gray-500",
-  grey: "bg-gradient-to-r from-gray-400 to-gray-500",
-  purple: "bg-gradient-to-r from-purple-400 to-purple-500",
-  teal: "bg-gradient-to-r from-teal-400 to-teal-500",
-  pink: "bg-gradient-to-r from-pink-400 to-pink-500",
-  orange: "bg-gradient-to-r from-orange-400 to-orange-500",
-  brown: "bg-gradient-to-r from-amber-400 to-amber-500",
-  black: "bg-gradient-to-r from-gray-400 to-gray-500",
-  white: "bg-gradient-to-r from-gray-400 to-gray-500",
-}
-
 // Дефиниция на филтриращите категории в интерфейса
 const FILTER_OPTIONS = [
   {
@@ -168,7 +151,7 @@ const materialTranslations: Record<string, string> = {
   newspaper: "вестници",
   books: "книги",
   "glass bottles": "стъклени бутилки",
-  "electrical appliances": "ел. уреди",
+  "electrical appliances": "електроуреди",
   cans: "кенове",
   "plastic bottles": "пластмасови бутилки",
   "scrap metal": "скрап",
@@ -176,7 +159,8 @@ const materialTranslations: Record<string, string> = {
   tires: "гуми",
   "fluorescent tubes": "флуресцентни туби",
   textiles: "текстил",
-  "plastic bottle caps": "пластмасови капачки"
+  "plastic bottle caps": "пластмасови капачки",
+  "small electrical appliances": "Малки електоур."
 }
 
 // Типове отчети от вашата таблица
@@ -309,32 +293,79 @@ function MapClickHandler({
   return null
 }
 
-// Логика за определяне на основния цвят на маркера спрямо OSM таговете
+// Логика за определяне на основния цвят на маркера
 const getColorForBin = (bin: Bin): string => {
-  // Приоритет 1: Директен таг за цвят
-  if (bin.tags?.colour) {
-    const osmColor = bin.tags.colour.toLowerCase()
-    return OSM_COLOR_MAPPING[osmColor] || RECYCLING_COLORS.unknown
+  const types = bin.tags?.recycling_type?.split(",")
+    .map((t: string) => t.trim().toLowerCase())
+    .filter((t: string) => t.length > 0) ?? []
+  
+  for (const cleanType of types) {
+    if (cleanType === "textiles" || cleanType === "clothes" || cleanType === "clothing" || 
+        cleanType === "дрехи" || cleanType === "textile" || cleanType === "tyres" || 
+        cleanType === "tires" || cleanType === "shoes") {
+      return RECYCLING_COLORS.textiles
+    }
+  }
+  
+  const recyclingTags = Object.keys(bin.tags).filter((key) => 
+    key.startsWith("recycling:") && bin.tags[key] === "yes"
+  )
+  
+  for (const tag of recyclingTags) {
+    const material = tag.replace("recycling:", "").trim().toLowerCase()
+    if (material === "textiles" || material === "clothes" || material === "clothing" || 
+        material === "textile" || material === "tyres" || material === "tires" || 
+        material === "shoes" || material.includes("дрехи") || material.includes("cloth")) {
+      return RECYCLING_COLORS.textiles
+    }
   }
 
-  // Приоритет 2: Тип на рециклирането
-  const types = bin.tags?.recycling_type?.split(",") ?? []
-  for (const type of types) {
-    const cleanType = type.trim().toLowerCase()
+  if (types.length > 1) {
+    return "bg-gradient-to-r from-green-400 to-green-500"
+  }
+  
+  if (recyclingTags.length > 1) {
+    return "bg-gradient-to-r from-green-400 to-green-500"
+  }
+
+  const hasRecyclingTypes = bin.tags?.recycling_type && bin.tags.recycling_type.trim().length > 0
+  const hasRecyclingTags = recyclingTags.length > 0
+  
+  if (!hasRecyclingTypes && !hasRecyclingTags) {
+    return "bg-gradient-to-r from-green-400 to-green-500"
+  }
+
+  for (const cleanType of types) {
     if (RECYCLING_COLORS[cleanType]) {
       return RECYCLING_COLORS[cleanType]
     }
+    
+    if (cleanType === "paper" || cleanType === "cardboard") {
+      return RECYCLING_COLORS.paper
+    } else if (cleanType === "plastic") {
+      return RECYCLING_COLORS.plastic
+    } else if (cleanType === "glass") {
+      return RECYCLING_COLORS.glass
+    } else if (cleanType === "metal" || cleanType === "aluminum" || cleanType === "aluminium") {
+      return RECYCLING_COLORS.metal
+    } else if (cleanType === "organic" || cleanType === "bio" || cleanType === "compost") {
+      return RECYCLING_COLORS.organic
+    } else if (cleanType === "electronics" || cleanType === "e_waste" || cleanType === "weee") {
+      return RECYCLING_COLORS.electronics
+    } else if (cleanType === "batteries") {
+      return RECYCLING_COLORS.batteries
+    } else if (cleanType === "general" || cleanType === "residual" || cleanType === "waste") {
+      return RECYCLING_COLORS.general
+    }
   }
-
-  // Приоритет 3: Специфични recycling:* тагове
-  const recyclingTags = Object.keys(bin.tags).filter((key) => key.startsWith("recycling:") && bin.tags[key] === "yes")
 
   for (const tag of recyclingTags) {
     const material = tag.replace("recycling:", "").trim().toLowerCase()
+    
     if (RECYCLING_COLORS[material]) {
       return RECYCLING_COLORS[material]
     }
-
+    
     if (material.includes("paper") || material.includes("cardboard")) {
       return RECYCLING_COLORS.paper
     } else if (material.includes("plastic")) {
@@ -347,15 +378,18 @@ const getColorForBin = (bin: Bin): string => {
       return RECYCLING_COLORS.organic
     } else if (material.includes("electr") || material.includes("e_waste") || material.includes("weee")) {
       return RECYCLING_COLORS.electronics
+    } else if (material.includes("batter")) {
+      return RECYCLING_COLORS.batteries
+    } else if (material.includes("general") || material.includes("residual") || material.includes("waste")) {
+      return RECYCLING_COLORS.general
     }
   }
 
-  // Приоритет 4: Тип на обекта (amenity)
   const amenity = bin.tags?.amenity?.toLowerCase()
   if (amenity === "waste_basket" || amenity === "waste_basket;recycling") {
     return RECYCLING_COLORS.waste_basket
   } else if (amenity === "recycling") {
-    return RECYCLING_COLORS.center
+    return "bg-gradient-to-r from-green-400 to-green-500" 
   }
 
   return RECYCLING_COLORS.unknown

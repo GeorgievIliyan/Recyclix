@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase-browser"
 import ConfirmCamera from "@/app/components/ConfirmCamera"
-import { CheckCircle2, Circle, Calendar, Trophy, Loader2, Clock, Sparkles, Target } from "lucide-react"
+import { CheckCircle2, Circle, Calendar, Trophy, Loader2, Clock, Sparkles, Target, PartyPopper } from "lucide-react"
 
 interface Task {
   id: string
@@ -251,7 +251,7 @@ export default function DailyTasksPage() {
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#00CD56]/20 mb-4">
               <Trophy className="h-8 w-8 text-[#00CD56]" />
             </div>
-            <h3 className="text-xl font-bold mb-2">Поздравления! 🎉</h3>
+            <h3 className="text-xl font-bold mb-2">Поздравления! <PartyPopper className="h-6 w-6"/></h3>
             <p className="text-muted-foreground">Завършихте всички задачи за днес и спечелихте {totalPoints} точки!</p>
           </div>
         )}
