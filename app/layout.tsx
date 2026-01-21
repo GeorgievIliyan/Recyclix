@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     default: "Recyclix",
     template: "%s | Recyclix",
   },
-  description: "A smart app for modern recycling.",
+  description: "Recyclix is a modern recycling app that combines smart tracking, personalized tips, and community insights to make sustainability simple.",
   icons: {
     icon: [
       { url: "/favicon.svg", sizes: "any" },

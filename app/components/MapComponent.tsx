@@ -146,7 +146,7 @@ const materialTranslations: Record<string, string> = {
   shoes: "обувки",
   magazines: "списания",
   "paper packaging": "опаковки",
-  "plastic packaging": "Пластмасови опаковки",
+  "plastic packaging": "пластмасови опаковки",
   cardboard: "картон",
   newspaper: "вестници",
   books: "книги",
@@ -160,7 +160,22 @@ const materialTranslations: Record<string, string> = {
   "fluorescent tubes": "флуресцентни туби",
   textiles: "текстил",
   "plastic bottle caps": "пластмасови капачки",
-  "small electrical appliances": "Малки електоур."
+  "small electrical appliances": "малки електоур.",
+  "metal packaging": "метални опаковки"
+}
+
+const dayMap: Record<string, string> = {
+  Mo: "Пон",
+  Tu: "Вт",
+  We: "Ср",
+  Th: "Чет",
+  Fr: "Пет",
+  Sa: "Съб",
+  Su: "Нед",
+}
+
+const translateDays = (hours: string) => {
+  return hours.replace(/\b(Mo|Tu|We|Th|Fr|Sa|Su)\b/g, (match) => dayMap[match])
 }
 
 // Типове отчети от вашата таблица
@@ -829,7 +844,7 @@ const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
                       />
                     </svg>
                     <span>
-                      <strong>Работно време:</strong> {bin.tags.opening_hours}
+                      <strong>Работно време:</strong> {translateDays(bin.tags.opening_hours)}
                     </span>
                   </div>
                 </div>
@@ -852,7 +867,7 @@ const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
                         <div key={idx} className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
-                            <span className="text-sm text-gray-700 dark:text-neutral-200 capitalize">{translated}</span>
+                            <span className="text-sm text-gray-700 dark:text-neutral-200">{translated}</span>
                           </div>
                           <span className="text-xs px-2 py-1 rounded-full bg-gray-100 dark:bg-neutral-700 text-gray-600 dark:text-neutral-300">
                             {category}
@@ -1188,13 +1203,16 @@ const AddBinModal = memo(function AddBinModal({
         <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 dark:bg-neutral-800 dark:text-white">
           <div className="p-6">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                {modalMode === "report"
-                  ? "Докладване на проблем"
-                  : modalMode === "edit"
-                    ? "Предложи редактиране"
-                    : "Добавяне на ново кошче"}
-              </h2>
+              <div className="flex gap-2">
+                <Trash2 className="text-green-500"/>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  {modalMode === "report"
+                    ? "Докладване на проблем"
+                    : modalMode === "edit"
+                      ? "Предложи редактиране"
+                      : "Добавяне на ново кошче"}
+                </h2>
+              </div>
               <button
                 onClick={handleModalCancel}
                 className="p-1 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-full transition-all duration-200 hover:rotate-90"
@@ -1392,7 +1410,6 @@ const AddBinModal = memo(function AddBinModal({
                       disabled={isSubmitting}
                     >
                       <option value="">Изберете тип съоръжение</option>
-                      <option value="recycling">Рециклиране (контейнер)</option>
                       <option value="waste_basket">Кошче за боклук</option>
                       <option value="container">Контейнер</option>
                       <option value="centre">Център за рециклиране</option>
@@ -1466,30 +1483,6 @@ const AddBinModal = memo(function AddBinModal({
                     />
                   </div>
 
-                  <div className="space-y-3">
-                    <div className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={formData.recycling_clothes}
-                        onChange={(e) => handleInputChange("recycling_clothes", e.target.checked)}
-                        className="h-4 w-4 text-green-600 border-gray-300 dark:border-neutral-600 rounded focus:ring-green-500 dark:focus:ring-green-400 dark:bg-neutral-800"
-                        disabled={isSubmitting}
-                      />
-                      <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Приема дрехи (текстил)</span>
-                    </div>
-
-                    <div className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={formData.recycling_shoes}
-                        onChange={(e) => handleInputChange("recycling_shoes", e.target.checked)}
-                        className="h-4 w-4 text-green-600 border-gray-300 dark:border-neutral-600 rounded focus:ring-green-500 dark:focus:ring-green-400 dark:bg-neutral-800"
-                        disabled={isSubmitting}
-                      />
-                      <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Приема обувки</span>
-                    </div>
-                  </div>
-
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Брой контейнери</label>
                     <input
@@ -1505,7 +1498,7 @@ const AddBinModal = memo(function AddBinModal({
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Снимки кошче (по избор, макс. 5)
+                      Снимка на коша 
                     </label>
 
                     <div className="space-y-3">

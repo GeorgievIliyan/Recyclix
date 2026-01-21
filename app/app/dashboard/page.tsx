@@ -13,12 +13,6 @@ import { GamificationProgress } from '@/app/components/GamificationProgress'
 import { RecentActivity } from '@/app/components/RecentActivity'
 import { Navigation } from '@/app/components/Navigation'
 
-type Profile = {
-  username: string
-  level: number
-  xp: number
-}
-
 type RecyclingEvent = {
   material: string
   points: number
@@ -284,7 +278,7 @@ export default function DashboardPage() {
       }}
       variant="default"
     >
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-7xl">
           <header className="mb-6 sm:mb-8">
             <div className="flex items-center justify-between flex-wrap gap-4">

@@ -7,7 +7,6 @@ import {
   MapPin,
   User,
   Eye,
-  EyeOff,
   Search,
   Loader2,
   Package,
@@ -31,6 +30,7 @@ import {
   X,
 } from "lucide-react"
 import LeafletMap from "./LeafletMap"
+import { RecyclingLoader, SimpleSpinningRecycling } from "./RecyclingLoader"
 
 export interface Bin {
   id: string
@@ -157,13 +157,6 @@ function parseTagsObject(tags: any): {
     recycling_shoes: tags["recycling:shoes"] === "yes",
     count: Number.parseInt(tags.count) || 1,
   }
-}
-
-function parseArray(value: any): any {
-  if (Array.isArray(value)) {
-    return value.map((item) => item.toString())
-  }
-  return value
 }
 
 export async function getPendingBins(): Promise<Bin[]> {
@@ -422,7 +415,6 @@ async function getBinImages(binId: string): Promise<string[]> {
       return [];
     }
 
-    // Filter for image files and create full URLs
     const imageUrls = data
       .filter(file => {
         const extension = file.name.toLowerCase().split('.').pop();
@@ -726,7 +718,6 @@ function BinDetails({
   onApprove: (binId: string, binData: Bin) => Promise<void>
   onReject: (binId: string) => Promise<void>
 }) {
-  const [showDetails, setShowDetails] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
   const [showMapModal, setShowMapModal] = useState(false)
   const [isMapMounted, setIsMapMounted] = useState(false)
@@ -765,10 +756,10 @@ function BinDetails({
         onClick={() => setShowMapModal(false)}
       >
         <div
-          className="bg-white dark:bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden"
+          className="bg-white dark:bg-neutral-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-neutral-700">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Интерактивна карта</h3>
             <button
               onClick={() => setShowMapModal(false)}
@@ -839,7 +830,7 @@ function BinDetails({
           <span className="font-medium text-gray-700 dark:text-gray-300">Местоположение:</span>
         </div>
 
-        <div className="p-3 bg-blue-50 dark:bg-gray-700/50 rounded-lg mb-3 border border-blue-200 dark:border-gray-600">
+        <div className="p-3 bg-blue-50 dark:bg-neutral-700/50 rounded-lg mb-3 border border-blue-200 dark:border-neutral-600">
           <div className="flex items-start gap-3">
             <Navigation className="w-5 h-5 text-blue-600 dark:text-gray-300 mt-0.5" />
             <div className="flex-1">
@@ -862,8 +853,8 @@ function BinDetails({
           </div>
         </div>
 
-        <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
-          <div className="p-3 bg-gray-50 dark:bg-gray-800 flex items-center justify-between">
+        <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-neutral-700">
+          <div className="p-3 bg-gray-50 dark:bg-neutral-800 flex items-center justify-between">
             <div className="text-sm text-gray-600 dark:text-gray-400">Интерактивна карта</div>
             <button
               onClick={() => setShowMapModal(true)}
@@ -879,7 +870,7 @@ function BinDetails({
   }
 
   return (
-    <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-gray-800">
+    <div className="border border-gray-200 dark:border-neutral-700 rounded-lg p-4 bg-white dark:bg-neutral-800">
       <div className="flex flex-col lg:flex-row gap-4">
         <div className="flex-1">
           <div className="flex items-start justify-between mb-3">
@@ -899,7 +890,7 @@ function BinDetails({
               className={`px-3 py-1 rounded-full text-sm font-medium ${
                 formData.amenity === "recycling"
                   ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
-                  : "bg-blue-100 text-blue-800 dark:bg-gray-700 dark:text-gray-300"
+                  : "bg-blue-100 text-blue-800 dark:bg-neutral-700 dark:text-gray-300"
               }`}
             >
               {formData.amenity}
@@ -1023,7 +1014,7 @@ function BinDetails({
                 {bin.image_urls.map((imageUrl, index) => (
                   <div
                     key={index}
-                    className="relative group cursor-pointer overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700"
+                    className="relative group cursor-pointer overflow-hidden rounded-lg border border-gray-200 dark:border-neutral-700"
                     onClick={() => setSelectedImage(imageUrl)}
                   >
                     <img
@@ -1045,7 +1036,7 @@ function BinDetails({
               </div>
             </div>
           ) : (
-            <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-800/30 rounded-lg border border-gray-200 dark:border-gray-700">
+            <div className="mb-4 p-4 bg-gray-50 dark:bg-neutral-800/30 rounded-lg border border-gray-200 dark:border-neutral-700">
               <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
@@ -1061,24 +1052,6 @@ function BinDetails({
           )}
 
           {typeof window !== "undefined" && <MapPreview />}
-
-          {/* Детайли */}
-          {showDetails && (
-            <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-              <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-2">Технически детайли:</h4>
-              <pre className="text-xs text-gray-600 dark:text-gray-400 overflow-auto">
-                {JSON.stringify(bin, null, 2)}
-              </pre>
-            </div>
-          )}
-
-          <button
-            onClick={() => setShowDetails(!showDetails)}
-            className="mt-3 flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:underline"
-          >
-            {showDetails ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            {showDetails ? "Скрий детайли" : "Покажи детайли"}
-          </button>
         </div>
 
         <div className="flex lg:flex-col gap-2">
@@ -1134,14 +1107,14 @@ function SuggestionDetails({
   }
 
   return (
-    <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-gray-900">
+    <div className="border border-gray-200 dark:border-neutral-700 rounded-lg p-4 bg-white dark:bg-neutral-900">
       <div className="flex flex-col lg:flex-row gap-4">
         <div className="flex-1">
           {/* Заглавие на предложението за промяна */}
           <h3 className="font-semibold text-gray-900 dark:text-gray-50 mb-2">Предложение за промяна</h3>
 
           {/* Информационен панел с идентификатор на коша */}
-          <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+          <div className="mb-4 p-3 bg-gray-50 dark:bg-neutral-800 rounded-lg border border-gray-200 dark:border-neutral-700">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Идентификатор на кош:</p>
@@ -1154,7 +1127,7 @@ function SuggestionDetails({
           {/* Предложени промени */}
           <div className="space-y-3">
             {suggestion.field_name && (
-              <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700">
+              <div className="p-3 bg-gray-50 dark:bg-neutral-800 rounded border border-gray-200 dark:border-neutral-700">
                 <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
                   Поле
                 </p>
@@ -1163,14 +1136,14 @@ function SuggestionDetails({
             )}
 
             {suggestion.name && (
-              <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700">
+              <div className="p-3 bg-gray-50 dark:bg-neutral-800 rounded border border-gray-200 dark:border-neutral-700">
                 <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Име</p>
                 <p className="text-sm font-medium text-gray-900 dark:text-gray-50">{suggestion.name}</p>
               </div>
             )}
 
             {suggestion.opening_hours && (
-              <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700">
+              <div className="p-3 bg-gray-50 dark:bg-neutral-800 rounded border border-gray-200 dark:border-neutral-700">
                 <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
                   Работно време
                 </p>
@@ -1179,7 +1152,7 @@ function SuggestionDetails({
             )}
 
             {suggestion.materials && (
-              <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700">
+              <div className="p-3 bg-gray-50 dark:bg-neutral-800 rounded border border-gray-200 dark:border-neutral-700">
                 <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
                   Материали
                 </p>
@@ -1188,7 +1161,7 @@ function SuggestionDetails({
             )}
 
             {suggestion.notes && (
-              <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700">
+              <div className="p-3 bg-gray-50 dark:bg-neutral-800 rounded border border-gray-200 dark:border-neutral-700">
                 <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
                   Бележки
                 </p>
@@ -1198,7 +1171,7 @@ function SuggestionDetails({
           </div>
 
           {(suggestion.old_value !== undefined || suggestion.new_value !== undefined) && (
-            <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700">
+            <div className="mt-4 p-3 bg-gray-50 dark:bg-neutral-800 rounded border border-gray-200 dark:border-neutral-700">
               <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
                 Сравнение на стойности
               </p>
@@ -1220,7 +1193,7 @@ function SuggestionDetails({
           )}
 
           {/* Метаданни */}
-          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-neutral-700">
             <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
               <User className="w-4 h-4" />
               <span>{suggestion.user_email || "Неизвестен потребител"}</span>
@@ -1250,7 +1223,7 @@ function SuggestionDetails({
 
           {/* Информация за преглед (ако има) */}
           {suggestion.reviewed_by && (
-            <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-800 rounded border border-gray-300 dark:border-gray-600">
+            <div className="mt-4 p-3 bg-gray-100 dark:bg-neutral-800 rounded border border-gray-300 dark:border-neutral-600">
               <p className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-2">
                 Информация за преглед
               </p>
@@ -1280,7 +1253,7 @@ function SuggestionDetails({
                 placeholder="Бележки за отхвърляне (опционално)..."
                 value={reviewNotes}
                 onChange={(e) => setReviewNotes(e.target.value)}
-                className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="p-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-sm bg-white dark:bg-neutral-700 text-gray-900 dark:text-white"
               />
               <button
                 onClick={handleReject}
@@ -1397,10 +1370,10 @@ function ReportDetails({
         onClick={() => setShowMapModal(false)}
       >
         <div
-          className="bg-white dark:bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden"
+          className="bg-white dark:bg-neutral-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-neutral-700">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Местоположение на коша</h3>
             <button
               onClick={() => setShowMapModal(false)}
@@ -1452,7 +1425,7 @@ function ReportDetails({
   }
 
   return (
-    <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-gray-800">
+    <div className="border border-gray-200 dark:border-neutral-700 rounded-lg p-4 bg-white dark:bg-neutral-800">
       <div className="flex flex-col lg:flex-row gap-4">
         <div className="flex-1">
           <div className="flex items-start justify-between mb-3">
@@ -1542,7 +1515,7 @@ function ReportDetails({
                 <MessageCircle className="w-4 h-4 text-gray-400" />
                 <span className="font-medium text-gray-700 dark:text-gray-300">Описание на проблема:</span>
               </div>
-              <div className="px- bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+              <div className="px- bg-gray-50 dark:bg-neutral-800/50 rounded-lg">
                 <p className="text-gray-700 dark:text-gray-300">{report.description}</p>
               </div>
             </div>
@@ -1567,7 +1540,7 @@ function ReportDetails({
                 {allImages.map((imageUrl, index) => (
                   <div
                     key={index}
-                    className="relative group cursor-pointer overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700"
+                    className="relative group cursor-pointer overflow-hidden rounded-lg border border-gray-200 dark:border-neutral-700"
                     onClick={() => setSelectedImage(imageUrl)}
                   >
                     <img
@@ -1591,7 +1564,7 @@ function ReportDetails({
               </div>
             </div>
           ) : (
-            <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-800/30 rounded-lg border border-gray-200 dark:border-gray-700">
+            <div className="mb-4 p-4 bg-gray-50 dark:bg-neutral-800/30 rounded-lg border border-gray-200 dark:border-neutral-700">
               <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
@@ -1605,32 +1578,6 @@ function ReportDetails({
               </div>
             </div>
           )}
-
-          {showDetails && (
-            <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-              <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-2">Технически детайли:</h4>
-              <pre className="text-xs text-gray-600 dark:text-gray-400 overflow-auto">
-                {JSON.stringify({
-                  ...report,
-                  // Не показвай снимките в детайлите
-                  images: report.images?.map(img => ({ 
-                    id: img.id, 
-                    has_photo: !!img.photo_url 
-                  })),
-                  has_photo_url: !!report.photo_url,
-                  all_images_count: allImages.length
-                }, null, 2)}
-              </pre>
-            </div>
-          )}
-
-          <button
-            onClick={() => setShowDetails(!showDetails)}
-            className="mt-3 flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:underline"
-          >
-            {showDetails ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            {showDetails ? "Скрий детайли" : "Технически детайли"}
-          </button>
         </div>
 
         <div className="flex lg:flex-col gap-2">
@@ -1780,12 +1727,12 @@ export function AdminPanel() {
   })
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
+    <div className="min-h-screen bg-gray-50 dark:bg-neutral-900">
+      <header className="bg-white dark:bg-neutral-800 border-b border-gray-200 dark:border-neutral-700 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700">
+              <div className="p-2 rounded-lg bg-gray-100 dark:bg-neutral-700">
                 <Shield className="w-6 h-6 text-gray-600 dark:text-gray-300" />
               </div>
               <div>
@@ -1806,9 +1753,9 @@ export function AdminPanel() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
+        <div className="mb-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+            <div className="bg-white dark:bg-neutral-800 rounded-lg p-4 border border-gray-200 dark:border-neutral-70 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">Общо кошове</p>
@@ -1817,7 +1764,7 @@ export function AdminPanel() {
                 <Recycle className="w-8 h-8 text-green-500" />
               </div>
             </div>
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+            <div className="bg-white dark:bg-neutral-800 rounded-lg p-4 border border-gray-200 dark:border-neutral-700 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">Одобрени</p>
@@ -1826,7 +1773,7 @@ export function AdminPanel() {
                 <CircleCheck className="w-8 h-8 text-green-500" />
               </div>
             </div>
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+            <div className="bg-white dark:bg-neutral-800 rounded-lg p-4 border border-gray-200 dark:border-neutral-700 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">Чакащи одобрение</p>
@@ -1835,7 +1782,7 @@ export function AdminPanel() {
                 <List className="w-8 h-8 text-orange-500" />
               </div>
             </div>
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+            <div className="bg-white dark:bg-neutral-800 rounded-lg p-4 border border-gray-200 dark:border-neutral-700 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">Предложения</p>
@@ -1844,7 +1791,7 @@ export function AdminPanel() {
                 <PenLine className="w-8 h-8 text-blue-500" />
               </div>
             </div>
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+            <div className="bg-white dark:bg-neutral-800 rounded-lg p-4 border border-gray-200 dark:border-neutral-700 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">Активни отчети</p>
@@ -1856,8 +1803,8 @@ export function AdminPanel() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-          <div className="border-b border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-neutral-800 rounded-xl border border-gray-200 dark:border-neutral-700 shadow-sm">
+          <div className="border-b border-gray-200 dark:border-neutral-700">
             <div className="px-6 py-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex space-x-2">
@@ -1865,7 +1812,7 @@ export function AdminPanel() {
                     onClick={() => setActiveTab("bins")}
                     className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                       activeTab === "bins"
-                        ? "bg-gray-600 dark:bg-gray-600 text-white"
+                        ? "bg-neutral-600 dark:bg-neutral-600 text-white"
                         : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
                     }`}
                   >
@@ -1875,7 +1822,7 @@ export function AdminPanel() {
                     onClick={() => setActiveTab("suggestions")}
                     className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                       activeTab === "suggestions"
-                        ? "bg-gray-600 dark:bg-gray-600 text-white"
+                        ? "bg-neutral-600 dark:bg-neutral-600 text-white"
                         : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
                     }`}
                   >
@@ -1885,7 +1832,7 @@ export function AdminPanel() {
                     onClick={() => setActiveTab("reports")}
                     className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                       activeTab === "reports"
-                        ? "bg-gray-600 dark:bg-gray-600 text-white"
+                        ? "bg-neutral-600 dark:bg-neutral-600 text-white"
                         : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
                     }`}
                   >
@@ -1899,7 +1846,7 @@ export function AdminPanel() {
                     placeholder="Търси..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-gray-900 dark:text-white"
                   />
                 </div>
               </div>
@@ -1909,7 +1856,7 @@ export function AdminPanel() {
           <div className="p-6">
             {loading ? (
               <div className="flex justify-center py-12">
-                <Loader2 className="w-12 h-12 animate-spin text-gray-500" />
+                <SimpleSpinningRecycling />
               </div>
             ) : activeTab === "bins" ? (
               filteredBins.length === 0 ? (

@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase-browser"
 import ConfirmCamera from "@/app/components/ConfirmCamera"
-import { CheckCircle2, Circle, Calendar, Trophy, Loader2, Clock, Sparkles, Target, PartyPopper } from "lucide-react"
+import { CheckCircle2, Circle, Calendar, Trophy, Clock, Sparkles, Target, PartyPopper } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { RecyclingLoader } from "@/app/components/RecyclingLoader"
 
 interface Task {
   id: string
@@ -20,6 +22,8 @@ interface Task {
 }
 
 export default function DailyTasksPage() {
+  const router = useRouter()
+
   const [tasks, setTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -33,7 +37,7 @@ export default function DailyTasksPage() {
         const {
           data: { user },
         } = await supabase.auth.getUser()
-        if (!user) return setError("Не сте логнати")
+        if (!user) return router.push("/auth/login")
 
         // Филтриране на задачите за днешната дата
         const today = new Date().toISOString().slice(0, 10)
@@ -72,8 +76,7 @@ export default function DailyTasksPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-12 w-12 animate-spin text-[#00CD56]" />
-          <p className="text-muted-foreground text-sm">Зареждане...</p>
+          <RecyclingLoader />
         </div>
       </div>
     )
@@ -99,11 +102,11 @@ export default function DailyTasksPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background px-4">
         <div className="text-center max-w-md">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-muted mb-6">
-            <Calendar className="h-10 w-10 text-muted-foreground" />
+          <div className="inline-flex items-center justify-center w-28 h-28 rounded-full bg-green-500/10 mb-6">
+            <Calendar className="h-14 w-14 text-green-500" />
           </div>
-          <h2 className="text-2xl font-semibold mb-2">Няма задачи</h2>
-          <p className="text-muted-foreground">Все още нямате задачи за днес. Проверете отново по-късно!</p>
+          <h2 className="text-3xl font-semibold mb-2">Няма задачи</h2>
+          <p className="text-muted-foreground text-md">Все още нямате задачи за днес. <br />Проверете отново по-късно!</p>
         </div>
       </div>
     )

@@ -19,17 +19,17 @@ interface NavigationProps {
 const modules = [
   {
     id: 'dashboard' as Module,
-    label: 'Dashboard',
+    label: 'Табло',
     icon: LayoutDashboard,
   },
   {
     id: 'map' as Module,
-    label: 'Map',
+    label: 'Карта',
     icon: MapPin,
   },
   {
     id: 'tasks' as Module,
-    label: 'Tasks',
+    label: 'Задачи',
     icon: ListTodo,
   },
 ]
@@ -49,7 +49,6 @@ export function Navigation({
     const handleScroll = () => {
       const currentScrollY = window.scrollY
       
-      // Auto-hide on scroll down (only on mobile if enabled)
       if (autoHideOnScroll && window.innerWidth < 768) {
         if (currentScrollY > lastScrollY && currentScrollY > 100) {
           setIsVisible(false)
@@ -84,7 +83,6 @@ export function Navigation({
 
   return (
     <>
-      {/* Desktop & Tablet - Top Navigation */}
       <nav
         className={cn(
           'hidden md:block fixed top-0 left-0 right-0 z-50 transition-all duration-300',
@@ -126,8 +124,7 @@ export function Navigation({
           </div>
         </div>
       </nav>
-
-      {/* Mobile - Bottom Navigation */}
+      
       <nav
         className={cn(
           'md:hidden fixed bottom-0 left-0 right-0 z-50',
