@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import sharp from "sharp";
 import { supabase } from "@/lib/supabase-browser";
+import { error } from "console";
 
 // CORS headers за frontend достъп
 const corsHeaders = {
@@ -13,6 +14,13 @@ const corsHeaders = {
 // Прост rate-limiting по IP
 const ipLastCalls = new Map<string, number>();
 const COOLDOWN_MS = 5000;
+
+export async function GET(req: NextRequest) {
+  return NextResponse.json(
+    {error: "Method not allowed"},
+    {status: 405}
+  )
+}
 
 export async function OPTIONS() {
   return NextResponse.json({}, { headers: corsHeaders });

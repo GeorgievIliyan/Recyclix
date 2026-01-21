@@ -1,94 +1,325 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { nanoid } from "nanoid";
+import { z } from "zod";
 
-// Supabase server client със service role ключ
 export const supabaseServer = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_KEY!
-)
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_KEY!
+);
+
+const ApiTokenSchema = z.object({
+  token: z.string().min(1, "API token is required"),
+});
+
+const OverpassElementSchema = z.object({
+  id: z.number().int().positive("Invalid OSM ID"),
+  lat: z
+    .number()
+    .min(41.235, "Latitude must be >= 41.235")
+    .max(44.217, "Latitude must be <= 44.217")
+    .optional(),
+  lon: z
+    .number()
+    .min(22.357, "Longitude must be >= 22.357")
+    .max(28.609, "Longitude must be <= 28.609")
+    .optional(),
+  center: z
+    .object({
+      lat: z
+        .number()
+        .min(41.235, "Center latitude must be >= 41.235")
+        .max(44.217, "Center latitude must be <= 44.217"),
+      lon: z
+        .number()
+        .min(22.357, "Center longitude must be >= 22.357")
+        .max(28.609, "Center longitude must be <= 28.609"),
+    })
+    .optional(),
+  tags: z.record(z.string(), z.any()).optional(),
+}).refine(
+  (data) => {
+    return (data.lat && data.lon) || (data.center?.lat && data.center?.lon);
+  },
+  { message: "Element must have valid coordinates" }
+);
+
+const OverpassResponseSchema = z.object({
+  elements: z
+    .array(OverpassElementSchema)
+    .max(10000, "Too many elements received"),
+  generator: z.string().optional(),
+  version: z.number().optional(),
+  copyright: z.string().optional(),
+});
+
+const RecyclingBinSchema = z.object({
+  osm_id: z.string().min(1, "OSM ID is required"),
+  lat: z
+    .number()
+    .min(41.235, "Latitude must be within Bulgaria")
+    .max(44.217, "Latitude must be within Bulgaria"),
+  lon: z
+    .number()
+    .min(22.357, "Longitude must be within Bulgaria")
+    .max(28.609, "Longitude must be within Bulgaria"),
+  tags: z.record(z.string(), z.any()).default({}),
+  code: z.string().length(6, "Code must be exactly 6 characters"),
+  created_at: z
+    .string()
+    .datetime({ message: "Invalid datetime format for created_at" })
+    .optional(),
+  updated_at: z
+    .string()
+    .datetime({ message: "Invalid datetime format for updated_at" })
+    .optional(),
+});
+
+const sanitize = {
+  tags: (tags: Record<string, any>): Record<string, string> => {
+    const sanitized: Record<string, string> = {};
+    for (const [key, value] of Object.entries(tags)) {
+      if (typeof value === "string") {
+        const sanitizedValue = value
+          .replace(/[<>]/g, "")
+          .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "")
+          .substring(0, 255);
+
+        const sanitizedKey = key.replace(/[^a-zA-Z0-9_:]/g, "").substring(0, 50);
+
+        if (sanitizedKey && sanitizedValue) {
+          sanitized[sanitizedKey] = sanitizedValue;
+        }
+      }
+    }
+    return sanitized;
+  },
+
+  overpassQuery: (query: string): string => {
+    if (!query.includes("[out:json]")) {
+      throw new Error("Query must output JSON format");
+    }
+    if (!query.includes('area["ISO3166-1"="BG"]')) {
+      throw new Error("Query must be limited to Bulgaria");
+    }
+    if (query.includes("; out meta;")) {
+      throw new Error("Meta output not allowed");
+    }
+    if (query.length > 10000) {
+      throw new Error("Query too large");
+    }
+    return query;
+  },
+};
 
 export async function GET(req: Request) {
-  // защита срещу нежелани заявки
-  const token = req.headers.get('x-api-token')
-  
-  if (!token || token !== process.env.SECURE_API_KEY) {
-    return NextResponse.json(
-      { error: 'Unauthorized' },
-      { status: 401 }
-    )
-  }
-  // Overpass QL заявка за всички рециклиращи кошчета в България
-  const query = `
-    [out:json][timeout:600];
-    area["ISO3166-1"="BG"]->.searchArea;
-    (
-      node["amenity"="recycling"](area.searchArea);
-      way["amenity"="recycling"](area.searchArea);
-    );
-    out body center;
-  `;
-
   try {
-    // Изпращане на заявка към Overpass API
-    const res = await fetch("https://overpass-api.de/api/interpreter", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: new URLSearchParams({ data: query }),
-    });
+    const token = req.headers.get("x-api-token");
+    const tokenValidation = ApiTokenSchema.safeParse({ token });
 
-    // Вземаме raw текста от отговора
-    const text = await res.text();
-
-    // Опит за парсване като JSON
-    let data: any;
-    try {
-      data = JSON.parse(text);
-    } catch {
-      // Overpass е върнал HTML/XML (грешка или rate limit)
-      console.error("Overpass не върна JSON:", text);
+    if (!tokenValidation.success) {
       return NextResponse.json(
-        { error: "Overpass не върна валиден JSON" },
+        {
+          error: "Unauthorized",
+          details: tokenValidation.error.issues.map((issue) => ({
+            field: issue.path.join("."),
+            message: issue.message,
+          })),
+        },
+        { status: 401 }
+      );
+    }
+
+    if (token !== process.env.SECURE_API_KEY) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const query = `
+      [out:json][timeout:600];
+      area["ISO3166-1"="BG"]->.searchArea;
+      (
+        node["amenity"="recycling"](area.searchArea);
+        way["amenity"="recycling"](area.searchArea);
+      );
+      out body center;
+    `;
+
+    try {
+      const sanitizedQuery = sanitize.overpassQuery(query);
+
+      const res = await fetch("https://overpass-api.de/api/interpreter", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ data: sanitizedQuery }),
+      });
+
+      if (res.status === 429) {
+        return NextResponse.json(
+          { error: "Rate limit exceeded. Please try again later." },
+          { status: 429 }
+        );
+      }
+
+      if (!res.ok) {
+        throw new Error(`Overpass API responded with status: ${res.status}`);
+      }
+
+      const text = await res.text();
+      const contentType = res.headers.get("content-type");
+
+      if (!contentType?.includes("application/json")) {
+        console.error("Overpass returned non-JSON response:", text.substring(0, 500));
+        return NextResponse.json({ error: "Overpass did not return valid JSON" }, { status: 500 });
+      }
+
+      let parsedData: unknown;
+      try {
+        parsedData = JSON.parse(text);
+      } catch {
+        console.error("Overpass returned invalid JSON:", text.substring(0, 500));
+        return NextResponse.json({ error: "Overpass did not return valid JSON" }, { status: 500 });
+      }
+
+      const validationResult = OverpassResponseSchema.safeParse(parsedData);
+      if (!validationResult.success) {
+        console.error("Overpass response validation failed:", validationResult.error.issues);
+        return NextResponse.json(
+          {
+            error: "Invalid Overpass response format",
+            details: validationResult.error.issues.map((issue) => ({
+              field: issue.path.join("."),
+              message: issue.message,
+            })),
+          },
+          { status: 500 }
+        );
+      }
+
+      const data = validationResult.data;
+      const bins: z.infer<typeof RecyclingBinSchema>[] = [];
+      const errors: string[] = [];
+
+      for (const element of data.elements) {
+        try {
+          const lat = element.lat ?? element.center?.lat;
+          const lon = element.lon ?? element.center?.lon;
+
+          if (!lat || !lon) {
+            errors.push(`Element ${element.id} missing coordinates`);
+            continue;
+          }
+
+          const sanitizedTags = element.tags ? sanitize.tags(element.tags) : {};
+
+          const bin = RecyclingBinSchema.parse({
+            osm_id: element.id.toString(),
+            lat,
+            lon,
+            tags: sanitizedTags,
+            code: nanoid(6),
+          });
+
+          bins.push(bin);
+        } catch (error) {
+          if (error instanceof z.ZodError) {
+            errors.push(
+              `Element ${element.id}: ${error.issues.map((e) => e.message).join(", ")}`
+            );
+          } else {
+            errors.push(
+              `Element ${element.id}: ${error instanceof Error ? error.message : "Unknown error"}`
+            );
+          }
+        }
+      }
+
+      if (errors.length > 0) {
+        console.warn("Validation errors for some elements:", errors.slice(0, 10));
+      }
+
+      if (bins.length === 0) {
+        return NextResponse.json(
+          { error: "No valid recycling bins found", details: errors },
+          { status: 404 }
+        );
+      }
+
+      const CHUNK_SIZE = 100;
+      const chunks = [];
+      for (let i = 0; i < bins.length; i += CHUNK_SIZE) {
+        chunks.push(bins.slice(i, i + CHUNK_SIZE));
+      }
+
+      const results: Array<{ success: boolean; error?: string; count?: number }> = [];
+      for (const chunk of chunks) {
+        try {
+          const { error } = await supabaseServer
+            .from("recycling_bins")
+            .upsert(chunk, { onConflict: "osm_id" });
+
+          if (error) {
+            results.push({ success: false, error: error.message });
+          } else {
+            results.push({ success: true, count: chunk.length });
+          }
+        } catch (error) {
+          results.push({
+            success: false,
+            error: error instanceof Error ? error.message : "Unknown database error",
+          });
+        }
+      }
+
+      const successfulInserts = results
+        .filter((r) => r.success)
+        .reduce((sum, r) => sum + (r.count || 0), 0);
+      const failedInserts = results.filter((r) => !r.success);
+
+      if (failedInserts.length > 0) {
+        console.error("Supabase upsert errors:", failedInserts);
+      }
+
+      return NextResponse.json({
+        success: true,
+        inserted: successfulInserts,
+        failed: bins.length - successfulInserts,
+        total_processed: bins.length,
+        validation_errors: errors.length,
+        batch_results: {
+          total_chunks: chunks.length,
+          successful_chunks: results.filter((r) => r.success).length,
+          failed_chunks: failedInserts.length,
+        },
+        ...(failedInserts.length > 0 && { warnings: failedInserts.map((f) => f.error) }),
+      });
+    } catch (err: unknown) {
+      console.error("Error during Overpass API call:", err);
+      if (err instanceof Error && err.message.includes("Rate limit")) {
+        return NextResponse.json({ error: "Rate limit exceeded. Please try again later." }, { status: 429 });
+      }
+      if (err instanceof Error && err.message.includes("Query must")) {
+        return NextResponse.json({ error: err.message }, { status: 400 });
+      }
+      return NextResponse.json(
+        { error: "Error during Overpass API request", details: err instanceof Error ? err.message : "Unknown error" },
         { status: 500 }
       );
     }
-
-    // Подготовка на данните за запис в Supabase
-    const bins = data.elements
-      .map((el: any) => ({
-        osm_id: el.id.toString(),
-        lat: el.lat ?? el.center?.lat,
-        lon: el.lon ?? el.center?.lon,
-        tags: el.tags ?? {},
-        code: nanoid(6),
-      }))
-      // Филтър срещу невалидни координати
-      .filter(
-        (b: any) =>
-          typeof b.lat === "number" && typeof b.lon === "number"
-      );
-
-    // Upsert по osm_id (без дублиране)
-    const { error } = await supabaseServer
-      .from("recycling_bins")
-      .upsert(bins, { onConflict: "osm_id" });
-
-    if (error) {
-      console.error("Supabase upsert error:", error.message);
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    // Успешен отговор
-    return NextResponse.json({
-      inserted: bins.length,
-    });
-  } catch (err: any) {
-    console.error("Грешка при Overpass заявката:", err);
+  } catch (err: unknown) {
+    console.error("Unexpected error in GET handler:", err);
     return NextResponse.json(
-      { error: "Грешка при Overpass заявката" },
+      {
+        error: "Internal server error",
+        ...(process.env.NODE_ENV === "development" && { details: err instanceof Error ? err.message : "Unknown error" }),
+      },
       { status: 500 }
     );
   }
+}
+
+export async function POST(req: NextRequest) {
+  return NextResponse.json(
+    {error: "Method not allowed"},
+    {status: 405}
+  )
 }

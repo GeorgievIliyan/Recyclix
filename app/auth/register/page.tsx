@@ -4,6 +4,58 @@ import { supabase } from "@/lib/supabase-browser"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 
+// Дезинфекция на данните
+const sanitize = {
+  string: (input: string): string => {
+    if (!input) return ""
+    
+    return input
+      .trim()
+      .replace(/[<>]/g, "")
+      .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "")
+      .substring(0, 255)
+  },
+
+  // валидация на имейл
+  email: (email: string): string | null => {
+    if (!email) return null
+    
+    const sanitized = email.trim().toLowerCase().substring(0, 254)
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    
+    if (!emailRegex.test(sanitized)) {
+      return null
+    }
+    
+    return sanitized
+  },
+
+  // Валидация на парола
+  password: (password: string): { isValid: boolean; message?: string } => {
+    if (!password || password.length < 6) {
+      return { isValid: false, message: "Паролата трябва да е най-малко 6 знака." }
+    }
+    
+    if (password.length > 100) {
+      return { isValid: false, message: "Паролата е твърде дълга." }
+    }
+    
+    return { isValid: true }
+  },
+
+  fullName: (name: string): string => {
+    if (!name) return ""
+    
+    return name
+      .trim()
+      .replace(/[<>]/g, "")
+      .replace(/[^a-zA-Zа-яА-Я\s\-'\.]/g, "")
+      .replace(/\s+/g, ' ')
+      .substring(0, 100)
+  }
+}
+
 function RegisterPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -17,24 +69,47 @@ function RegisterPage() {
     setLoading(true)
     setMessage(null)
 
+    // Валидации
     if (!email || !password) {
       setMessage("Имейл и парола са задължителни.")
       setLoading(false)
       return
     }
 
-    if (password.length < 6) {
-      setMessage("Паролата трябва да е най-малко 6 знака.")
+    const sanitizedEmail = sanitize.email(email)
+    if (!sanitizedEmail) {
+      setMessage("Моля, въведете валиден имейл адрес.")
       setLoading(false)
       return
     }
 
+    const passwordValidation = sanitize.password(password)
+    if (!passwordValidation.isValid) {
+      setMessage(passwordValidation.message || "Невалидна парола.")
+      setLoading(false)
+      return
+    }
+
+    const sanitizedFullName = sanitize.fullName(fullName)
+
     try {
       const res = await fetch("/api/auth/register", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, fullName }),
+        headers: { 
+          "Content-Type": "application/json",
+          "X-Requested-With": "XMLHttpRequest" // Против AJAX заявки
+        },
+        body: JSON.stringify({ 
+          email: sanitizedEmail, 
+          password, 
+          fullName: sanitizedFullName 
+        }),
       })
+
+      const contentType = res.headers.get("content-type")
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error("Неочакван отговор от сървъра.")
+      }
 
       const data = await res.json()
 
@@ -44,15 +119,15 @@ function RegisterPage() {
         setFullName("")
         sessionStorage.setItem(
           "registrationMessage",
-          "Регистрацията е успешна! Моля, проверете имейла си, за да потвърдите акаунта си преди влизане.",
+          "Регистрацията е успешна! Моля, проверете имейла си, за да потвърдите акаунта си преди влизане."
         )
         router.push("/auth/login")
       } else {
         setMessage(data.error || "Регистрацията неуспешна.")
       }
     } catch (err: any) {
-      console.error(err)
-      setMessage("Възникна неочаквана грешка.")
+      console.error("Registration error:", err)
+      setMessage("Възникна неочаквана грешка. Моля, опитайте отново.")
     } finally {
       setLoading(false)
     }
@@ -62,14 +137,37 @@ function RegisterPage() {
     try {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo: window.location.origin + "/dashboard" },
+        options: { 
+          redirectTo: window.location.origin + "/dashboard",
+          queryParams: {
+            prompt: "select_account"
+          }
+        },
       })
 
-      if (error) setMessage(error.message)
-      else setMessage("Пренасочване към Google...")
+      if (error) {
+        console.error("Google OAuth error:", error)
+        setMessage(error.message)
+      } else {
+        setMessage("Пренасочване към Google...")
+      }
     } catch (err: any) {
-      console.error(err)
+      console.error("Google registration error:", err)
       setMessage("Неуспешна регистрация с Google.")
+    }
+  }
+
+  const handleInputChange = (type: 'email' | 'password' | 'fullName', value: string) => {
+    switch (type) {
+      case 'email':
+        setEmail(value)
+        break
+      case 'password':
+        setPassword(value)
+        break
+      case 'fullName':
+        setFullName(sanitize.fullName(value))
+        break
     }
   }
 
@@ -91,41 +189,65 @@ function RegisterPage() {
             </div>
 
             {message && (
-              <div className="mb-6 p-4 rounded-xl bg-[#00CD56]/10 dark:bg-[#00CD56]/20 border border-[#00CD56]/30 dark:border-[#00CD56]/40">
-                <p className="text-sm text-[#00CD56] dark:text-[#00CD56] font-medium">{message}</p>
+              <div className={`mb-6 p-4 rounded-xl border ${
+                message.includes("успеш") || message.includes("Пренасочване") 
+                  ? "bg-[#00CD56]/10 dark:bg-[#00CD56]/20 border-[#00CD56]/30 dark:border-[#00CD56]/40"
+                  : "bg-red-50/80 dark:bg-red-900/20 border-red-200/50 dark:border-red-800/50"
+              }`}>
+                <p className={`text-sm font-medium ${
+                  message.includes("успеш") || message.includes("Пренасочване")
+                    ? "text-[#00CD56] dark:text-[#00CD56]"
+                    : "text-red-600 dark:text-red-400"
+                }`}>
+                  {message}
+                </p>
               </div>
             )}
 
             <div className="space-y-5 mb-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Пълно име</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Пълно име
+                  <span className="text-gray-400 text-xs ml-1">(незадължително)</span>
+                </label>
                 <input
                   type="text"
                   placeholder="Иван Иванов"
                   value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
+                  onChange={(e) => handleInputChange('fullName', e.target.value)}
+                  maxLength={100}
                   className="w-full px-4 py-3.5 rounded-xl bg-gray-50/50 dark:bg-gray-800/50 border border-gray-300/50 dark:border-gray-700/50 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00CD56]/50 dark:focus:ring-[#00CD56]/40 focus:border-[#00CD56] dark:focus:border-[#00CD56] transition-all duration-200 backdrop-blur-sm"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Имейл</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Имейл <span className="text-red-500">*</span>
+                </label>
                 <input
                   type="email"
                   placeholder="vashe.ime@example.com"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  maxLength={254}
+                  required
                   className="w-full px-4 py-3.5 rounded-xl bg-gray-50/50 dark:bg-gray-800/50 border border-gray-300/50 dark:border-gray-700/50 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00CD56]/50 dark:focus:ring-[#00CD56]/40 focus:border-[#00CD56] dark:focus:border-[#00CD56] transition-all duration-200 backdrop-blur-sm"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Парола</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Парола <span className="text-red-500">*</span>
+                  <span className="text-gray-400 text-xs ml-2">(минимум 6 символа)</span>
+                </label>
                 <input
                   type="password"
                   placeholder="••••••••"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => handleInputChange('password', e.target.value)}
+                  minLength={6}
+                  maxLength={100}
+                  required
                   className="w-full px-4 py-3.5 rounded-xl bg-gray-50/50 dark:bg-gray-800/50 border border-gray-300/50 dark:border-gray-700/50 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00CD56]/50 dark:focus:ring-[#00CD56]/40 focus:border-[#00CD56] dark:focus:border-[#00CD56] transition-all duration-200 backdrop-blur-sm"
                 />
               </div>

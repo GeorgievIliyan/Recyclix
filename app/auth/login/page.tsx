@@ -22,10 +22,17 @@ export default function LoginPage() {
     }
   }, [])
 
-  // Вход с имейл и парола
   const handleEmailLogin = async () => {
-    if (!email || !password) {
+    const cleanEmail = email.trim()
+    const cleanPassword = password.trim()
+
+    // Проста валидация
+    if (!cleanEmail || !cleanPassword) {
       setMessage("Имейл и парола са задължителни.")
+      return
+    }
+    if (!/^\S+@\S+\.\S+$/.test(cleanEmail)) {
+      setMessage("Невалиден имейл адрес.")
       return
     }
 
@@ -34,18 +41,16 @@ export default function LoginPage() {
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+        email: cleanEmail,
+        password: cleanPassword,
       })
 
-      if (error) {
-        setMessage(error.message)
-      } else {
-        // Пренасочване към таблото при успешен вход
+      if (error) setMessage(error.message)
+      else {
         router.push("/app/dashboard")
         router.refresh()
       }
-    } catch (err: any) {
+    } catch {
       setMessage("Възникна неочаквана грешка.")
     } finally {
       setLoading(false)

@@ -20,6 +20,13 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY!
 );
 
+export async function GET(req: NextRequest) {
+  return NextResponse.json(
+    { error: 'Method not allowed' },
+    { status: 405 }
+  )
+}
+
 export async function OPTIONS() {
   return NextResponse.json({}, { headers: corsHeaders });
 }
