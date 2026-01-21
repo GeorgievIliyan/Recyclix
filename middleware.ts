@@ -1,52 +1,38 @@
-import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
+
+const isProd = process.env.NODE_ENV === "production";
+
+const ratelimit = isProd
+  ? new Ratelimit({
+      redis: Redis.fromEnv(),
+      limiter: Ratelimit.slidingWindow(26, "1 m"),
+    })
+  : null;
 
 export async function middleware(req: NextRequest) {
-  let response = NextResponse.next({
-    request: { headers: req.headers },
-  });
+  const ip =
+    req.headers.get("x-forwarded-for")?.split(",")[0] ??
+    "unknown";
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return req.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => req.cookies.set(name, value));
-          response = NextResponse.next({
-            request: { headers: req.headers },
-          });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
-          );
-        },
-      },
+  if (ratelimit) {
+    try {
+      const { success } = await ratelimit.limit(ip);
+      if (!success) {
+        return new NextResponse(
+          JSON.stringify({ error: "Too many requests" }),
+          { status: 429, headers: { "Content-Type": "application/json" } }
+        );
+      }
+    } catch (err) {
+      console.error("Rate limit error:", err);
     }
-  );
-
-  const { data: { user } } = await supabase.auth.getUser();
-
-  const pathname = req.nextUrl.pathname;
-
-  if (pathname.startsWith("/dashboard") && !user) {
-    return NextResponse.redirect(new URL("/auth/login", req.url));
   }
 
-  if (pathname.startsWith("/auth") && user) {
-    return NextResponse.redirect(new URL("/dashboard", req.url));
-  }
-
-  return response;
+  return NextResponse.next();
 }
 
 export const config = {
-  matcher: [
-    "/dashboard/:path*",
-    "/auth/:path*",
-    "/api/gemini-confirm",
-    "/api/private/:path*",
-  ],
+  matcher: ["/:path*"],
 };
