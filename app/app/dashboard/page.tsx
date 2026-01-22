@@ -12,6 +12,38 @@ import { MaterialsBreakdownChart } from '@/app/components/MaterialsBreakdownChar
 import { GamificationProgress } from '@/app/components/GamificationProgress'
 import { RecentActivity } from '@/app/components/RecentActivity'
 import { Navigation } from '@/app/components/Navigation'
+import { BadgesGallery } from '@/app/components/BadgesGallery'
+
+// mock
+const recyclingBadges = [
+  {
+    id: '1',
+    name: 'Рециклиращ новобранец',
+    description: 'Отдели правилно пластмаса и хартия за първи път',
+    image_url: '/badges/recycle-beginner.png',
+    earned_at: '2024-01-15T10:30:00Z',
+    rarity: 'common' as const,
+    locked: false
+  },
+  {
+    id: '2',
+    name: 'Еко-воин',
+    description: 'Рециклирай над 20 кг отпадъци за един месец',
+    image_url: '/badges/eco-warrior.png',
+    earned_at: '2024-01-25T14:45:00Z',
+    rarity: 'rare' as const,
+    locked: false
+  },
+  {
+    id: '3',
+    name: 'Зелен лидер',
+    description: 'Научи 5 приятеля за правилното рециклиране',
+    image_url: '/badges/green-leader.png',
+    earned_at: '2024-02-05T09:15:00Z',
+    rarity: 'epic' as const,
+    locked: false
+  }
+]
 
 type RecyclingEvent = {
   material: string
@@ -56,7 +88,7 @@ export default function DashboardPage() {
   const [materialsData, setMaterialsData] = useState<MaterialPoint[]>([])
   const [recentActivities, setRecentActivities] = useState<RecentActivityItem[]>([])
 
-  // Load dashboard data
+  // зареждане на данните
   useEffect(() => {
     async function loadDashboardData() {
       try {
@@ -176,7 +208,7 @@ export default function DashboardPage() {
         )
         setActivityData(Object.values(activityMap))
 
-        // Materials chart
+        // Материали
         const materialMap = typedEvents.reduce<Record<string, number>>(
           (acc, e) => {
             acc[e.material] = (acc[e.material] ?? 0) + 1
@@ -219,7 +251,7 @@ export default function DashboardPage() {
     loadDashboardData()
   }, [router])
 
-  // Redirect if no user after loading
+  // Пренасочване, ако потребителят не е вписан
   useEffect(() => {
     if (!loading && !userData) {
       router.push('/auth/login')
@@ -298,6 +330,10 @@ export default function DashboardPage() {
             <div>
               <RecentActivity activities={recentActivities} />
             </div>
+          </div>
+
+          <div className='my-4'>
+            <BadgesGallery badges={recyclingBadges}/>
           </div>
         </div>
       </div>
