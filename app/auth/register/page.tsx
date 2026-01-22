@@ -3,6 +3,16 @@
 import { supabase } from "@/lib/supabase-browser"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { Eye, EyeOff, OctagonAlert, CircleCheck, X } from "lucide-react"
+
+const translateMessage = (message: string) => {
+  if (message.toLowerCase() == "invalid login credentials"){
+    return "Грешна парола или имейл"
+  }
+  if (message.toLowerCase() == "invalid input"){
+    return "Грешни данни или потребителят несъществува"
+  }
+}
 
 // Дезинфекция на данните
 const sanitize = {
@@ -60,12 +70,18 @@ function RegisterPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [fullName, setFullName] = useState("")
+  const [passwordShown, setPasswordShown] = useState(false)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
 
   const router = useRouter()
 
+  const handleTogglePassword = () => {
+    setPasswordShown(!passwordShown)
+  }
+
   const handleRegister = async () => {
+    setPasswordShown(false)
     setLoading(true)
     setMessage(null)
 
@@ -184,25 +200,39 @@ function RegisterPage() {
                 Създайте акаунт
               </h1>
               <p className="text-gray-600 dark:text-gray-400 text-sm">
-                Присъединете се днес и започнете пътешествието си
+                Започнете умното рециклиране днес
               </p>
             </div>
 
-            {message && (
-              <div className={`mb-6 p-4 rounded-xl border ${
-                message.includes("успеш") || message.includes("Пренасочване") 
-                  ? "bg-[#00CD56]/10 dark:bg-[#00CD56]/20 border-[#00CD56]/30 dark:border-[#00CD56]/40"
-                  : "bg-red-50/80 dark:bg-red-900/20 border-red-200/50 dark:border-red-800/50"
-              }`}>
-                <p className={`text-sm font-medium ${
-                  message.includes("успеш") || message.includes("Пренасочване")
-                    ? "text-[#00CD56] dark:text-[#00CD56]"
-                    : "text-red-600 dark:text-red-400"
+            {/* Съобщение за грешка или информация */}
+            {message && (() => {
+              const isSuccess = message.includes("успеш") || message.includes("Пренасочване");
+
+              return (
+                <div className={`mb-6 p-4 rounded-xl border flex items-center justify-between ${
+                  isSuccess 
+                    ? "bg-[#00CD56]/10 border-[#00CD56]/30 dark:bg-[#00CD56]/20 dark:border-[#00CD56]/40"
+                    : "bg-red-50/80 border-red-200/50 dark:bg-red-900/20 dark:border-red-800/50"
                 }`}>
-                  {message}
-                </p>
-              </div>
-            )}
+                  <div className={`text-sm font-medium flex flex-row gap-3 items-center ${
+                    isSuccess ? "text-[#00CD56]" : "text-red-600 dark:text-red-400"
+                  }`}>
+                    {isSuccess ? (
+                      <CircleCheck className="w-5 h-5 flex-shrink-0" />
+                    ) : (
+                      <OctagonAlert className="w-5 h-5 flex-shrink-0" />
+                    )}
+                    <span>{translateMessage(message) || message}</span>
+                  </div>
+                  <X 
+                    className={`h-5 w-5 cursor-pointer transition-opacity hover:opacity-70 ${
+                      isSuccess ? "text-[#00CD56]" : "text-red-500"
+                    }`} 
+                    onClick={() => setMessage("")}
+                  />
+                </div>
+              );
+            })()}
 
             <div className="space-y-5 mb-6">
               <div>
@@ -235,22 +265,25 @@ function RegisterPage() {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Парола <span className="text-red-500">*</span>
-                  <span className="text-gray-400 text-xs ml-2">(минимум 6 символа)</span>
-                </label>
-                <input
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => handleInputChange('password', e.target.value)}
-                  minLength={6}
-                  maxLength={100}
-                  required
-                  className="w-full px-4 py-3.5 rounded-xl bg-gray-50/50 dark:bg-gray-800/50 border border-gray-300/50 dark:border-gray-700/50 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00CD56]/50 dark:focus:ring-[#00CD56]/40 focus:border-[#00CD56] dark:focus:border-[#00CD56] transition-all duration-200 backdrop-blur-sm"
-                />
-              </div>
+              <div className="relative">
+                  <input
+                    type={passwordShown? "text": "password"}
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full px-4 py-3.5 pr-12 rounded-xl bg-gray-50/50 dark:bg-gray-800/50 border border-gray-300/50 dark:border-gray-700/50 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00CD56]/50 dark:focus:ring-[#00CD56]/40 focus:border-[#00CD56] dark:focus:border-[#00CD56] transition-all duration-200 backdrop-blur-sm"
+                  />
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-600 transition duration-150 dark:hover:text-gray-300"
+                  >
+                    {passwordShown? 
+                      <EyeOff className="w-5 h-5" onClick={handleTogglePassword}/>
+                      :
+                      <Eye className="w-5 h-5" onClick={handleTogglePassword}/>
+                    }
+                  </button>
+                </div>
             </div>
 
             <button

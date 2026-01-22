@@ -1,4 +1,4 @@
-'use client'
+"use client"
 
 import { useEffect, useState } from 'react'
 import { Recycle, Sparkles, Flame, Calendar } from 'lucide-react'
@@ -56,106 +56,84 @@ export default function DashboardPage() {
   const [materialsData, setMaterialsData] = useState<MaterialPoint[]>([])
   const [recentActivities, setRecentActivities] = useState<RecentActivityItem[]>([])
 
+  // Load dashboard data
   useEffect(() => {
     async function loadDashboardData() {
       try {
-        console.log('Loading dashboard...')
-        
         const supabase = createClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
         )
-        
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-        
-        console.log('Session check:', { hasSession: !!session, error: sessionError })
-        
-        if (sessionError) {
-          console.error('Session error:', sessionError)
-        }
-        
+
+        const { data: { session } } = await supabase.auth.getSession()
+
+        let userId: string | null = null
+
         if (!session) {
-          console.log('No session found, trying getUser...')
-          const { data: { user }, error: userError } = await supabase.auth.getUser()
-          
-          if (userError) {
-            console.error('Get user error:', userError)
+          const { data: { user } } = await supabase.auth.getUser()
+          if (!user) {
             setLoading(false)
             return
           }
-          
-          if (!user) {
-            console.log('No user found, redirecting to login...')
-            router.push('/auth/login')
-            return
-          }
-          
-          console.log('User found via getUser:', user.id)
-          await fetchUserData(supabase, user.id)
+          userId = user.id
         } else {
-          console.log('Session found, user:', session.user.id)
-          await fetchUserData(supabase, session.user.id)
+          userId = session.user.id
         }
-        
+
+        if (!userId) {
+          setLoading(false)
+          return
+        }
+
+        await fetchUserData(supabase, userId)
       } catch (err) {
-        console.error('Error in dashboard load:', err)
+        console.error('Dashboard load error:', err)
         setLoading(false)
       }
     }
 
     async function fetchUserData(supabase: any, userId: string) {
       try {
-        console.log('Fetching data for user:', userId)
-        const { data: userData, error: userError } = await supabase.auth.getUser()
-        
-        if (userError) {
-          console.error('Auth user error:', userError)
-        }
-        
-        const username = userData?.user?.email?.split('@')[0] || 
-                        userData?.user?.user_metadata?.username || 
-                        'Guest'
-        
-        const { data: profile, error: profileError } = await supabase
+        const { data: userData } = await supabase.auth.getUser()
+
+        const username =
+          userData?.user?.email?.split('@')[0] ||
+          userData?.user?.user_metadata?.username ||
+          'Guest'
+
+        const { data: profile } = await supabase
           .from('user_profiles')
           .select('level, xp')
           .eq('id', userId)
           .single()
 
-        if (profileError) {
-          console.error('Profile error:', profileError)
-          if (profileError.code === 'PGRST116') {
-            console.log('No profile exists yet - using defaults')
-          }
-        }
-
-        const { data: events = [], error: eventsError } = await supabase
+        const { data: events = [] } = await supabase
           .from('recycling_events')
           .select('material, points, co2_saved, created_at')
           .eq('user_id', userId)
           .order('created_at', { ascending: false })
 
-        if (eventsError) {
-          console.error('Events error:', eventsError)
-        }
-
         const typedEvents = events as RecyclingEvent[]
 
         const calculateStreak = () => {
           if (typedEvents.length === 0) return 0
-          
+
           const sortedDates = typedEvents
             .map(e => new Date(e.created_at).toDateString())
             .sort((a, b) => b.localeCompare(a))
-          
+
           const uniqueDates = [...new Set(sortedDates)]
           let streak = 1
           let lastDate = new Date(uniqueDates[0])
-          
+
           for (let i = 1; i < uniqueDates.length; i++) {
             const currentDate = new Date(uniqueDates[i])
-            const diffDays = Math.floor((lastDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24))
-            
+            const diffDays =
+              Math.floor(
+                (lastDate.getTime() - currentDate.getTime()) /
+                  (1000 * 60 * 60 * 24)
+              )
+
             if (diffDays === 1) {
               streak++
               lastDate = currentDate
@@ -163,7 +141,7 @@ export default function DashboardPage() {
               break
             }
           }
-          
+
           return streak
         }
 
@@ -172,7 +150,7 @@ export default function DashboardPage() {
         const co2Saved = typedEvents.reduce((s, e) => s + e.co2_saved, 0)
 
         setUserData({
-          username: username,
+          username,
           level: profile?.level || 0,
           xp: profile?.xp || 0,
           xpForNextLevel: 100,
@@ -182,19 +160,23 @@ export default function DashboardPage() {
           currentStreak: calculateStreak(),
         })
 
+        // Activity chart
         const activityMap = typedEvents.reduce<Record<string, ActivityPoint>>(
           (acc, e) => {
             const date = new Date(e.created_at)
-            const day = date.toLocaleDateString('bg-BG', { day: 'numeric', month: 'short' })
+            const day = date.toLocaleDateString('bg-BG', {
+              day: 'numeric',
+              month: 'short',
+            })
             acc[day] ??= { date: day, items: 0 }
             acc[day].items++
             return acc
           },
           {}
         )
-
         setActivityData(Object.values(activityMap))
 
+        // Materials chart
         const materialMap = typedEvents.reduce<Record<string, number>>(
           (acc, e) => {
             acc[e.material] = (acc[e.material] ?? 0) + 1
@@ -202,18 +184,16 @@ export default function DashboardPage() {
           },
           {}
         )
-
         const colors = ['#22c55e', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#ec4899']
-        const materialEntries = Object.entries(materialMap)
-        
         setMaterialsData(
-          materialEntries.map(([name, value], index) => ({
+          Object.entries(materialMap).map(([name, value], index) => ({
             name,
             value,
             fill: colors[index % colors.length],
           }))
         )
 
+        // Recent activity
         setRecentActivities(
           [...typedEvents]
             .sort((a, b) => b.created_at.localeCompare(a.created_at))
@@ -224,14 +204,12 @@ export default function DashboardPage() {
               date: new Date(e.created_at).toLocaleDateString('bg-BG', {
                 day: 'numeric',
                 month: 'short',
-                year: 'numeric'
+                year: 'numeric',
               }),
             }))
         )
 
         setLoading(false)
-        console.log('Dashboard loaded successfully')
-        
       } catch (err) {
         console.error('Error fetching user data:', err)
         setLoading(false)
@@ -241,7 +219,14 @@ export default function DashboardPage() {
     loadDashboardData()
   }, [router])
 
-  if (loading) {
+  // Redirect if no user after loading
+  useEffect(() => {
+    if (!loading && !userData) {
+      router.push('/auth/login')
+    }
+  }, [loading, userData, router])
+
+  if (loading || !userData) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <RecyclingLoader />
@@ -249,35 +234,8 @@ export default function DashboardPage() {
     )
   }
 
-  if (!userData) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center max-w-md p-6">
-          <h2 className="text-xl font-bold text-foreground mb-2">Няма данни</h2>
-          <p className="text-muted-foreground mb-4">
-            Няма намерени данни за този потребител.
-          </p>
-          <button
-            onClick={() => router.push('/login')}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
-          >
-            Вход
-          </button>
-        </div>
-      </div>
-    )
-  }
-
   return (
-    <Navigation
-      activeModule="dashboard"
-      onModuleChange={(module) => {
-        if (module === 'dashboard') return
-        if (module === 'map') router.push('/app/map')
-        if (module === 'tasks') router.push('/app/tasks')
-      }}
-      variant="default"
-    >
+    <Navigation activeModule="dashboard" variant="default">
       <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-7xl">
           <header className="mb-6 sm:mb-8">

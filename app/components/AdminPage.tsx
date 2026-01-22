@@ -960,7 +960,7 @@ function BinDetails({
 
               {bin.code && (
                 <div className="flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-gray-400" />
+                  <Shield className="w-4 h-4 text-green-500" />
                   <div>
                     <span className="text-sm text-gray-500 dark:text-gray-400">Код:</span>
                     <p className="text-gray-700 dark:text-gray-300 font-mono text-sm">{bin.code}</p>

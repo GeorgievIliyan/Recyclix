@@ -1,46 +1,41 @@
 'use client'
 
 import { useState, useEffect, type ReactNode } from 'react'
-import { LayoutDashboard, MapPin, ListTodo } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { LayoutDashboard, MapPin, ListTodo, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-type Module = 'dashboard' | 'map' | 'tasks'
-
+type Module = 'dashboard' | 'map' | 'tasks' | 'account'
 type NavigationVariant = 'default' | 'compact' | 'transparent'
 
 interface NavigationProps {
   activeModule?: Module
-  onModuleChange?: (module: Module) => void
   variant?: NavigationVariant
   autoHideOnScroll?: boolean
   children: ReactNode
 }
 
-const modules = [
-  {
-    id: 'dashboard' as Module,
-    label: 'Табло',
-    icon: LayoutDashboard,
-  },
-  {
-    id: 'map' as Module,
-    label: 'Карта',
-    icon: MapPin,
-  },
-  {
-    id: 'tasks' as Module,
-    label: 'Задачи',
-    icon: ListTodo,
-  },
+interface ModuleItem {
+  id: Module
+  label: string
+  icon: any
+  path: string
+}
+
+const modules: ModuleItem[] = [
+  { id: 'dashboard', label: 'Табло', icon: LayoutDashboard, path: '/app/dashboard' },
+  { id: 'map', label: 'Карта', icon: MapPin, path: '/app/map' },
+  { id: 'tasks', label: 'Задачи', icon: ListTodo, path: '/app/tasks' },
+  { id: 'account', label: 'Акаунт', icon: User, path: '/auth/account' },
 ]
 
-export function Navigation({ 
-  activeModule = 'dashboard', 
-  onModuleChange,
+export function Navigation({
+  activeModule = 'dashboard',
   variant = 'default',
   autoHideOnScroll = false,
-  children 
+  children,
 }: NavigationProps) {
+  const router = useRouter()
   const [scrolled, setScrolled] = useState(false)
   const [lastScrollY, setLastScrollY] = useState(0)
   const [isVisible, setIsVisible] = useState(true)
@@ -48,7 +43,7 @@ export function Navigation({
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY
-      
+
       if (autoHideOnScroll && window.innerWidth < 768) {
         if (currentScrollY > lastScrollY && currentScrollY > 100) {
           setIsVisible(false)
@@ -65,24 +60,26 @@ export function Navigation({
     return () => window.removeEventListener('scroll', handleScroll)
   }, [lastScrollY, autoHideOnScroll])
 
-  // Determine styling based on variant
   const isCompact = variant === 'compact'
   const isTransparent = variant === 'transparent'
-  
-  // Desktop height based on variant
+
   const desktopHeight = isCompact ? 'h-14' : 'h-16'
-  
-  // Background and border opacity based on variant
-  const desktopBg = isTransparent 
+
+  const desktopBg = isTransparent
     ? 'bg-background/40 border-border/30'
     : 'bg-background/60 border-border/50'
-  
+
   const mobileBg = isTransparent
     ? 'bg-background/40 border-border/30'
     : 'bg-background/60 border-border/50'
 
+  const handleNavigation = (path: string) => {
+    router.push(path)
+  }
+
   return (
     <>
+      {/* Desktop Navbar */}
       <nav
         className={cn(
           'hidden md:block fixed top-0 left-0 right-0 z-50 transition-all duration-300',
@@ -105,7 +102,7 @@ export function Navigation({
               return (
                 <button
                   key={module.id}
-                  onClick={() => onModuleChange?.(module.id)}
+                  onClick={() => handleNavigation(module.path)}
                   className={cn(
                     'flex items-center gap-2 px-6 py-2 rounded-xl',
                     'transition-all duration-200 text-sm font-medium',
@@ -124,11 +121,11 @@ export function Navigation({
           </div>
         </div>
       </nav>
-      
+
+      {/* Mobile Navbar */}
       <nav
         className={cn(
-          'md:hidden fixed bottom-0 left-0 right-0 z-50',
-          'transition-all duration-300',
+          'md:hidden fixed bottom-0 left-0 right-0 z-50 transition-all duration-300',
           isVisible ? 'translate-y-0' : 'translate-y-full'
         )}
       >
@@ -147,14 +144,12 @@ export function Navigation({
               return (
                 <button
                   key={module.id}
-                  onClick={() => onModuleChange?.(module.id)}
+                  onClick={() => handleNavigation(module.path)}
                   className={cn(
                     'flex flex-col items-center gap-1 px-6 py-2 rounded-xl min-w-[72px]',
                     'transition-all duration-200',
                     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                    isActive
-                      ? 'text-primary'
-                      : 'text-muted-foreground'
+                    isActive ? 'text-primary' : 'text-muted-foreground'
                   )}
                   aria-current={isActive ? 'page' : undefined}
                   aria-label={module.label}
@@ -185,11 +180,13 @@ export function Navigation({
         </div>
       </nav>
 
-      <div className={cn(
-        'min-h-screen',
-        isCompact ? 'pt-14 md:pt-14' : 'pt-16 md:pt-16',
-        'pb-20 md:pb-0'
-      )}>
+      <div
+        className={cn(
+          'min-h-screen',
+          isCompact ? 'pt-14 md:pt-14' : 'pt-16 md:pt-16',
+          'pb-20 md:pb-0'
+        )}
+      >
         {children}
       </div>
     </>
