@@ -1,9 +1,8 @@
-"use client"
+'use client'
 
 import { useEffect, useState } from 'react'
 import { Recycle, Sparkles, Flame, Calendar } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@supabase/supabase-js'
 import { RecyclingLoader } from '@/app/components/RecyclingLoader'
 
 import { StatCard } from '@/app/components/StatCard'
@@ -14,39 +13,6 @@ import { RecentActivity } from '@/app/components/RecentActivity'
 import { Navigation } from '@/app/components/Navigation'
 import { BadgesGallery } from '@/app/components/BadgesGallery'
 import { supabase } from '@/lib/supabase-browser'
-
-const { user } = (await supabase.auth.getUser()).data ?? {}
-
-// mock
-const recyclingBadges = [
-  {
-    id: '1',
-    name: 'Рециклиращ новобранец',
-    description: 'Отдели правилно пластмаса и хартия за първи път',
-    image_url: '/badges/recycle-beginner.png',
-    earned_at: '2024-01-15T10:30:00Z',
-    rarity: 'common' as const,
-    locked: false
-  },
-  {
-    id: '2',
-    name: 'Еко-воин',
-    description: 'Рециклирай над 20 кг отпадъци за един месец',
-    image_url: '/badges/eco-warrior.png',
-    earned_at: '2024-01-25T14:45:00Z',
-    rarity: 'rare' as const,
-    locked: false
-  },
-  {
-    id: '3',
-    name: 'Зелен лидер',
-    description: 'Научи 5 приятеля за правилното рециклиране',
-    image_url: '/badges/green-leader.png',
-    earned_at: '2024-02-05T09:15:00Z',
-    rarity: 'epic' as const,
-    locked: false
-  }
-]
 
 type RecyclingEvent = {
   material: string
@@ -86,62 +52,31 @@ type UserData = {
 export default function DashboardPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState<any>(null)
   const [userData, setUserData] = useState<UserData | null>(null)
   const [activityData, setActivityData] = useState<ActivityPoint[]>([])
   const [materialsData, setMaterialsData] = useState<MaterialPoint[]>([])
   const [recentActivities, setRecentActivities] = useState<RecentActivityItem[]>([])
 
-  // зареждане на данните
   useEffect(() => {
-    async function loadDashboardData() {
+    const loadDashboard = async () => {
       try {
-        const supabase = createClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-        )
-
-        const { data: { session } } = await supabase.auth.getSession()
-
-        let userId: string | null = null
-
-        if (!session) {
-          const { data: { user } } = await supabase.auth.getUser()
-          if (!user) {
-            setLoading(false)
-            return
-          }
-          userId = user.id
-        } else {
-          userId = session.user.id
-        }
-
-        if (!userId) {
-          setLoading(false)
+        const { data: userDataResponse } = await supabase.auth.getUser()
+        if (!userDataResponse?.user) {
+          router.push('/auth/login')
           return
         }
+        setUser(userDataResponse.user)
+        const userId = userDataResponse.user.id
 
-        await fetchUserData(supabase, userId)
-      } catch (err) {
-        console.error('Dashboard load error:', err)
-        setLoading(false)
-      }
-    }
-
-    async function fetchUserData(supabase: any, userId: string) {
-      try {
-        const { data: userData } = await supabase.auth.getUser()
-
-        const username =
-          userData?.user?.email?.split('@')[0] ||
-          userData?.user?.user_metadata?.username ||
-          'Guest'
-
+        // 2️⃣ Fetch user profile
         const { data: profile } = await supabase
           .from('user_profiles')
           .select('level, xp')
           .eq('id', userId)
           .single()
 
+        // 3️⃣ Fetch user recycling events
         const { data: events = [] } = await supabase
           .from('recycling_events')
           .select('material, points, co2_saved, created_at')
@@ -150,25 +85,21 @@ export default function DashboardPage() {
 
         const typedEvents = events as RecyclingEvent[]
 
+        // 4️⃣ Calculate streak
         const calculateStreak = () => {
-          if (typedEvents.length === 0) return 0
+          if (!typedEvents.length) return 0
+          const sortedDates = [...new Set(
+            typedEvents.map(e => new Date(e.created_at).toDateString())
+          )].sort((a, b) => b.localeCompare(a))
 
-          const sortedDates = typedEvents
-            .map(e => new Date(e.created_at).toDateString())
-            .sort((a, b) => b.localeCompare(a))
-
-          const uniqueDates = [...new Set(sortedDates)]
           let streak = 1
-          let lastDate = new Date(uniqueDates[0])
+          let lastDate = new Date(sortedDates[0])
 
-          for (let i = 1; i < uniqueDates.length; i++) {
-            const currentDate = new Date(uniqueDates[i])
-            const diffDays =
-              Math.floor(
-                (lastDate.getTime() - currentDate.getTime()) /
-                  (1000 * 60 * 60 * 24)
-              )
-
+          for (let i = 1; i < sortedDates.length; i++) {
+            const currentDate = new Date(sortedDates[i])
+            const diffDays = Math.floor(
+              (lastDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24)
+            )
             if (diffDays === 1) {
               streak++
               lastDate = currentDate
@@ -180,12 +111,13 @@ export default function DashboardPage() {
           return streak
         }
 
+        // 5️⃣ Aggregate dashboard stats
         const totalItems = typedEvents.length
-        const totalPoints = typedEvents.reduce((s, e) => s + e.points, 0)
-        const co2Saved = typedEvents.reduce((s, e) => s + e.co2_saved, 0)
+        const totalPoints = typedEvents.reduce((sum, e) => sum + e.points, 0)
+        const co2Saved = typedEvents.reduce((sum, e) => sum + e.co2_saved, 0)
 
         setUserData({
-          username,
+          username: userDataResponse.user.email?.split('@')[0] || 'Guest',
           level: profile?.level || 0,
           xp: profile?.xp || 0,
           xpForNextLevel: 100,
@@ -195,30 +127,23 @@ export default function DashboardPage() {
           currentStreak: calculateStreak(),
         })
 
-        // Activity chart
-        const activityMap = typedEvents.reduce<Record<string, ActivityPoint>>(
-          (acc, e) => {
-            const date = new Date(e.created_at)
-            const day = date.toLocaleDateString('bg-BG', {
-              day: 'numeric',
-              month: 'short',
-            })
-            acc[day] ??= { date: day, items: 0 }
-            acc[day].items++
-            return acc
-          },
-          {}
-        )
+        // 6️⃣ Activity chart data
+        const activityMap = typedEvents.reduce<Record<string, ActivityPoint>>((acc, e) => {
+          const day = new Date(e.created_at).toLocaleDateString('bg-BG', {
+            day: 'numeric',
+            month: 'short',
+          })
+          acc[day] ??= { date: day, items: 0 }
+          acc[day].items++
+          return acc
+        }, {})
         setActivityData(Object.values(activityMap))
 
-        // Материали
-        const materialMap = typedEvents.reduce<Record<string, number>>(
-          (acc, e) => {
-            acc[e.material] = (acc[e.material] ?? 0) + 1
-            return acc
-          },
-          {}
-        )
+        // 7️⃣ Materials chart data
+        const materialMap = typedEvents.reduce<Record<string, number>>((acc, e) => {
+          acc[e.material] = (acc[e.material] ?? 0) + 1
+          return acc
+        }, {})
         const colors = ['#22c55e', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#ec4899']
         setMaterialsData(
           Object.entries(materialMap).map(([name, value], index) => ({
@@ -228,8 +153,9 @@ export default function DashboardPage() {
           }))
         )
 
+        // 8️⃣ Recent activities
         setRecentActivities(
-          [...typedEvents]
+          typedEvents
             .sort((a, b) => b.created_at.localeCompare(a.created_at))
             .slice(0, 5)
             .map(e => ({
@@ -245,20 +171,13 @@ export default function DashboardPage() {
 
         setLoading(false)
       } catch (err) {
-        console.error('Error fetching user data:', err)
+        console.error('Error loading dashboard:', err)
         setLoading(false)
       }
     }
 
-    loadDashboardData()
+    loadDashboard()
   }, [router])
-
-  // Пренасочване, ако потребителят не е вписан
-  useEffect(() => {
-    if (!loading && !userData) {
-      router.push('/auth/login')
-    }
-  }, [loading, userData, router])
 
   if (loading || !userData) {
     return (
@@ -290,34 +209,10 @@ export default function DashboardPage() {
           </header>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-            <StatCard
-              title="Общи рециклирани"
-              value={userData.totalItems}
-              icon={<Recycle className="h-6 w-6" />}
-              iconColor="text-green-500"
-              iconBg="bg-muted"
-            />
-            <StatCard
-              title="Точки общо"
-              value={userData.totalPoints}
-              icon={<Sparkles className="h-6 w-6" />}
-              iconColor="text-amber-500"
-              iconBg="bg-muted"
-            />
-            <StatCard
-              title="Спестени CO₂"
-              value={`${userData.co2Saved.toFixed(1)} кг`}
-              icon={<Flame className="h-7 w-7" />}
-              iconColor="text-yellow-400"
-              iconBg="bg-muted"
-            />
-            <StatCard
-              title="Рекорд"
-              value={`${userData.currentStreak} дни`}
-              icon={<Calendar className="h-6 w-6" />}
-              iconColor="text-sky-500"
-              iconBg="bg-muted"
-            />
+            <StatCard title="Общи рециклирани" value={userData.totalItems} icon={<Recycle className="h-6 w-6" />} iconColor="text-green-500" iconBg="bg-muted" />
+            <StatCard title="Точки общо" value={userData.totalPoints} icon={<Sparkles className="h-6 w-6" />} iconColor="text-amber-500" iconBg="bg-muted" />
+            <StatCard title="Спестени CO₂" value={`${userData.co2Saved.toFixed(1)} кг`} icon={<Flame className="h-7 w-7" />} iconColor="text-yellow-400" iconBg="bg-muted" />
+            <StatCard title="Рекорд" value={`${userData.currentStreak} дни`} icon={<Calendar className="h-6 w-6" />} iconColor="text-sky-500" iconBg="bg-muted" />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
@@ -334,7 +229,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className='my-4'>
+          <div className="my-4">
             <BadgesGallery userId={user?.id} />
           </div>
         </div>

@@ -6,6 +6,7 @@ import { Award } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useEffect, useState } from 'react'
+import { supabase } from '@/lib/supabase-browser' // Make sure this is imported
 
 export type Badge = {
   id: number
@@ -18,7 +19,7 @@ export type Badge = {
 }
 
 type BadgesGalleryProps = {
-  userId?: string
+  userId?: string // Optional
   columns?: 2 | 3 | 4 | 5 | 6
   aspectRatio?: 'square' | 'portrait' | 'video'
   showNames?: boolean
@@ -47,7 +48,7 @@ const aspectRatioClasses = {
 }
 
 export function BadgesGallery({
-  userId,
+  userId: propUserId, // Renamed to avoid confusion
   columns = 4,
   aspectRatio = 'square',
   showNames = true,
@@ -64,26 +65,82 @@ export function BadgesGallery({
   const [badges, setBadges] = useState<Badge[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [currentUserId, setCurrentUserId] = useState<string>()
 
+  // Fetch user ID if not provided
+  useEffect(() => {
+    const fetchUserId = async () => {
+      if (propUserId) {
+        setCurrentUserId(propUserId)
+        return
+      }
+      
+      try {
+        console.log('🔍 Fetching user ID from Supabase...')
+        const { data: { user } } = await supabase.auth.getUser()
+        console.log('✅ Got user:', user?.id)
+        setCurrentUserId(user?.id)
+      } catch (error) {
+        console.error('❌ Failed to get user:', error)
+        setCurrentUserId(undefined)
+      }
+    }
+
+    fetchUserId()
+  }, [propUserId])
+
+  // Fetch badges when userId is available
   useEffect(() => {
     const fetchBadges = async () => {
+      if (!currentUserId && currentUserId !== undefined) {
+        // If userId is explicitly undefined (not just loading), we might still want to show something
+        console.log('⚠️ No user ID available')
+      }
+      
       setIsLoading(true)
       setError(null)
       try {
         const params = new URLSearchParams()
         
-        if (onlyActive) params.append('is_active', 'true')
+        // CRITICAL: Only add user_id if we have it
+        if (currentUserId) {
+          params.append('user_id', currentUserId)
+          console.log('📤 Sending request with user_id:', currentUserId)
+        } else {
+          console.log('📤 Sending request WITHOUT user_id')
+        }
         
-        const res = await fetch(`/api/badges?${params.toString()}`, {
+        if (onlyActive) params.append('is_active', 'true')
+
+        const url = `/api/badges?${params.toString()}`
+        console.log('🌐 Fetching from:', url)
+        
+        const res = await fetch(url, {
           cache: 'no-store',
           headers: {
             'Cache-Control': 'no-cache'
           }
         })
         
-        if (!res.ok) throw new Error('Failed to fetch badges')
+        console.log('📦 Response status:', res.status)
+        
+        if (!res.ok) {
+          const errorText = await res.text()
+          console.error('❌ API Error:', errorText)
+          throw new Error(`Failed to fetch badges: ${res.status}`)
+        }
 
         const data: Badge[] = await res.json()
+        
+        // DEBUG
+        console.log('✅ Received', data.length, 'badges')
+        console.log('🔒 Locked:', data.filter(b => b.locked).length)
+        console.log('🔓 Unlocked:', data.filter(b => !b.locked).length)
+        
+        // Log each badge's status
+        data.forEach(badge => {
+          console.log(`Badge ${badge.id}: locked=${badge.locked}`)
+        })
         
         setBadges(data)
       } catch (err) {
@@ -95,8 +152,11 @@ export function BadgesGallery({
       }
     }
 
-    fetchBadges()
-  }, [userId, onlyActive])
+    // Only fetch if we're not waiting for user ID
+    if (currentUserId !== undefined) {
+      fetchBadges()
+    }
+  }, [currentUserId, onlyActive])
 
   const gridColsClass = {
     2: 'grid-cols-2',
@@ -167,10 +227,12 @@ function BadgeItem({
   className,
   imageClassName,
 }: BadgeItemProps) {
+  // FIXED: Use the actual locked value, no default
   const isLocked = badge.locked
   
+  console.log(`🎨 Rendering Badge ${badge.id}: locked=${isLocked}`)
+  
   const rarity = badge.rarity ?? 'common'
-
   const imageUrl = `/badges/badge-${badge.id}.png`
 
   return (
@@ -180,7 +242,7 @@ function BadgeItem({
           'relative overflow-hidden rounded-lg transition-all duration-300',
           aspectRatioClasses[aspectRatio],
           !isLocked && 'hover:scale-105 hover:shadow-lg',
-          isLocked && 'opacity-50 grayscale'
+          isLocked && 'opacity-50 grayscale' // This should make locked badges grey
         )}
       >
         <div className="relative h-full w-full bg-muted">
