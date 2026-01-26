@@ -228,7 +228,7 @@ interface EditFormData {
 }
 
 // Контейнер за маркери с визуален ефект на пръстен
-const MarkerWrapperWithRing = ({
+const MarkerWrapper = ({
   color,
   children,
 }: {
@@ -236,16 +236,8 @@ const MarkerWrapperWithRing = ({
   children: React.ReactNode
 }) => (
   <div className="relative">
-    {/* Полупрозрачен външен контур за по-добра видимост */}
-    <div
-      className="absolute inset-0 rounded-full"
-      style={{
-        border: "2px solid rgba(255, 255, 255, 0.3)",
-        margin: "-2px",
-      }}
-    />
     {/* Вътрешно тяло на маркера */}
-    <div className={`w-8 h-8 rounded-full shadow-lg flex items-center justify-center relative z-10 ${color}`}>
+    <div className={`w-8 h-8 rounded-full shadow-lg flex items-center justify-center relative z-10 ${color} shadow-sm`}>
       {children}
     </div>
   </div>
@@ -253,16 +245,16 @@ const MarkerWrapperWithRing = ({
 
 // Компонент за иконата за рециклиране
 const RecyclingIconContent = ({ color }: { color: string }) => (
-  <MarkerWrapperWithRing color={color}>
+  <MarkerWrapper color={color}>
     <Recycle className="w-5 h-5 text-white" strokeWidth={2.5} />
-  </MarkerWrapperWithRing>
+  </MarkerWrapper>
 )
 
 // Компонент за иконата на обикновено кошче
 const TrashIconContent = ({ color }: { color: string }) => (
-  <MarkerWrapperWithRing color={color}>
+  <MarkerWrapper color={color}>
     <Trash2 className="w-5 h-5 text-white" />
-  </MarkerWrapperWithRing>
+  </MarkerWrapper>
 )
 
 // Конфигурация на маркера за текущата позиция на потребителя
@@ -815,7 +807,7 @@ const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
 
             {/* Заглавна част */}
             <div className="flex items-start gap-3 pr-10">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getColorForBin(bin)}`}>
+              <div className={`w-10 h-10 rounded-full flex items-center aspect-1/1 justify-center ${getColorForBin(bin)}`}>
                 {bin.tags?.amenity === "waste_basket" ? (
                   <Trash2 className="w-5 h-5 text-white" />
                 ) : (
@@ -1140,8 +1132,7 @@ const deleteReport = async (reportId: string, userId: string): Promise<boolean> 
   }
 }
 
-  // Модален прозорец за добавяне на нов контейнер от потребител
-// Update the AddBinModal props interface
+// Модален прозорец за добавяне на нов контейнер от потребител
 const AddBinModal = memo(function AddBinModal({
   isModalOpen,
   modalMode,
@@ -1322,11 +1313,11 @@ const AddBinModal = memo(function AddBinModal({
                               />
                               <button
                                 type="button"
-                                onClick={() => handleRemoveImage(index)}
-                                className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                                disabled={isSubmitting || uploadingImages}
+                                onClick={() => handleRemoveBinImage && handleRemoveBinImage(index)}
+                                className="absolute top-1 right-1 p-1 opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center w-5 h-5"
+                                disabled={isSubmitting || uploadingBinImages}
                               >
-                                <X className="w-3 h-3" />
+                                <X className="w-4 h-4 text-red-500" strokeWidth={3} />
                               </button>
                             </div>
                           ))}
@@ -1529,14 +1520,15 @@ const AddBinModal = memo(function AddBinModal({
                                 src={URL.createObjectURL(image)}
                                 alt={`Preview ${index + 1}`}
                                 className="w-full h-24 object-cover rounded-lg border border-gray-200 dark:border-neutral-700"
+                                onLoad={(e) => URL.revokeObjectURL(e.currentTarget.src)}
                               />
                               <button
                                 type="button"
                                 onClick={() => handleRemoveBinImage && handleRemoveBinImage(index)}
-                                className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                className="absolute top-1 right-1 p-1 opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center w-5 h-5"
                                 disabled={isSubmitting || uploadingBinImages}
                               >
-                                X
+                                <X className="w-4 h-4 text-red-500" strokeWidth={3} />
                               </button>
                             </div>
                           ))}
@@ -1559,7 +1551,7 @@ const AddBinModal = memo(function AddBinModal({
                 <button
                   type="button"
                   onClick={handleModalCancel}
-                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-700 dark:text-gray-300 hover:bg-red-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors transition duration-150 hover:border-red-400"
                   disabled={isSubmitting || uploadingImages || uploadingBinImages}
                 >
                   Отказ
@@ -1680,6 +1672,21 @@ export default function MapComponent({ bins, onNewBinCreated, jawgApiKey }: MapP
 
   // Инициализиране на анти-спам системата
   const spamProtection = useReportSpamProtection()
+
+  useEffect(() => {
+    return () => {
+      binImages.forEach((image) => {
+        if (image instanceof File) {
+          URL.revokeObjectURL(URL.createObjectURL(image))
+        }
+      })
+      reportImages.forEach((image) => {
+        if (image instanceof File) {
+          URL.revokeObjectURL(URL.createObjectURL(image))
+        }
+      })
+    }
+  }, [binImages, reportImages])
 
   // Мемоизирана икона за временния маркер при добавяне
   const tempMarkerIcon = useMemo(() => {
@@ -2435,21 +2442,21 @@ export default function MapComponent({ bins, onNewBinCreated, jawgApiKey }: MapP
       {/* Копче за нулиране на изгледа */}
       <button
         onClick={handleZoomHome}
-        className="absolute top-[80px] left-[10px] z-[1000] bg-white p-2 rounded-md shadow-md border hover:bg-gray-50 transition-colors"
+        className="absolute top-[80px] left-[10px] z-[1000] bg-white dark:bg-neutral-800 p-2 rounded-md shadow-md border hover:bg-gray-50 transition-colors"
         title="Нулирай изгледа"
         disabled={isSubmitting || uploadingImages}
       >
-        <Home className="w-5 h-5 text-gray-700" />
+        <Home className="w-5 h-5 text-neutral-800 dark:text-white" />
       </button>
 
       {/* Копче за показване/скриване на филтрите */}
       <button
         onClick={() => setShowFilterPanel(!showFilterPanel)}
-        className="absolute top-[120px] left-[10px] z-[1000] bg-white p-2 rounded-md shadow-md border hover:bg-gray-50 transition-colors"
+        className="absolute top-[120px] left-[10px] z-[1000] bg-white dark:bg-neutral-800 p-2 rounded-md shadow-md border hover:bg-gray-50 transition-colors"
         title="Филтри"
         disabled={isSubmitting || uploadingImages}
       >
-        <Filter className="w-5 h-5 text-gray-700" />
+        <Filter className="w-5 h-5 text-neutral-800 dark:text-white" />
         {activeFilters.length > 0 && (
           <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
             {activeFilters.length}
@@ -2466,10 +2473,10 @@ export default function MapComponent({ bins, onNewBinCreated, jawgApiKey }: MapP
         removeFilter={removeFilter}
         toggleFilter={toggleFilter}
         filteredBins={filteredBins}
-        bins={validBins} // ФИКС: Използване на validBins
+        bins={validBins}
       />
 
-      {/* Модално окно */}
+      {/* модален прозорец */}
       <AddBinModal
         isModalOpen={isModalOpen}
         modalMode={modalMode}
@@ -2484,14 +2491,17 @@ export default function MapComponent({ bins, onNewBinCreated, jawgApiKey }: MapP
         updateEdit={updateEdit}
         isSubmitting={isSubmitting}
         reportLimitsInfo={reportLimitsInfo}
-        // Pass image handling props
         reportImages={reportImages}
         uploadingImages={uploadingImages}
         handleImageSelect={handleImageSelect}
         handleRemoveImage={handleRemoveImage}
+        binImages={binImages}
+        uploadingBinImages={uploadingBinImages}
+        handleBinImageSelect={handleBinImageSelect}
+        handleRemoveBinImage={handleRemoveBinImage}
       />
 
-      {/* ДОБАВЕН: Брой отчети индикатор (показва се само при докладване на проблем) */}
+      {/* брой отчети индикатор (показва се само при докладване на проблем) */}
       {modalMode === "report" && selectedBin && (
         <div className="absolute top-[160px] right-[10px] z-[1000] bg-white p-3 rounded-md shadow-md border max-w-xs w-64">
           <div className="flex items-center justify-between mb-2">
@@ -2568,7 +2578,7 @@ export default function MapComponent({ bins, onNewBinCreated, jawgApiKey }: MapP
           key={prefersDark ? "dark" : "light"}
           url={
             jawgApiKey
-              ? `https://tile.jawg.io/jawg-${prefersDark ? "dark" : "streets"}/{z}/{x}/{y}.png?access-token=${jawgApiKey}&lang=bg`
+              ? `https://tile.jawg.io/jawg-${prefersDark ? "dark" : "streets"}/{z}/{x}/{y}.png?access-token=${jawgApiKey}`
               : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           }
           attribution="&copy; OpenStreetMap contributors"

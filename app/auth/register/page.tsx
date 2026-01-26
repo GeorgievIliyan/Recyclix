@@ -237,8 +237,7 @@ function RegisterPage() {
             <div className="space-y-5 mb-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Пълно име
-                  <span className="text-gray-400 text-xs ml-1">(незадължително)</span>
+                  Потребителско име
                 </label>
                 <input
                   type="text"

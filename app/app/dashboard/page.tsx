@@ -13,6 +13,9 @@ import { GamificationProgress } from '@/app/components/GamificationProgress'
 import { RecentActivity } from '@/app/components/RecentActivity'
 import { Navigation } from '@/app/components/Navigation'
 import { BadgesGallery } from '@/app/components/BadgesGallery'
+import { supabase } from '@/lib/supabase-browser'
+
+const { user } = (await supabase.auth.getUser()).data ?? {}
 
 // mock
 const recyclingBadges = [
@@ -225,7 +228,6 @@ export default function DashboardPage() {
           }))
         )
 
-        // Recent activity
         setRecentActivities(
           [...typedEvents]
             .sort((a, b) => b.created_at.localeCompare(a.created_at))
@@ -333,7 +335,7 @@ export default function DashboardPage() {
           </div>
 
           <div className='my-4'>
-            <BadgesGallery badges={recyclingBadges}/>
+            <BadgesGallery userId={user?.id} />
           </div>
         </div>
       </div>
