@@ -22,6 +22,27 @@ export async function GET(req: NextRequest) {
   )
 }
 
+export async function PUT(req: NextRequest) {
+  return NextResponse.json(
+    {error: "Method not allowed"},
+    {status: 405}
+  )
+}
+
+export async function DELETE(req: NextRequest) {
+  return NextResponse.json(
+    {error: "Method not allowed"},
+    {status: 405}
+  )
+}
+
+export async function PATCH(req: NextRequest) {
+  return NextResponse.json(
+    {error: "Method not allowed"},
+    {status: 405}
+  )
+}
+
 export async function OPTIONS() {
   return NextResponse.json({}, { headers: corsHeaders });
 }

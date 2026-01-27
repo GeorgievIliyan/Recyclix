@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect, type ReactNode } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, usePathname } from 'next/navigation'
 import { LayoutDashboard, MapPin, ListTodo, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -9,10 +9,9 @@ type Module = 'dashboard' | 'map' | 'tasks' | 'account'
 type NavigationVariant = 'default' | 'compact' | 'transparent'
 
 interface NavigationProps {
-  activeModule?: Module
   variant?: NavigationVariant
   autoHideOnScroll?: boolean
-  children: ReactNode
+  className?: string
 }
 
 interface ModuleItem {
@@ -30,15 +29,24 @@ const modules: ModuleItem[] = [
 ]
 
 export function Navigation({
-  activeModule = 'dashboard',
   variant = 'default',
   autoHideOnScroll = false,
-  children,
+  className,
 }: NavigationProps) {
   const router = useRouter()
-  const [scrolled, setScrolled] = useState(false)
+  const pathname = usePathname()
   const [lastScrollY, setLastScrollY] = useState(0)
   const [isVisible, setIsVisible] = useState(true)
+  
+  const getActiveModule = (): Module => {
+    if (pathname?.startsWith('/app/dashboard')) return 'dashboard'
+    if (pathname?.startsWith('/app/map')) return 'map'
+    if (pathname?.startsWith('/app/tasks')) return 'tasks'
+    if (pathname?.startsWith('/auth/account')) return 'account'
+    return 'dashboard'
+  }
+  
+  const activeModule = getActiveModule()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -52,7 +60,6 @@ export function Navigation({
         }
       }
 
-      setScrolled(currentScrollY > 20)
       setLastScrollY(currentScrollY)
     }
 
@@ -65,78 +72,78 @@ export function Navigation({
 
   const desktopHeight = isCompact ? 'h-14' : 'h-16'
 
+  // ефекти за стъкло
   const desktopBg = isTransparent
-    ? 'bg-background/40 border-border/30'
-    : 'bg-background/60 border-border/50'
+    ? 'bg-white/15 dark:bg-neutral-900/15 border border-white/15 dark:border-neutral-700/15 backdrop-blur-md'
+    : 'bg-white/50 dark:bg-neutral-900/50 border border-white/20 dark:border-neutral-700/20 backdrop-blur-md shadow-sm'
 
   const mobileBg = isTransparent
-    ? 'bg-background/40 border-border/30'
-    : 'bg-background/60 border-border/50'
-
+    ? 'bg-white/15 dark:bg-neutral-900/15 border-t border-white/15 dark:border-neutral-700/15 backdrop-blur-md'
+    : 'bg-white/50 dark:bg-neutral-900/50 border-t border-white/20 dark:border-neutral-700/20 backdrop-blur-md shadow-sm'
   const handleNavigation = (path: string) => {
     router.push(path)
   }
 
   return (
     <>
-      {/* Desktop Navbar */}
+      {/* за десктоп */}
       <nav
         className={cn(
           'hidden md:block fixed top-0 left-0 right-0 z-50 transition-all duration-300',
-          desktopHeight
+          desktopHeight,
+          className
         )}
       >
         <div
           className={cn(
-            'mx-auto max-w-7xl h-full px-6',
-            'backdrop-blur-xl border-b transition-all duration-300',
+            'w-full h-full px-4 sm:px-6 lg:px-8 flex items-center justify-center gap-2',
             desktopBg,
-            scrolled && variant === 'default' && 'bg-background/80 shadow-sm'
+            'before:absolute before:inset-0 before:bg-gradient-to-b before:from-white/10 before:to-transparent before:dark:from-neutral-900/10'
           )}
         >
-          <div className="flex items-center justify-center h-full gap-2">
-            {modules.map((module) => {
-              const Icon = module.icon
-              const isActive = activeModule === module.id
+          {modules.map((module) => {
+            const Icon = module.icon
+            const isActive = activeModule === module.id
 
-              return (
-                <button
-                  key={module.id}
-                  onClick={() => handleNavigation(module.path)}
-                  className={cn(
-                    'flex items-center gap-2 px-6 py-2 rounded-xl',
-                    'transition-all duration-200 text-sm font-medium',
-                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-                    isActive
-                      ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/25'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
-                  )}
-                  aria-current={isActive ? 'page' : undefined}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span>{module.label}</span>
-                </button>
-              )
-            })}
-          </div>
+            return (
+              <button
+                key={module.id}
+                onClick={() => handleNavigation(module.path)}
+                className={cn(
+                  'flex items-center gap-2 px-4 sm:px-6 py-2 rounded-xl transition-all duration-200 text-sm font-medium relative',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                  'hover:bg-white/30 dark:hover:bg-neutral-800/30',
+                  isActive
+                    ? 'bg-green-500/90 text-primary-foreground shadow-lg shadow-primary/20 backdrop-blur-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+                aria-current={isActive ? 'page' : undefined}
+              >
+                <Icon className="h-4 w-4" />
+                <span>{module.label}</span>
+              </button>
+            )
+          })}
         </div>
       </nav>
 
-      {/* Mobile Navbar */}
+      {/* за телефони */}
       <nav
         className={cn(
-          'md:hidden fixed bottom-0 left-0 right-0 z-50 transition-all duration-300',
-          isVisible ? 'translate-y-0' : 'translate-y-full'
+          'md:hidden fixed bottom-0 left-0 right-0 z-50 transition-transform duration-300',
+          isVisible ? 'translate-y-0' : 'translate-y-full',
+          className
         )}
       >
         <div
           className={cn(
-            'backdrop-blur-xl border-t transition-all duration-300',
+            'backdrop-blur-2xl',
             mobileBg,
-            'safe-bottom'
+            'safe-bottom',
+            'before:absolute before:inset-0 before:bg-gradient-to-t before:from-white/10 before:to-transparent before:dark:from-neutral-900/10' // Extra glass gradient
           )}
         >
-          <div className="flex items-center justify-around px-6 py-3">
+          <div className="flex items-center justify-around px-4 py-3 relative">
             {modules.map((module) => {
               const Icon = module.icon
               const isActive = activeModule === module.id
@@ -146,9 +153,9 @@ export function Navigation({
                   key={module.id}
                   onClick={() => handleNavigation(module.path)}
                   className={cn(
-                    'flex flex-col items-center gap-1 px-6 py-2 rounded-xl min-w-[72px]',
-                    'transition-all duration-200',
+                    'flex flex-col items-center gap-1 px-4 py-2 rounded-xl min-w-[72px] transition-all duration-200',
                     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                    'hover:bg-white/30 dark:hover:bg-neutral-800/30',
                     isActive ? 'text-primary' : 'text-muted-foreground'
                   )}
                   aria-current={isActive ? 'page' : undefined}
@@ -162,7 +169,7 @@ export function Navigation({
                   >
                     <Icon className="h-6 w-6" strokeWidth={isActive ? 2.5 : 2} />
                     {isActive && (
-                      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary" />
+                      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary/80 backdrop-blur-sm" />
                     )}
                   </div>
                   <span
@@ -179,16 +186,6 @@ export function Navigation({
           </div>
         </div>
       </nav>
-
-      <div
-        className={cn(
-          'min-h-screen',
-          isCompact ? 'pt-14 md:pt-14' : 'pt-16 md:pt-16',
-          'pb-20 md:pb-0'
-        )}
-      >
-        {children}
-      </div>
     </>
   )
 }

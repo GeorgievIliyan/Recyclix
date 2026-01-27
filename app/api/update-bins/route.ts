@@ -130,7 +130,7 @@ export async function GET(req: Request) {
       );
     }
 
-    if (token !== process.env.SECURE_API_KEY) {
+    if (process.env.NODE_ENV !== "development" && token !== process.env.SECURE_API_KEY) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -318,6 +318,27 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: NextRequest) {
+  return NextResponse.json(
+    {error: "Method not allowed"},
+    {status: 405}
+  )
+}
+
+export async function PUT(req: NextRequest) {
+  return NextResponse.json(
+    {error: "Method not allowed"},
+    {status: 405}
+  )
+}
+
+export async function DELETE(req: NextRequest) {
+  return NextResponse.json(
+    {error: "Method not allowed"},
+    {status: 405}
+  )
+}
+
+export async function PATCH(req: NextRequest) {
   return NextResponse.json(
     {error: "Method not allowed"},
     {status: 405}

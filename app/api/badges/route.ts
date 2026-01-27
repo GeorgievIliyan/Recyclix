@@ -71,3 +71,24 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to fetch badges' }, { status: 500 })
   }
 }
+
+export async function PUT(req: NextRequest) {
+  return NextResponse.json(
+    {error: "Method not allowed"},
+    {status: 405}
+  )
+}
+
+export async function DELETE(req: NextRequest) {
+  return NextResponse.json(
+    {error: "Method not allowed"},
+    {status: 405}
+  )
+}
+
+export async function PATCH(req: NextRequest) {
+  return NextResponse.json(
+    {error: "Method not allowed"},
+    {status: 405}
+  )
+}

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { Bin } from "@/app/components/MapComponent";
 import { supabase } from "@/lib/supabase-browser";
+import { Navigation } from "@/app/components/Navigation";
 
 const MapComponent = dynamic(
   () => import("@/app/components/MapComponent"),
@@ -57,10 +58,12 @@ export default function MapPage() {
   if (error) return <p className="p-4 text-red-500">{error}</p>;
 
   return (
-    <main className="dark:bg-neutral-950">
-
+    <main className="dark:bg-neutral-900 relative h-screen">
       <div className="h-screen w-full border">
-        <MapComponent bins={bins} jawgApiKey={process.env.NEXT_PUBLIC_JAWG_KEY}/>
+        <MapComponent bins={bins} jawgApiKey={process.env.NEXT_PUBLIC_JAWG_KEY} />
+      </div>
+      <div className="absolute top-0 left-0 right-0 z-999">
+        <Navigation />
       </div>
     </main>
   );

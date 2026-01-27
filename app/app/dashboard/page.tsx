@@ -14,6 +14,7 @@ import { Navigation } from '@/app/components/Navigation'
 import { BadgesGallery } from '@/app/components/BadgesGallery'
 import { supabase } from '@/lib/supabase-browser'
 
+// типове
 type RecyclingEvent = {
   material: string
   points: number
@@ -49,6 +50,7 @@ type UserData = {
   currentStreak: number
 }
 
+// главна фунцкия
 export default function DashboardPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
@@ -69,14 +71,14 @@ export default function DashboardPage() {
         setUser(userDataResponse.user)
         const userId = userDataResponse.user.id
 
-        // 2️⃣ Fetch user profile
+        // от потребителския профил
         const { data: profile } = await supabase
           .from('user_profiles')
           .select('level, xp')
           .eq('id', userId)
           .single()
 
-        // 3️⃣ Fetch user recycling events
+        // взимане на всички събития
         const { data: events = [] } = await supabase
           .from('recycling_events')
           .select('material, points, co2_saved, created_at')
@@ -85,7 +87,7 @@ export default function DashboardPage() {
 
         const typedEvents = events as RecyclingEvent[]
 
-        // 4️⃣ Calculate streak
+        // изчисляване на streak
         const calculateStreak = () => {
           if (!typedEvents.length) return 0
           const sortedDates = [...new Set(
@@ -111,7 +113,7 @@ export default function DashboardPage() {
           return streak
         }
 
-        // 5️⃣ Aggregate dashboard stats
+        // Общи данни
         const totalItems = typedEvents.length
         const totalPoints = typedEvents.reduce((sum, e) => sum + e.points, 0)
         const co2Saved = typedEvents.reduce((sum, e) => sum + e.co2_saved, 0)
@@ -127,7 +129,7 @@ export default function DashboardPage() {
           currentStreak: calculateStreak(),
         })
 
-        // 6️⃣ Activity chart data
+        // Данни за графиките
         const activityMap = typedEvents.reduce<Record<string, ActivityPoint>>((acc, e) => {
           const day = new Date(e.created_at).toLocaleDateString('bg-BG', {
             day: 'numeric',
@@ -139,7 +141,7 @@ export default function DashboardPage() {
         }, {})
         setActivityData(Object.values(activityMap))
 
-        // 7️⃣ Materials chart data
+        // за материалите
         const materialMap = typedEvents.reduce<Record<string, number>>((acc, e) => {
           acc[e.material] = (acc[e.material] ?? 0) + 1
           return acc
@@ -153,7 +155,7 @@ export default function DashboardPage() {
           }))
         )
 
-        // 8️⃣ Recent activities
+        // Скорошни дейности
         setRecentActivities(
           typedEvents
             .sort((a, b) => b.created_at.localeCompare(a.created_at))
@@ -188,7 +190,9 @@ export default function DashboardPage() {
   }
 
   return (
-    <Navigation activeModule="dashboard" variant="default">
+    <>
+      <Navigation />
+      <Navigation />
       <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-7xl">
           <header className="mb-6 sm:mb-8">
@@ -234,6 +238,6 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
-    </Navigation>
+    </>
   )
 }

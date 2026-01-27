@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
-// Supabase client with anon key
+// Supabase клиент с ключ
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -51,4 +51,25 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+export async function PUT(req: NextRequest) {
+  return NextResponse.json(
+    {error: "Method not allowed"},
+    {status: 405}
+  )
+}
+
+export async function DELETE(req: NextRequest) {
+  return NextResponse.json(
+    {error: "Method not allowed"},
+    {status: 405}
+  )
+}
+
+export async function PATCH(req: NextRequest) {
+  return NextResponse.json(
+    {error: "Method not allowed"},
+    {status: 405}
+  )
 }

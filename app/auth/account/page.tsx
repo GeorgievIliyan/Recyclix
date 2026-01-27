@@ -8,6 +8,7 @@ import { Lock, TextAlignStart, SquarePen } from 'lucide-react'
 import { supabase } from '@/lib/supabase-browser'
 import { RecyclingLoader } from '@/app/components/RecyclingLoader'
 import { LogoutButton } from '@/app/components/LogoutButton'
+import { Navigation } from '@/app/components/Navigation'
 
 interface UserProfile {
   id: string
@@ -97,6 +98,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-neutral-100 dark:bg-neutral-900">
+      <Navigation />
       <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Картичка за профила */}
         <Card className="mb-6">

@@ -167,3 +167,24 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ result: "NO", error: err.message }, { status: 500, headers: corsHeaders });
   }
 }
+
+export async function PUT(req: NextRequest) {
+  return NextResponse.json(
+    {error: "Method not allowed"},
+    {status: 405}
+  )
+}
+
+export async function DELETE(req: NextRequest) {
+  return NextResponse.json(
+    {error: "Method not allowed"},
+    {status: 405}
+  )
+}
+
+export async function PATCH(req: NextRequest) {
+  return NextResponse.json(
+    {error: "Method not allowed"},
+    {status: 405}
+  )
+}
