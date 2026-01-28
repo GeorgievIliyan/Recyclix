@@ -115,7 +115,7 @@ export function Navigation({
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
                   'hover:bg-white/30 dark:hover:bg-neutral-800/30',
                   isActive
-                    ? 'bg-green-500/90 text-primary-foreground shadow-lg shadow-primary/20 backdrop-blur-sm'
+                    ? 'bg-green-500/90 text-primary-foreground shadow-lg shadow-primary/20 backdrop-blur-sm hover:bg-green-600'
                     : 'text-muted-foreground hover:text-foreground'
                 )}
                 aria-current={isActive ? 'page' : undefined}

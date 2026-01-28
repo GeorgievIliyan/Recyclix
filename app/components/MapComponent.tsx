@@ -797,7 +797,7 @@ const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
               </button>
 
               <button
-                className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-700 text-gray-600 dark:text-neutral-300 transition hover:text-gray-800 dark:hover:text-white"
+                className="p-1.5 rounded-md hover:bg-green-100 hover:text-green-500 text-gray-600 dark:text-neutral-300 transition hover:text-gray-800 dark:hover:text-white"
                 title="Предложи редактиране"
                 onClick={() => onEdit(bin)}
               >
@@ -964,7 +964,7 @@ const FilterPanel = memo(function FilterPanel({
               key={filter.id}
               onClick={() => toggleFilter(filter.id)}
               className={`flex items-center justify-between w-full p-3 rounded-lg border transition-all ${
-                isActive ? "ring-2 ring-blue-500 ring-offset-1 border-blue-500" : "hover:bg-gray-50 border-gray-200"
+                isActive ? "ring-2 ring-green-500 ring-offset-1 border-blue-500" : "hover:bg-gray-50 border-gray-200"
               }`}
             >
               <div className="flex items-center gap-3">
@@ -1187,6 +1187,7 @@ const AddBinModal = memo(function AddBinModal({
   handleBinImageSelect?: (e: React.ChangeEvent<HTMLInputElement>) => void
   handleRemoveBinImage?: (index: number) => void
 }) {
+    const [materialsInput, setMaterialsInput] = useState(editData.materials.join(", "));
     if (!isModalOpen) return null
 
     return (
@@ -1241,7 +1242,7 @@ const AddBinModal = memo(function AddBinModal({
                     <select
                       value={reportData.type}
                       onChange={(e) => updateReport("type", e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-900 dark:text-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-900 dark:text-white dark:bg-neutral-800 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                       required
                       disabled={isSubmitting || uploadingImages}
                     >
@@ -1261,7 +1262,7 @@ const AddBinModal = memo(function AddBinModal({
                     <input
                       value={reportData.title}
                       onChange={(e) => updateReport("title", e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-900 dark:text-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-900 dark:text-white dark:bg-neutral-800 focus:ring-2 focus:ring-green-500\ focus:border-green-500"
                       required
                       placeholder="Напр. Кошчето е препълнено"
                       disabled={isSubmitting || uploadingImages}
@@ -1273,7 +1274,7 @@ const AddBinModal = memo(function AddBinModal({
                     <textarea
                       value={reportData.description}
                       onChange={(e) => updateReport("description", e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-900 dark:text-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-900 dark:text-white dark:bg-neutral-800 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                       rows={3}
                       placeholder="Опишете по-подробно проблема..."
                       disabled={isSubmitting || uploadingImages}
@@ -1340,7 +1341,7 @@ const AddBinModal = memo(function AddBinModal({
                     <input
                       value={editData.name}
                       onChange={(e) => updateEdit("name", e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-900 dark:text-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-900 dark:text-white dark:bg-neutral-800 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                       placeholder="Например: Рециклиране за квартал 'Младост'"
                       disabled={isSubmitting}
                     />
@@ -1351,7 +1352,7 @@ const AddBinModal = memo(function AddBinModal({
                     <input
                       value={editData.opening_hours}
                       onChange={(e) => updateEdit("opening_hours", e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-900 dark:text-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-900 dark:text-white dark:bg-neutral-800 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                       placeholder="Например: 08:00-20:00"
                       disabled={isSubmitting}
                     />
@@ -1362,15 +1363,18 @@ const AddBinModal = memo(function AddBinModal({
                       Материали за рециклиране (разделени със запетая)
                     </label>
                     <textarea
-                      value={editData.materials.join(", ")}
+                      value={materialsInput}
                       onChange={(e) => {
-                        const materials = e.target.value
+                        const rawValue = e.target.value;
+                        setMaterialsInput(rawValue);
+                        const materialsArray = rawValue
                           .split(",")
                           .map((m) => m.trim())
-                          .filter((m) => m.length > 0)
-                        updateEdit("materials", materials)
+                          .filter((m) => m !== "");
+
+                        updateEdit("materials", materialsArray);
                       }}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-900 dark:text-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full h-32 resize-none px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-900 dark:text-white dark:bg-neutral-800 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                       placeholder="Например: пластмаса, стъкло, хартия"
                       rows={3}
                       disabled={isSubmitting}
@@ -1383,7 +1387,7 @@ const AddBinModal = memo(function AddBinModal({
                     <textarea
                       value={editData.notes}
                       onChange={(e) => updateEdit("notes", e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-900 dark:text-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full h-32 resize-none px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-900 dark:text-white dark:bg-neutral-800 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                       placeholder="Други предложения или корекции..."
                       rows={3}
                       disabled={isSubmitting}
@@ -1397,7 +1401,7 @@ const AddBinModal = memo(function AddBinModal({
                     <select
                       value={formData.amenity}
                       onChange={(e) => handleInputChange("amenity", e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-900 dark:text-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-900 dark:text-white dark:bg-neutral-800 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                       disabled={isSubmitting}
                     >
                       <option value="">Изберете тип съоръжение</option>
@@ -1468,7 +1472,7 @@ const AddBinModal = memo(function AddBinModal({
                     <input
                       value={formData.operator}
                       onChange={(e) => handleInputChange("operator", e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-900 dark:text-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-900 dark:text-white dark:bg-neutral-800 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                       placeholder="Име на организацията"
                       disabled={isSubmitting}
                     />
@@ -1482,7 +1486,7 @@ const AddBinModal = memo(function AddBinModal({
                       max="10"
                       value={formData.count}
                       onChange={(e) => handleInputChange("count", Number.parseInt(e.target.value) || 1)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-900 dark:text-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-900 dark:text-white dark:bg-neutral-800 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                       disabled={isSubmitting}
                     />
                   </div>
@@ -2566,6 +2570,7 @@ export default function MapComponent({ bins, onNewBinCreated, jawgApiKey }: MapP
         zoom={DEFAULT_ZOOM}
         minZoom={4}
         maxZoom={22}
+        zoomControl={false}
         className="h-full w-full"
         ref={(map) => {
           if (map) mapRef.current = map

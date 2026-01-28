@@ -20,21 +20,25 @@ export const GET = async (req: NextRequest) => {
   const tokenHeader = req.headers.get("x-api-token");
   const parsed = ApiTokenSchema.safeParse({ token: tokenHeader });
 
-  if (!parsed.success || parsed.data.token !== process.env.SECURE_API_KEY) {
-    return NextResponse.json(
-      {
-        error: "Unauthorized",
-        ...(parsed.success
-          ? undefined
-          : {
-              details: parsed.error.issues.map((i) => ({
-                field: i.path.join("."),
-                message: i.message,
-              })),
-            }),
-      },
-      { status: 401 }
-    );
+  const isDev = process.env.NODE_ENV === "development";
+
+  if (!isDev) {
+    if (!parsed.success || parsed.data.token !== process.env.SECURE_API_KEY) {
+      return NextResponse.json(
+        {
+          error: "Unauthorized",
+          ...(parsed.success
+            ? undefined
+            : {
+                details: parsed.error.issues.map(i => ({
+                  field: i.path.join("."),
+                  message: i.message,
+                })),
+              }),
+        },
+        { status: 401 }
+      );
+    }
   }
 
   const today = new Date().toISOString().slice(0, 10);
