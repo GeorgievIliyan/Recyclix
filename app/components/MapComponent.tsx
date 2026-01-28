@@ -1281,7 +1281,7 @@ const AddBinModal = memo(function AddBinModal({
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Снимки (по избор, макс. 5)</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Снимка</label>
                     <div className="space-y-3">
                       {reportImages.length < 5 && (
                         <label className="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-gray-300 dark:border-neutral-600 rounded-lg cursor-pointer hover:border-gray-400 dark:hover:border-neutral-500 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors">
@@ -1551,7 +1551,7 @@ const AddBinModal = memo(function AddBinModal({
                 <button
                   type="button"
                   onClick={handleModalCancel}
-                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-700 dark:text-gray-300 hover:bg-red-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors transition duration-150 hover:border-red-400"
+                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-700 dark:text-gray-300 hover:bg-red-500 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors transition duration-150 hover:border-red-400"
                   disabled={isSubmitting || uploadingImages || uploadingBinImages}
                 >
                   Отказ

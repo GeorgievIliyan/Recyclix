@@ -6,10 +6,10 @@ import { useRouter } from "next/navigation"
 import { Eye, EyeOff, CircleCheck, OctagonAlert, X } from "lucide-react"
 
 const translateMessage = (message: string) => {
-  if (message.toLowerCase() == "invalid login credentials"){
+  if (message.toLowerCase() == "invalid login credentials") {
     return "Грешна парола или имейл"
   }
-  if (message.toLowerCase() == "invalid input"){
+  if (message.toLowerCase() == "invalid input") {
     return "Грешни данни или потребителят несъществува"
   }
 }
@@ -23,6 +23,23 @@ export default function LoginPage() {
   const [passwordShown, setPasswordShown] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+
+  // Check if user is already logged in and redirect immediately
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data } = await supabase.auth.getSession()
+      if (data.session) {
+        // User is already logged in, redirect back
+        if (window.history.length > 1) {
+          router.back()
+        } else {
+          router.push("/app/dashboard")
+        }
+      }
+    }
+
+    checkUser()
+  }, [router])
 
   // Проверка за съобщение след регистрация
   useEffect(() => {

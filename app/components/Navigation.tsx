@@ -1,10 +1,11 @@
-'use client'
+"use client"
 
 import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { LayoutDashboard, MapPin, ListTodo, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
+// типове и интерфейси
 type Module = 'dashboard' | 'map' | 'tasks' | 'account'
 type NavigationVariant = 'default' | 'compact' | 'transparent'
 
@@ -74,12 +75,12 @@ export function Navigation({
 
   // ефекти за стъкло
   const desktopBg = isTransparent
-    ? 'bg-white/15 dark:bg-neutral-900/15 border border-white/15 dark:border-neutral-700/15 backdrop-blur-md'
-    : 'bg-white/50 dark:bg-neutral-900/50 border border-white/20 dark:border-neutral-700/20 backdrop-blur-md shadow-sm'
+    ? 'bg-white/15 dark:bg-neutral-900/15 border border-white/15 dark:border-neutral-700/15 backdrop-blur-sm'
+    : 'bg-white/50 dark:bg-neutral-900/50 border border-white/20 dark:border-neutral-700/20 backdrop-blur-sm shadow-sm'
 
   const mobileBg = isTransparent
-    ? 'bg-white/15 dark:bg-neutral-900/15 border-t border-white/15 dark:border-neutral-700/15 backdrop-blur-md'
-    : 'bg-white/50 dark:bg-neutral-900/50 border-t border-white/20 dark:border-neutral-700/20 backdrop-blur-md shadow-sm'
+    ? 'bg-white/15 dark:bg-neutral-900/15 border-t border-white/15 dark:border-neutral-700/15 backdrop-blur-sm'
+    : 'bg-white/50 dark:bg-neutral-900/50 border-t border-white/20 dark:border-neutral-700/20 backdrop-blur-sm shadow-sm'
   const handleNavigation = (path: string) => {
     router.push(path)
   }

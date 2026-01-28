@@ -99,7 +99,7 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-neutral-100 dark:bg-neutral-900">
       <Navigation />
-      <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8 md:pt-16 lg:pt-20">
         {/* Картичка за профила */}
         <Card className="mb-6">
           <CardContent className="items-center">
