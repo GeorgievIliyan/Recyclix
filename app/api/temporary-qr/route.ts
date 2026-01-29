@@ -22,8 +22,12 @@ const TemporaryQRSchema = z.object({
 export async function POST(req: NextRequest) {
   // против нежелани заявки
   const token = req.headers.get("x-api-token");
-  if (!token || token !== process.env.SECURE_API_KEY) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const isDev = process.env.NODE_ENV === "development"
+
+  if (!isDev){
+    if (!token || token !== process.env.SECURE_API_KEY) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
   }
 
   try {

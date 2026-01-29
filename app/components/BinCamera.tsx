@@ -3,6 +3,7 @@
 import { useRef, useState, useEffect } from "react";
 import { Scan, CameraIcon, Loader2, CheckCircle2, X } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
+import fetchClassify from "@/lib/fetchClassify";
 
 type MaterialType = "plastic" | "textile" | "metal" | "paper" | "glass" | "unknown";
 type VerifyResult = "YES" | "NO" | null;
@@ -64,7 +65,6 @@ export default function BinCamera({ target, binId }: Props) {
     return canvas.toDataURL("image/jpeg", 0.6);
   };
 
-  // Класифицира снимката чрез API и генерира QR код при успешен резултат
   const classifyPhoto = async (image: string) => {
     setLoading(true);
     setPrediction(null);
@@ -72,65 +72,67 @@ export default function BinCamera({ target, binId }: Props) {
     setQrToken(null);
 
     try {
-      if (!process.env.SECURE_API_KEY) {
-        throw new Error("API key not configured");
-      }
-      const res = await fetch("/api/gemini-classify", {
-        method: "POST",
-        headers: { 
-          "x-api-key": process.env.SECURE_API_KEY,
-          "Content-Type": "application/json" 
-        },
-        body: JSON.stringify({ binId, image, target }),
+      const data = await fetchClassify({
+        binId,
+        image,
+        target,
       });
 
-      const data = await res.json();
-
-      // Ако API върне грешка
-      if (!res.ok || (!data.material && !data.result)) {
-        console.error("API error:", res.status, data);
-        setPrediction("unknown");
-        setVerifyResult(target ? "NO" : null);
-        return;
-      }
-
-      // Проверка за целеви материал
       if (target) {
-        setVerifyResult(data.result);
+        if (!("result" in data)) {
+          throw new Error("Invalid verify response");
+        }
 
-        // Генериране на QR код при успешна проверка
+        setVerifyResult(data.result as VerifyResult);
+
         if (data.result === "YES") {
           const qrRes = await fetch("/api/temporary-qr", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ points: 10, binCode: binId }),
           });
+
           const qrData = await qrRes.json();
-          if (qrRes.ok && qrData.token) setQrToken(qrData.token);
+          if (qrRes.ok && qrData.token) {
+            setQrToken(qrData.token);
+          }
         }
-      } else {
-        // Класификация на материал
+      }
+      else {
+        if (!("material" in data)) {
+          throw new Error("Invalid classify response");
+        }
+
         setPrediction(data.material as MaterialType);
 
-        // Генериране на QR код за разпознат материал
-        if (data.material && data.material !== "unknown") {
+        if (data.material !== "unknown") {
           const qrRes = await fetch("/api/temporary-qr", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ points: 10, binCode: binId }),
           });
+
           const qrData = await qrRes.json();
-          if (qrRes.ok && qrData.token) setQrToken(qrData.token);
+          if (qrRes.ok && qrData.token) {
+            setQrToken(qrData.token);
+          }
         }
       }
     } catch (err) {
       console.error("Classification failed:", err);
+
       setPrediction("unknown");
-      setVerifyResult(target ? "NO" : null);
+
+      if (target) {
+        setVerifyResult("NO");
+      } else {
+        setVerifyResult(null);
+      }
     } finally {
       setLoading(false);
     }
   };
+
 
   // Обработва натискането на бутона за сканиране
   const handleScanClick = async () => {

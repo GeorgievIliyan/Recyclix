@@ -117,17 +117,21 @@ export async function GET(req: Request) {
     const token = req.headers.get("x-api-token");
     const tokenValidation = ApiTokenSchema.safeParse({ token });
 
-    if (!tokenValidation.success) {
-      return NextResponse.json(
-        {
-          error: "Unauthorized",
-          details: tokenValidation.error.issues.map((issue) => ({
-            field: issue.path.join("."),
-            message: issue.message,
-          })),
-        },
-        { status: 401 }
-      );
+    const isDev = process.env.NODE_ENV === "development"
+
+    if (!isDev){
+      if (!tokenValidation.success) {
+        return NextResponse.json(
+          {
+            error: "Unauthorized",
+            details: tokenValidation.error.issues.map((issue) => ({
+              field: issue.path.join("."),
+              message: issue.message,
+            })),
+          },
+          { status: 401 }
+        );
+      }
     }
 
     if (process.env.NODE_ENV !== "development" && token !== process.env.SECURE_API_KEY) {

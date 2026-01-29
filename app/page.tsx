@@ -1,9 +1,90 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { supabase } from "@/lib/supabase-browser";
 
 export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  // данни
+  const [totalUsers, setTotalUsers] = useState<number | string>("...")
+  const [totalBins, setTotalBins] = useState<number | string>("...")
+  const [totalC02Reduction, setTotalCO2Reduction] = useState<number | string>("...")
+  const [totalPlasticRecycled, setTotalPlasticRecycled] = useState<number | string>("...")
+  const [totalPaperRecycled, setTotalPaperRecycled] = useState<number | string>("...")
+  const [totalGlassMetalRecycled, setTotalGlassMetalRecycled] = useState<number | string>("...")
+
+  const fetchUserCount = async () => {
+    const { data, error } = await supabase.rpc('get_user_count');
+      
+    if (!error && data !== null) {
+      setTotalUsers(data);
+    } else {
+      console.error("Error fetching user count:", error);
+      setTotalUsers(0);
+    }
+  };
+
+  const fetchBinCount = async () => {
+    const { data, error } = await supabase.rpc('get_bins_count');
+
+    if (!error && data !== null) {
+      setTotalBins(data);
+    } else {
+      console.error("Error fetching bin count:", error);
+      setTotalBins("2000+");
+    }
+  };
+
+  const fetchCO2Reduction = async () => {
+    const { data, error } = await supabase.rpc('get_total_co2');
+
+    if (!error) {
+      setTotalCO2Reduction(data || 0);
+    } else {
+      console.error("Error fetching CO2:", error);
+      setTotalCO2Reduction(0);
+    }
+  }
+
+  const fetchPlasticsRecycled = async () => {
+    const { data, error } = await supabase.rpc('get_plastic_total');
+    if (!error) {
+      setTotalPlasticRecycled(data || 0);
+    } else {
+      console.error("Error fetching plastic recycled:", error);
+      setTotalPlasticRecycled(0);
+    }
+  }
+
+  const fetchPaperRecycled = async () => {
+    const { data, error } = await supabase.rpc('get_paper_total');
+    if (!error) {
+      setTotalPaperRecycled(data || 0);
+    } else {
+      console.error("Error fetching paper recycled:", error);
+      setTotalPaperRecycled(0);
+    }
+  }
+
+  const fetchGlassMetalRecycled = async () => {
+    const { data, error } = await supabase.rpc('get_glass_metal_total');
+    if (!error) {
+      setTotalGlassMetalRecycled(data || 0);
+    } else {
+      console.error("Error fetching glass/metal recycled:", error);
+      setTotalGlassMetalRecycled(0);
+    }
+  }
+
+  useEffect(() => {
+    fetchUserCount()
+    fetchBinCount()
+    fetchCO2Reduction()
+    fetchGlassMetalRecycled()
+    fetchPlasticsRecycled()
+    fetchPaperRecycled()
+  }, []);
+
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 dark:from-gray-950 dark:via-gray-900 dark:to-black">
@@ -166,7 +247,7 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="text-center">
                 <div className="text-4xl font-bold bg-gradient-to-r from-[#00CD56] to-[#00b849] bg-clip-text text-transparent mb-2">
-                  10,000+
+                  {totalUsers}
                 </div>
                 <div className="text-gray-600 dark:text-gray-400">Активни потребители</div>
               </div>
@@ -178,7 +259,7 @@ export default function Home() {
               </div>
               <div className="text-center">
                 <div className="text-4xl font-bold bg-gradient-to-r from-[#00CD56] to-[#00b849] bg-clip-text text-transparent mb-2">
-                  250+
+                  {totalBins}
                 </div>
                 <div className="text-gray-600 dark:text-gray-400">Пунктове за рециклиране</div>
               </div>
@@ -328,7 +409,7 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-            {/* Принос */}
+            {/* принос */}
             <div className="backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 rounded-3xl p-10 border border-gray-200/50 dark:border-gray-800/50 shadow-xl dark:shadow-[0_0_30px_rgba(0,205,86,0.1)]">
               <div className="flex items-center gap-4 mb-6">
                 <div className="w-14 h-14 bg-gradient-to-br from-[#00CD56] to-[#00b849] rounded-2xl flex items-center justify-center shadow-lg shadow-[#00CD56]/30">
@@ -345,9 +426,9 @@ export default function Home() {
               </div>
               <div className="space-y-4">
                 <div className="flex justify-between items-center p-4 bg-gray-100/80 dark:bg-gray-800/80 rounded-xl">
-                  <span className="text-gray-700 dark:text-gray-300 font-medium">CO2 редукция</span>
+                  <span className="text-gray-700 dark:text-gray-300 font-medium">спестен CO2</span>
                   <span className="text-2xl font-bold bg-gradient-to-r from-[#00CD56] to-[#00b849] bg-clip-text text-transparent">
-                    15,000 т
+                    {totalC02Reduction} кг
                   </span>
                 </div>
                 <div className="flex justify-between items-center p-4 bg-gray-100/80 dark:bg-gray-800/80 rounded-xl">
@@ -365,7 +446,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Materials Recycled */}
+            {/* рециклирани материали */}
             <div className="backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 rounded-3xl p-10 border border-gray-200/50 dark:border-gray-800/50 shadow-xl dark:shadow-[0_0_30px_rgba(0,205,86,0.1)]">
               <div className="flex items-center gap-4 mb-6">
                 <div className="w-14 h-14 bg-gradient-to-br from-[#00CD56] to-[#00b849] rounded-2xl flex items-center justify-center shadow-lg shadow-[#00CD56]/30">
@@ -384,26 +465,26 @@ export default function Home() {
                 <div className="flex justify-between items-center p-4 bg-gray-100/80 dark:bg-gray-800/80 rounded-xl">
                   <span className="text-gray-700 dark:text-gray-300 font-medium">Пластмаса</span>
                   <span className="text-2xl font-bold bg-gradient-to-r from-[#00CD56] to-[#00b849] bg-clip-text text-transparent">
-                    20,000 кг
+                    {totalPlasticRecycled} кг
                   </span>
                 </div>
                 <div className="flex justify-between items-center p-4 bg-gray-100/80 dark:bg-gray-800/80 rounded-xl">
                   <span className="text-gray-700 dark:text-gray-300 font-medium">Хартия</span>
                   <span className="text-2xl font-bold bg-gradient-to-r from-[#00CD56] to-[#00b849] bg-clip-text text-transparent">
-                    18,000 кг
+                    {totalPaperRecycled} кг
                   </span>
                 </div>
                 <div className="flex justify-between items-center p-4 bg-gray-100/80 dark:bg-gray-800/80 rounded-xl">
                   <span className="text-gray-700 dark:text-gray-300 font-medium">Метал и стъкло</span>
                   <span className="text-2xl font-bold bg-gradient-to-r from-[#00CD56] to-[#00b849] bg-clip-text text-transparent">
-                    12,000 кг
+                    {totalGlassMetalRecycled} кг
                   </span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Testimonial/Quote */}
+          {/* мисъл */}
           <div className="backdrop-blur-xl bg-gradient-to-br from-[#00CD56]/10 to-[#00b849]/5 dark:from-[#00CD56]/20 dark:to-[#00b849]/10 rounded-3xl p-10 border border-[#00CD56]/20 dark:border-[#00CD56]/30 shadow-xl">
             <div className="text-center max-w-3xl mx-auto">
               <svg className="w-12 h-12 text-[#00CD56] mx-auto mb-6" fill="currentColor" viewBox="0 0 24 24">
@@ -444,11 +525,11 @@ export default function Home() {
       <footer className="relative border-t border-gray-200/50 dark:border-gray-800/50 backdrop-blur-xl bg-white/80 dark:bg-gray-900/80">
         <div className="max-w-7xl mx-auto px-4 py-12">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-            {/* Logo & Description */}
+            {/* брандинг */}
             <div className="md:col-span-2">
               <div className="flex items-center gap-2 mb-4">
                 <img src="/logos/logo.svg" alt="Logo" className="aspect-1/1 h-6" />
-                <span className="text-2xl font-bold bg-gradient-to-r from-[#00CD56] to-[#00b849] bg-clip-text text-transparent">
+                <span className="text-2xl font-semibold bg-gradient-to-r from-[#00CD56] to-[#00b849] bg-clip-text text-transparent">
                   Recyclix
                 </span>
               </div>
@@ -457,7 +538,7 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Quick Links */}
+            {/* бързи линкове */}
             <div>
               <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Бързи връзки</h4>
               <ul className="space-y-2">
@@ -488,7 +569,7 @@ export default function Home() {
               </ul>
             </div>
 
-            {/* Account */}
+            {/* връзки за акаунт */}
             <div>
               <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Акаунт</h4>
               <ul className="space-y-2">
@@ -513,7 +594,7 @@ export default function Home() {
           </div>
 
           <div className="pt-8 border-t border-gray-200/50 dark:border-gray-800/50 text-center text-gray-600 dark:text-gray-400">
-            <p>&copy; 2025 Recyclix. Всички права запазени.</p>
+            <p>&copy; {new Date().getFullYear()} Recyclix. Всички права запазени.</p>
           </div>
         </div>
       </footer>

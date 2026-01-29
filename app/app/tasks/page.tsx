@@ -146,19 +146,17 @@ export default function DailyTasksPage() {
                 )}
 
                 <div className="p-5">
-                  <div className="flex items-start gap-3 mb-3">
+                  <div className="flex items-center justify-center gap-2 mb-3">
                     {/* Статус икона */}
                     <div className="flex-shrink-0 mt-0.5">
                       {task.completed ? (
                         <div className="relative">
                           <CheckCircle2 className="h-6 w-6 text-[#00CD56]" />
-                          <Sparkles className="h-3 w-3 text-[#00CD56] absolute -top-1 -right-1" />
                         </div>
                       ) : (
                         <Circle className="h-6 w-6 text-muted-foreground group-hover:text-[#00CD56] transition-colors" />
                       )}
                     </div>
-
                     {/* Съдържание */}
                     <div className="flex-1 min-w-0">
                       <h3

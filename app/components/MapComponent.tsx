@@ -161,7 +161,8 @@ const materialTranslations: Record<string, string> = {
   textiles: "текстил",
   "plastic bottle caps": "пластмасови капачки",
   "small electrical appliances": "малки електоур.",
-  "metal packaging": "метални опаковки"
+  "metal packaging": "метални опаковки",
+  "glass jars": "стъклени буркани"
 }
 
 const dayMap: Record<string, string> = {

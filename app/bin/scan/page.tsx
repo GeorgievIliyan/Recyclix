@@ -40,6 +40,8 @@ const materials: Material[] = [
   { id: "ewaste", label: "Техника", color: "bg-amber-700 hover:bg-amber-800", icon: PcCase },
 ]
 
+const isDev = process.env.NODE_ENV === "development"
+
 export default function Page() {
   // Избран материал (ползва се в ръчен режим)
   const [targetMaterial, setTargetMaterial] = useState<string>("")
@@ -94,32 +96,55 @@ export default function Page() {
         setOpened(true);
         console.log("Connected to bin:", data.id)
 
-        try{
-          if (!process.env.NEXT_PUBLIC_SECURE_API_KEY) {
-            throw new Error("API key not configured");
-          }
+      // Then in your handleCodeSubmit function:
+      try {
+        // Only include API key in development
+        const headers: Record<string, string> = {
+          "Content-Type": "application/json"
+        };
 
-          const res = await fetch('/api/temporary-qr', {
-            method: "POST",
-            headers: {
-              "x-api-key": process.env.NEXT_PUBLIC_SECURE_API_KEY,
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              userId: user?.id,
-              points: 5
-            })
-          });
+        // Add API key only in development
+        if (isDev && process.env.NEXT_PUBLIC_SECURE_API_KEY) {
+          headers["x-api-key"] = process.env.NEXT_PUBLIC_SECURE_API_KEY;
+        } else if (!isDev) {
+          // In production, you should implement a proper solution
+          console.warn("Running in production without secure API implementation");
+          // Consider implementing a fallback or showing an error
+        }
 
-          const qrData = await res.json();
-          if (qrData.token){
-            setQr(qrData.token)
-            setQrExpiresAt(qrData.expiresAt)
-          }
+        const res = await fetch('/api/temporary-qr', {
+          method: "POST",
+          headers,
+          body: JSON.stringify({
+            userId: user?.id,
+            points: 5
+          })
+        });
+
+        const qrData = await res.json();
+        
+        // You'll likely get a 401 Unauthorized in production
+        if (!res.ok) {
+          console.error("QR generation failed:", qrData.error || "Unauthorized");
+          // Handle error appropriately for your users
+          alert("QR кодът не може да бъде генериран в момента. Моля, опитайте по-късно.");
+          return;
         }
-        catch(err){
-          console.error("QR generation error: ", err)
+        
+        if (qrData.token) {
+          setQr(qrData.token);
+          setQrExpiresAt(qrData.expiresAt);
         }
+      } catch(err) {
+        console.error("QR generation error: ", err);
+        
+        // Show user-friendly error
+        if (err instanceof Error) {
+          alert(`Грешка: ${err.message}`);
+        } else {
+          alert("Възникна грешка при генериране на QR кода.");
+        }
+      }
       } else {
         setCodeError("Кодът не бе намерен!")
       }
