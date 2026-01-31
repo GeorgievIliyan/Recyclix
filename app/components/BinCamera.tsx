@@ -1,9 +1,9 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
-import { Scan, CameraIcon, Loader2, CheckCircle2, X } from "lucide-react";
+import { Scan, CameraIcon, Loader2, CheckCircle2, X, CircleX } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
-import fetchClassify from "@/lib/fetchClassify";
+import { SimpleSpinningRecycling } from "./RecyclingLoader";
 
 type MaterialType = "plastic" | "textile" | "metal" | "paper" | "glass" | "unknown";
 type VerifyResult = "YES" | "NO" | null;
@@ -72,69 +72,79 @@ export default function BinCamera({ target, binId }: Props) {
     setQrToken(null);
 
     try {
-      const data = await fetchClassify({
-        binId,
-        image,
-        target,
+      let endpoint: string;
+      let requestBody: any;
+      
+      if (target) {
+        endpoint = "/api/gemini-verify-material";
+        requestBody = {
+          image: image,
+          binId: binId,
+          target: target
+        };
+      } else {
+        endpoint = "/api/gemini-classify";
+        requestBody = {
+          image: image,
+          binId: binId
+        };
+      }
+      
+      console.log("Calling endpoint:", endpoint, "with:", requestBody);
+      
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody),
       });
 
-      if (target) {
-        if (!("result" in data)) {
-          throw new Error("Invalid verify response");
-        }
-
-        setVerifyResult(data.result as VerifyResult);
-
-        if (data.result === "YES") {
-          const qrRes = await fetch("/api/temporary-qr", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ points: 10, binCode: binId }),
-          });
-
-          const qrData = await qrRes.json();
-          if (qrRes.ok && qrData.token) {
-            setQrToken(qrData.token);
-          }
-        }
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error(`API error ${res.status}:`, errorText);
+        throw new Error(`API error: ${res.status}`);
       }
-      else {
-        if (!("material" in data)) {
-          throw new Error("Invalid classify response");
+      
+      const data = await res.json();
+
+      if (target) {
+        const result = data.result as VerifyResult;
+        setVerifyResult(result);
+
+        if (result === "YES") {
+          await generateQR();
         }
+      } else {
+        const material = data.material as MaterialType;
+        setPrediction(material);
 
-        setPrediction(data.material as MaterialType);
-
-        if (data.material !== "unknown") {
-          const qrRes = await fetch("/api/temporary-qr", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ points: 10, binCode: binId }),
-          });
-
-          const qrData = await qrRes.json();
-          if (qrRes.ok && qrData.token) {
-            setQrToken(qrData.token);
-          }
+        if (material && material !== "unknown") {
+          await generateQR();
         }
       }
     } catch (err) {
-      console.error("Classification failed:", err);
-
+      console.error("Verification failed:", err);
       setPrediction("unknown");
-
-      if (target) {
-        setVerifyResult("NO");
-      } else {
-        setVerifyResult(null);
-      }
+      if (target) setVerifyResult("NO");
     } finally {
       setLoading(false);
     }
   };
 
+  const generateQR = async () => {
+    const qrRes = await fetch("/api/temporary-qr", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ 
+        points: 10, 
+        binCode: binId
+      }),
+    });
+    const qrData = await qrRes.json();
+    if (qrRes.ok && qrData.token) {
+      setQrToken(qrData.token);
+    }
+  };
 
-  // Обработва натискането на бутона за сканиране
   const handleScanClick = async () => {
     if (loading) return;
     const image = takePhoto();
@@ -179,36 +189,72 @@ export default function BinCamera({ target, binId }: Props) {
 
         {/* Overlay за правилен контейнер с QR код */}
         {verifyResult === "YES" && (
-          <div className="absolute inset-0 bg-background/95 backdrop-blur-sm flex flex-col items-center justify-center gap-4 p-6">
-            <div className="relative flex flex-col items-center gap-4 p-6">
-              <div className="w-20 h-20 rounded-full bg-success/20 flex items-center justify-center">
-                <CheckCircle2 className="w-18 h-18 text-success" />
-              </div>
-              <p className="text-xl md:text-4xl font-semibold text-success text-center">
-                Правилен контейнер
-              </p>
-
-              {/* QR код за сканиране */}
-              {qrToken && (
-                <div className="mt-4 flex flex-col gap-2 items-center justify-center">
-                  <QRCodeSVG 
-                    value={qrToken} 
-                    size={180} 
-                    fgColor="#00CD56"
-                    bgColor="transparent"
-                  />
-                  <p className="text-md text-neutral-500 text-center">Скранирай, за да получиш точки!</p>
-                </div>
-              )}
-
-              {/* X иконка за затваряне на overlay */}
-              <X
-                className="absolute top-4 right-4 w-6 h-6 cursor-pointer text-foreground/70 hover:text-foreground/100"
+          <div className="absolute inset-0 bg-background/95 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="relative bg-card rounded-xl p-10 max-w-md w-full border shadow-lg">
+              
+              <button
                 onClick={() => {
                   setVerifyResult(null);
                   setQrToken(null);
                 }}
-              />
+                className="absolute top-4 right-4 text-foreground/70 hover:text-foreground transition-colors"
+              >
+                <X className="w-6 h-6 dark:text-neutral-600" />
+              </button>
+
+              <div className="flex flex-col items-center text-center gap-8">
+                <div className="flex items-center gap-4">
+                  <CheckCircle2 className="w-10 h-10 text-green-500" />
+                  <h3 className="text-3xl font-semibold">Правилен контейнер</h3>
+                </div>
+
+                {/* QR код */}
+                {qrToken && (
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="p-5 bg-background/50 dark:bg-[#1D1D1D] rounded-lg">
+                      <QRCodeSVG 
+                        value={qrToken} 
+                        size={200}
+                        fgColor="#00CD56"
+                        bgColor="transparent"
+                      />
+                    </div>
+                    <p className="text-base text-muted-foreground dark:text-neutral-600">
+                      Сканирай, за да получиш точки
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Overlay за неправилен контейнер */}
+        {verifyResult === "NO" && (
+          <div className="absolute inset-0 bg-background/95 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="relative bg-card rounded-xl p-10 max-w-md w-full border shadow-lg">
+              
+              <button
+                onClick={() => setVerifyResult(null)}
+                className="absolute top-4 right-4 text-foreground/70 hover:text-foreground transition-colors"
+              >
+                <X className="w-6 h-6 dark:text-neutral-600" />
+              </button>
+
+              <div className="flex flex-col items-center text-center gap-3">
+                <div className="flex items-center gap-3">
+                  <CircleX className="w-9 h-9 text-red-500" />
+                  <h3 className="text-3xl font-semibold text-red-500">Грешен контейнер</h3>
+                </div>
+
+                <p className="text-sm text-muted-foreground">
+                  Този обект не принадлежи към категорията!
+                </p>
+
+                <p className="text-lg mt-3">
+                  Опитайте с друг контейнер или се уверете, че снимката е ясна!
+                </p>
+              </div>
             </div>
           </div>
         )}
@@ -242,7 +288,7 @@ export default function BinCamera({ target, binId }: Props) {
           >
             {loading ? (
               <>
-                <Loader2 className="w-5 h-5 animate-spin" />
+                <SimpleSpinningRecycling />
                 <span>Сканиране...</span>
               </>
             ) : (

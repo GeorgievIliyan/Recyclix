@@ -2,10 +2,11 @@ import { nanoid } from "nanoid";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
+import { isDev } from "@/lib/isDev";
 
 // Настройка на Supabase клиента
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseKey = process.env.SUPABASE_SERVICE_KEY!;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 const TemporaryQRSchema = z.object({
@@ -52,7 +53,9 @@ export async function POST(req: NextRequest) {
     const points = rawPoints ?? 10; // Стандартни 10 точки
     const binCode = codeFromBinCode || codeFromBinId;
 
-    console.log("QR API Request:", { points, binCode, fullBody: body });
+    if (isDev){
+      console.log("QR API Request:", { points, binCode, fullBody: body });
+    }
 
     // Генериране на уникален QR токен и срок на валидност
     const qrToken = nanoid(12);

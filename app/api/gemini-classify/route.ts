@@ -48,15 +48,6 @@ export async function OPTIONS() {
 }
 
 export async function POST(req: Request) {
-  // против нежелани заявки
-  const token = req.headers.get('x-api-token')
-  
-  if (!token || token !== process.env.SECURE_API_KEY) {
-    return NextResponse.json(
-      { error: 'Unauthorized' },
-      { status: 401 }
-    )
-  }
 
   try {
     const body = await req.json();
@@ -130,6 +121,10 @@ export async function POST(req: Request) {
     const data = await response.json();
     const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
 
+    if (process.env.NODE_ENV === "development") {
+      console.log("Raw response:", rawText);
+    }
+
     const allowedMaterials = ["plastic", "paper", "glass", "metal", "textile", "organic", "wood"];
 
     // Ако е проверка за конкретен материал
@@ -141,6 +136,7 @@ export async function POST(req: Request) {
       const normalized = rawText.toLowerCase().trim();
       const found = allowedMaterials.find(m => normalized.includes(m));
       const material = found || "unknown";
+      
       return NextResponse.json({ material }, { headers: corsHeaders });
     }
   } catch (err: any) {

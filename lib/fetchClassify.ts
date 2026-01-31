@@ -1,6 +1,9 @@
+// lib/fetchClassify.ts
+
 interface Props {
   target: string;
   binId: string;
+  userDailyTaskId?: string; // Add this for gemini-confirm
 }
 
 export interface GeminiRequest extends Props {
@@ -8,37 +11,40 @@ export interface GeminiRequest extends Props {
 }
 
 export interface GeminiResponse {
-  result: string;
+  result?: string; // For gemini-confirm (YES/NO)
+  material?: string; // For gemini-classify
+  error?: string;
 }
 
-const isDev = process.env.NODE_ENV === "development";
-
 export default async function fetchClassify(
-  { binId, image, target }: GeminiRequest
+  { binId, image, target, userDailyTaskId }: GeminiRequest,
+  endpoint: string = "/api/gemini-classify"
 ): Promise<GeminiResponse> {
-  let res: Response;
+  const token = process.env.SECURE_API_KEY;
 
-  if (isDev) {
-    res = await fetch("/api/gemini-classify", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ binId, image, target }),
-    });
-  } else {
-    res = await fetch("/api/gemini-classify", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-token": process.env.SECURE_API_KEY!
-      },
-      body: JSON.stringify({ binId, image, target }),
-    });
+  if (!token) {
+    console.error("Client Error: SECURE_API_KEY is not defined");
   }
 
+  // Determine which endpoint to use based on target
+  const finalEndpoint = target ? "/api/gemini-confirm" : "/api/gemini-classify";
+  
+  const requestBody = target 
+    ? { image, userDailyTaskId: binId } // For confirm endpoint
+    : { binId, image, target }; // For classify endpoint
+
+  const res = await fetch(finalEndpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-token": token || "",
+    },
+    body: JSON.stringify(requestBody),
+  });
+
   if (!res.ok) {
-    throw new Error("Failed to fetch Gemini API");
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || `Server responded with ${res.status}`);
   }
 
   return res.json();

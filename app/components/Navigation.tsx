@@ -113,10 +113,10 @@ export function Navigation({
                 className={cn(
                   'flex items-center gap-2 px-4 sm:px-6 py-2 rounded-xl transition-all duration-200 text-sm font-medium relative',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-                  'hover:bg-white/30 dark:hover:bg-neutral-800/30',
+                  'hover:bg-white/30 dark:hover:bg-white/10',
                   isActive
-                    ? 'bg-green-500/90 text-primary-foreground shadow-lg shadow-primary/20 backdrop-blur-sm hover:bg-green-600'
-                    : 'text-muted-foreground hover:text-foreground'
+                    ? 'bg-green-500/90 text-primary-foreground shadow-lg shadow-primary/20 backdrop-blur-sm hover:bg-green-600 dark:hover:bg-green-400 dark:text-white'
+                    : 'text-muted-foreground hover:text-foreground dark:hover:neutral-100'
                 )}
                 aria-current={isActive ? 'page' : undefined}
               >
@@ -156,7 +156,7 @@ export function Navigation({
                   className={cn(
                     'flex flex-col items-center gap-1 px-4 py-2 rounded-xl min-w-[72px] transition-all duration-200',
                     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                    'hover:bg-white/30 dark:hover:bg-neutral-800/30',
+                    'hover:bg-white/30',
                     isActive ? 'text-primary' : 'text-muted-foreground'
                   )}
                   aria-current={isActive ? 'page' : undefined}

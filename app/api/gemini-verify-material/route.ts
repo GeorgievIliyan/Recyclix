@@ -1,0 +1,167 @@
+import { NextRequest, NextResponse } from "next/server";
+import crypto from "crypto";
+import sharp from "sharp";
+import { createClient } from "@supabase/supabase-js";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+};
+
+const ipLastCalls = new Map<string, number>();
+const COOLDOWN_MS = 5000;
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_KEY!
+);
+
+const materialLabels: Record<string, string> = {
+  plastic: "пластмаса",
+  glass: "стъкло", 
+  paper: "хартия",
+  metal: "метал",
+  textile: "текстил",
+  "general waste": "битов отпадък",
+  batteries: "батерии",
+  ewaste: "електроника"
+};
+
+export async function OPTIONS() {
+  return NextResponse.json({}, { headers: corsHeaders });
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const { image, binId, target } = body as {
+      image?: string;
+      binId?: string;
+      target?: string;
+    };
+
+    if (!image) {
+      return NextResponse.json(
+        { result: "NO", error: "Missing image" },
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
+    if (!target) {
+      return NextResponse.json(
+        { result: "NO", error: "Missing target material" },
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
+    const ip = req.headers.get("x-forwarded-for") || "unknown";
+    const now = Date.now();
+    const last = ipLastCalls.get(ip) || 0;
+    if (now - last < COOLDOWN_MS) {
+      return NextResponse.json(
+        { result: "NO", error: "Cooldown active" },
+        { status: 429, headers: corsHeaders }
+      );
+    }
+    ipLastCalls.set(ip, now);
+
+    let actualBinUuid: string | null = null;
+    if (binId) {
+      const { data: binData } = await supabase
+        .from("recycling_bins")
+        .select("id")
+        .eq("code", binId) 
+        .maybeSingle();
+
+      if (binData) {
+        actualBinUuid = binData.id;
+      }
+    }
+
+    const base64Image = image.includes(",") ? image.split(",")[1] : image;
+    const shaHash = crypto.createHash("sha256").update(base64Image, "base64").digest("hex");
+
+    const imgBuffer = Buffer.from(base64Image, "base64");
+    const { data: pixelData } = await sharp(imgBuffer)
+      .resize(8, 8)
+      .grayscale()
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+
+    const pixels = new Uint8Array(pixelData);
+    const avg = Array.from(pixels).reduce((sum, px) => sum + px, 0) / pixels.length;
+    const pHash = Array.from(pixels).map((px) => (px >= avg ? "1" : "0")).join("");
+
+    if (actualBinUuid) {
+      await supabase
+        .from("images")
+        .insert({ bin_id: actualBinUuid, sha_hash: shaHash, p_hash: pHash });
+    }
+
+    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+    if (!GEMINI_API_KEY) {
+      throw new Error("Missing Gemini API key");
+    }
+
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+
+    const targetBulgarian = materialLabels[target] || target;
+
+    const prompt = `You are verifying waste material classification.
+    
+    Target material: ${target} (${targetBulgarian})
+    
+    Question: Does the object in this image belong to the "${target}" (${targetBulgarian}) material category for recycling?
+    
+    Consider common recycling categories. For example:
+    - Plastic bottles, containers, bags, packaging → plastic
+    - Glass bottles, jars, broken glass → glass  
+    - Paper, cardboard, newspapers, magazines → paper
+    - Metal cans, foil, containers, wires → metal
+    - Clothes, fabrics, textiles, rags → textile
+    - Food waste, organic matter, non-recyclables → general waste
+    - Batteries of any type → batteries
+    - Electronics, devices, cables, computer parts → ewaste
+    
+    Respond with exactly one word: YES or NO.`;
+
+    const geminiRes = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{
+          parts: [
+            { text: prompt },
+            { inlineData: { mimeType: "image/jpeg", data: base64Image.replace(/\s/g, "") } },
+          ],
+        }],
+      }),
+    });
+
+    if (!geminiRes.ok) {
+      const errorText = await geminiRes.text();
+      console.error("Gemini API error:", errorText);
+      throw new Error("Gemini API communication failed");
+    }
+
+    const geminiData = await geminiRes.json();
+    
+    const rawText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+    const result = rawText.toUpperCase().includes("YES") ? "YES" : "NO";
+
+    if (process.env.NODE_ENV === "development") {
+      console.log("Gemini raw text response:", rawText);
+      console.log("Parsed result:", result);
+    }
+
+    return NextResponse.json({ result }, { headers: corsHeaders });
+
+  } catch (err: any) {
+    console.error("Error in gemini-verify-material:", err);
+    return NextResponse.json(
+      { result: "NO", error: err.message }, 
+      { status: 500, headers: corsHeaders }
+    );
+  }
+}

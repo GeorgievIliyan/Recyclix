@@ -15,10 +15,10 @@ import {
   Battery,
   PcCase,
   Check,
-  OctagonAlert
+  OctagonAlert,
+  Eraser
 } from "lucide-react"
 import Logo36 from "@/app/components/Logo36"
-import { QRCodeSVG } from 'qrcode.react';
 
 // Тип за материалите в ръчния режим
 type Material = {
@@ -30,14 +30,14 @@ type Material = {
 
 // Налични материали за избор
 const materials: Material[] = [
-  { id: "plastic", label: "Пластмаса", color: "bg-yellow-500 hover:bg-yellow-600", icon: ShoppingBag },
-  { id: "glass", label: "Стъкло", color: "bg-emerald-500 hover:bg-emerald-600", icon: BottleWine },
-  { id: "paper", label: "Хартия", color: "bg-blue-500 hover:bg-blue-600", icon: Newspaper },
-  { id: "metal", label: "Метал", color: "bg-slate-500 hover:bg-slate-600", icon: InspectionPanel },
-  { id: "textile", label: "Текстил", color: "bg-purple-500 hover:bg-purple-600", icon: Spool },
-  { id: "general waste", label: "Битов", color: "bg-neutral-500 hover:bg-neutral-600", icon: Trash2 },
-  { id: "batteries", label: "Батерии", color: "bg-red-500 hover:bg-red-600", icon: Battery },
-  { id: "ewaste", label: "Техника", color: "bg-amber-700 hover:bg-amber-800", icon: PcCase },
+  { id: "plastic", label: "Пластмаса", color: "bg-gradient-to-br from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700", icon: ShoppingBag },
+  { id: "glass", label: "Стъкло", color: "bg-gradient-to-br from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700", icon: BottleWine },
+  { id: "paper", label: "Хартия", color: "bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700", icon: Newspaper },
+  { id: "metal", label: "Метал", color: "bg-gradient-to-br from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700", icon: InspectionPanel },
+  { id: "textile", label: "Текстил", color: "bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700", icon: Spool },
+  { id: "general waste", label: "Битов", color: "bg-gradient-to-br from-neutral-500 to-neutral-600 hover:from-neutral-600 hover:to-neutral-700", icon: Trash2 },
+  { id: "batteries", label: "Батерии", color: "bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700", icon: Battery },
+  { id: "ewaste", label: "Техника", color: "bg-gradient-to-br from-amber-700 to-amber-800 hover:from-amber-800 hover:to-amber-900", icon: PcCase },
 ]
 
 const isDev = process.env.NODE_ENV === "development"
@@ -67,92 +67,50 @@ export default function Page() {
   }
 
   // функция за проверка в база данни:
-  const handleCodeSubmit = async (code: string) => {
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (code.length == 0){
-      setCodeError("Моля, въведете код!")
-      return 
+  const handleCodeSubmit = async (inputCode: string) => {
+    setCodeError(null);
+
+    if (!inputCode) {
+      setCodeError("Моля, въведете код!");
+      return;
     }
 
-    if (code.length < 6 || code.length > 6 ) {
-      setCodeError("Кодът трябва да е 6 символа дълъг!")
-      return
+    const trimmedCode = inputCode.trim();
+
+    if (trimmedCode.length !== 6) {
+      setCodeError("Кодът трябва да е 6 символа дълъг!");
+      return;
     }
-    // проверка в база данни
+
     try {
+      // Use the correct table name 'recycling_bins' from your schema
       const { data, error } = await supabase
         .from('recycling_bins')
-        .select('*') 
-        .eq('code', code.trim()) 
+        .select('id, code') 
+        .eq('code', trimmedCode) 
         .maybeSingle();
 
       if (error) {
         console.error("Supabase error:", error.message);
+        setCodeError("Грешка при връзка с базата данни.");
         return;
       }
 
-      //проверка за открит резултат
       if (data) {
-        setOpened(true);
-        console.log("Connected to bin:", data.id)
-
-      // Then in your handleCodeSubmit function:
-      try {
-        // Only include API key in development
-        const headers: Record<string, string> = {
-          "Content-Type": "application/json"
-        };
-
-        // Add API key only in development
-        if (isDev && process.env.NEXT_PUBLIC_SECURE_API_KEY) {
-          headers["x-api-key"] = process.env.NEXT_PUBLIC_SECURE_API_KEY;
-        } else if (!isDev) {
-          // In production, you should implement a proper solution
-          console.warn("Running in production without secure API implementation");
-          // Consider implementing a fallback or showing an error
-        }
-
-        const res = await fetch('/api/temporary-qr', {
-          method: "POST",
-          headers,
-          body: JSON.stringify({
-            userId: user?.id,
-            points: 5
-          })
-        });
-
-        const qrData = await res.json();
-        
-        // You'll likely get a 401 Unauthorized in production
-        if (!res.ok) {
-          console.error("QR generation failed:", qrData.error || "Unauthorized");
-          // Handle error appropriately for your users
-          alert("QR кодът не може да бъде генериран в момента. Моля, опитайте по-късно.");
-          return;
-        }
-        
-        if (qrData.token) {
-          setQr(qrData.token);
-          setQrExpiresAt(qrData.expiresAt);
-        }
-      } catch(err) {
-        console.error("QR generation error: ", err);
-        
-        // Show user-friendly error
-        if (err instanceof Error) {
-          alert(`Грешка: ${err.message}`);
-        } else {
-          alert("Възникна грешка при генериране на QR кода.");
-        }
-      }
+        // SUCCESS:
+        // 1. Update the code state first
+        setCode(trimmedCode); 
+        // 2. Open the camera UI
+        setOpened(true); 
+        console.log("Connected to bin ID:", data.id);
       } else {
-        setCodeError("Кодът не бе намерен!")
+        setCodeError("Кодът не бе намерен!");
       }
     } catch (err) {
       console.error("Unexpected error:", err);
+      setCodeError("Възникна неочаквана грешка.");
     }
-
-  }
+  };
 
   return (
     <>
@@ -216,18 +174,18 @@ export default function Page() {
     </div>
     :
     <div className="flex h-screen w-screen flex-col items-center justify-center bg-white px-4 antialiased dark:bg-neutral-950">
-      <div className="w-full max-w-sm space-y-6 text-center">
+      <div className="w-full max-w-sm space-y-2 text-center">
         {/* Заглавие */}
         <h1 className="text-3xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-50">
           Въведете код на кош
         </h1>
         
-        <p className="text-sm text-neutral-500 dark:text-neutral-400">
+        <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-6">
           Моля, въведете 6-цифрения код, за да продължите напред
         </p>
 
         {codeError && 
-          <span className="text-red-700 bg-red-500/10 rounded-full text-md inline-flex gap-2 py-2 px-2.5"><OctagonAlert /> {codeError}</span>
+          <span className="text-red-500 bg-red-500/15 rounded-full text-md inline-flex gap-2 py-2 px-2.5"><OctagonAlert /> {codeError}</span>
         }
 
         {/* Поле за въвеждане */}
@@ -306,9 +264,9 @@ function MaterialButtons({
       {targetMaterial && (
         <button
           onClick={() => setTargetMaterial("")}
-          className="mt-2 w-full bg-secondary hover:bg-secondary/80 text-secondary-foreground font-medium px-4 py-2.5 rounded-lg"
+          className="mt-2 w-full bg-gradient-to-r from-secondary to-secondary/90 hover:from-secondary/90 hover:to-secondary text-secondary-foreground font-medium px-4 py-2.5 rounded-lg flex items-center justify-center"
         >
-          Изчисти избора
+          Изчисти избора <Eraser className="w-5 h-5 ml-2" />
         </button>
       )}
     </div>
