@@ -150,13 +150,13 @@ export default function ClaimPage() {
         <div className="space-y-3">
           <button
             onClick={handleBack}
-            className="w-full bg-primary text-primary-foreground py-3 rounded-lg font-medium hover:bg-green-600 transition duration-150"
+            className="w-full bg-primary text-primary-foreground py-3 rounded-lg font-medium hover:bg-green-500 hover:text-white transition duration-150"
           >
             Назад
           </button>
           <button
             onClick={() => router.push("/")}
-            className="w-full border py-3 rounded-lg font-medium"
+            className="w-full border py-3 rounded-lg font-medium transition duraiton-150 hover:text-green-500 hover:border-green-500/10"
           >
             Начална страница
           </button>

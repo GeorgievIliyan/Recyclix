@@ -108,23 +108,17 @@ export async function POST(req: NextRequest) {
 
     const targetBulgarian = materialLabels[target] || target;
 
-    const prompt = `You are verifying waste material classification.
+    const prompt = `You are verifying waste material classification and counting objects.
     
     Target material: ${target} (${targetBulgarian})
     
-    Question: Does the object in this image belong to the "${target}" (${targetBulgarian}) material category for recycling?
+    Task:
+    1. Does the object(s) in this image belong to the "${target}" (${targetBulgarian}) material category for recycling?
+    2. Count how many separate items of this specific material are in the image.
     
-    Consider common recycling categories. For example:
-    - Plastic bottles, containers, bags, packaging → plastic
-    - Glass bottles, jars, broken glass → glass  
-    - Paper, cardboard, newspapers, magazines → paper
-    - Metal cans, foil, containers, wires → metal
-    - Clothes, fabrics, textiles, rags → textile
-    - Food waste, organic matter, non-recyclables → general waste
-    - Batteries of any type → batteries
-    - Electronics, devices, cables, computer parts → ewaste
-    
-    Respond with exactly one word: YES or NO.`;
+    Respond in exactly this format:
+    RESULT: [YES or NO]
+    COUNT: [number]`;
 
     const geminiRes = await fetch(API_URL, {
       method: "POST",
@@ -146,21 +140,29 @@ export async function POST(req: NextRequest) {
     }
 
     const geminiData = await geminiRes.json();
-    
     const rawText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-    const result = rawText.toUpperCase().includes("YES") ? "YES" : "NO";
+    
+    const result = rawText.toUpperCase().includes("RESULT: YES") ? "YES" : "NO";
+    const countMatch = rawText.match(/COUNT:\s*(\d+)/i);
+    const count = countMatch ? parseInt(countMatch[1], 10) : 1;
+
+    const points = result === "YES" ? count * 10 : 0;
 
     if (process.env.NODE_ENV === "development") {
       console.log("Gemini raw text response:", rawText);
-      console.log("Parsed result:", result);
+      console.log(`Parsed: ${result}, Count: ${count}, Points: ${points}`);
     }
 
-    return NextResponse.json({ result }, { headers: corsHeaders });
+    return NextResponse.json({ 
+      result, 
+      count, 
+      points 
+    }, { headers: corsHeaders });
 
   } catch (err: any) {
     console.error("Error in gemini-verify-material:", err);
     return NextResponse.json(
-      { result: "NO", error: err.message }, 
+      { result: "NO", error: err.message, points: 0 }, 
       { status: 500, headers: corsHeaders }
     );
   }

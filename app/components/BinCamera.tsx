@@ -1,10 +1,12 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
-import { Scan, CameraIcon, Loader2, CheckCircle2, X, CircleX } from "lucide-react";
+import { Scan, CameraIcon, CheckCircle2, X, CircleX, Hash, Sparkles, Leaf } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { SimpleSpinningRecycling } from "./RecyclingLoader";
 import { isDev } from "@/lib/isDev";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase-browser";
 
 // типове
 type MaterialType = "plastic" | "textile" | "metal" | "paper" | "glass" | "unknown";
@@ -16,12 +18,18 @@ interface Props {
 }
 
 export default function BinCamera({ target, binId }: Props) {
+  const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [cameraOn, setCameraOn] = useState(false);
   const [prediction, setPrediction] = useState<MaterialType | null>(null);
   const [verifyResult, setVerifyResult] = useState<VerifyResult>(null);
   const [loading, setLoading] = useState(false);
-  const [qrData, setQrData] = useState<{qrUrl: string; expiresAt: string} | null>(null);
+  const [itemCount, setItemCount] = useState<number>(0);
+  const [co2Saved, setCo2Saved] = useState<number>(0);
+  const [qrData, setQrData] = useState<{ qrUrl: string; expiresAt: string; points: number } | null>(null);
+
+  // Success state: Targeted verification is YES OR Auto-classification found a material
+  const showSuccessModal = (target && verifyResult === "YES") || (!target && prediction && prediction !== "unknown");
 
   useEffect(() => {
     startCamera();
@@ -63,61 +71,101 @@ export default function BinCamera({ target, binId }: Props) {
     return canvas.toDataURL("image/jpeg", 0.6);
   };
 
+  const logRecyclingEvent = async (material: string, points: number, count: number) => {
+    try {
+      const calculatedCo2 = Number((points * 0.05).toFixed(2)); 
+      setCo2Saved(calculatedCo2);
+
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json"
+      };
+      
+      if (session?.access_token) {
+        headers["Authorization"] = `Bearer ${session.access_token}`;
+      }
+
+      const { data: { user } } = await supabase.auth.getUser();
+
+      const res = await fetch("/api/recycling/log", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          material,
+          points,
+          co2_saved: calculatedCo2,
+          user_id: user?.id
+        }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error("❌ Log error:", errorData.error);
+        return;
+      }
+      
+      if (isDev) console.log("Event logged successfully");
+    } catch (error) {
+      console.error("Failed to log recycling event:", error);
+    }
+  };
+
   const classifyPhoto = async (image: string) => {
     setLoading(true);
     setPrediction(null);
     setVerifyResult(null);
     setQrData(null);
+    setItemCount(0);
+    setCo2Saved(0);
 
     try {
       let endpoint: string;
       let requestBody: any;
-      
+
       if (target) {
         endpoint = "/api/gemini-verify-material";
-        requestBody = {
-          image: image,
-          binId: binId,
-          target: target
-        };
+        requestBody = { image, binId, target };
       } else {
         endpoint = "/api/gemini-classify";
-        requestBody = {
-          image: image,
-          binId: binId
-        };
+        requestBody = { image, binId };
       }
-      
+
       const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestBody),
       });
 
-      if (!res.ok) {
-        const errorText = await res.text();
-        console.error(`❌ API error ${res.status}:`, errorText);
-        throw new Error(`API error: ${res.status}`);
-      }
-      
-      const data = await res.json();
-      if (isDev){
-        console.log("Verification response:", data);
-      }
+      if (!res.ok) throw new Error(`API error: ${res.status}`);
 
+      const data = await res.json();
+      if (isDev) console.log("Verification response:", data);
+
+      const detectedCount = data.count || 1;
+      const detectedPoints = data.points || 10;
+      setItemCount(detectedCount);
+
+      // Handle Success Cases
       if (target) {
         const result = data.result as VerifyResult;
         setVerifyResult(result);
 
         if (result === "YES") {
-          await generateQR();
+          // 1. Log to DB
+          await logRecyclingEvent(target, detectedPoints, detectedCount);
+          // 2. Generate QR
+          await generateQR(detectedPoints);
         }
       } else {
         const material = data.material as MaterialType;
         setPrediction(material);
 
         if (material && material !== "unknown") {
-          await generateQR();
+          // 1. Log to DB
+          await logRecyclingEvent(material, detectedPoints, detectedCount);
+          // 2. Generate QR
+          await generateQR(detectedPoints);
         }
       }
     } catch (err) {
@@ -129,34 +177,25 @@ export default function BinCamera({ target, binId }: Props) {
     }
   };
 
-  const generateQR = async () => {
+  const generateQR = async (points: number) => {
     try {
       const qrRes = await fetch("/api/temporary-qr", {
         method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ 
-          points: 10, 
-          binCode: binId
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          points: points,
+          binCode: binId,
         }),
       });
-      
+
       const responseData = await qrRes.json();
-      if (isDev){
-        console.log("QR API Response:", responseData);
-      }
       
       if (qrRes.ok && responseData.qrUrl) {
-        if (isDev){
-          console.log("✅ QR URL received:", responseData.qrUrl);
-        }
         setQrData({
           qrUrl: responseData.qrUrl,
-          expiresAt: responseData.expiresAt
+          expiresAt: responseData.expiresAt,
+          points: points,
         });
-      } else {
-        console.error("QR API error:", responseData);
       }
     } catch (error) {
       console.error("Failed to generate QR:", error);
@@ -166,10 +205,7 @@ export default function BinCamera({ target, binId }: Props) {
   const handleScanClick = async () => {
     if (loading) return;
     const image = takePhoto();
-    if (!image) {
-      console.log("No image captured");
-      return;
-    }
+    if (!image) return;
     await classifyPhoto(image);
   };
 
@@ -195,20 +231,20 @@ export default function BinCamera({ target, binId }: Props) {
             cameraOn ? "opacity-100" : "opacity-0"
           }`}
         />
-        
+
         {!cameraOn && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-6 bg-card">
             <div className="w-24 h-24 rounded-full bg-primary/5 flex items-center justify-center border-2 border-dashed border-primary/20">
               <CameraIcon className="w-12 h-12 text-primary/40" />
             </div>
             <p className="text-base text-muted-foreground text-center max-w-xs font-medium">
-              Активирайте камерата за сканиране и автоматично разпознаване на материали
+              Активирайте камерата за сканиране и автоматично разпознаване
             </p>
           </div>
         )}
 
         {loading && (
-          <div className="absolute inset-0 bg-background/95 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-background/95 backdrop-blur-sm flex items-center justify-center p-4 z-10">
             <div className="relative bg-card rounded-xl p-10 max-w-md w-full border shadow-lg">
               <div className="flex flex-col items-center text-center gap-6">
                 <SimpleSpinningRecycling />
@@ -223,13 +259,14 @@ export default function BinCamera({ target, binId }: Props) {
           </div>
         )}
 
-        {verifyResult === "YES" && !loading && (
-          <div className="absolute inset-0 bg-background/95 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="relative bg-card rounded-xl p-10 max-w-md w-full border shadow-lg">
-              
+        {/* Success Modal */}
+        {showSuccessModal && !loading && (
+          <div className="absolute inset-0 bg-background/95 backdrop-blur-sm flex items-center justify-center p-4 z-20">
+            <div className="relative bg-card rounded-xl p-8 max-w-md w-full border shadow-lg">
               <button
                 onClick={() => {
                   setVerifyResult(null);
+                  setPrediction(null);
                   setQrData(null);
                 }}
                 className="absolute top-4 right-4 text-foreground/70 hover:text-foreground transition-colors"
@@ -237,28 +274,46 @@ export default function BinCamera({ target, binId }: Props) {
                 <X className="w-6 h-6 dark:text-neutral-600" />
               </button>
 
-              <div className="flex flex-col items-center text-center gap-8">
-                <div className="flex items-center gap-4">
-                  <CheckCircle2 className="w-10 h-10 text-green-500" />
-                  <h3 className="text-3xl font-semibold">Правилен контейнер</h3>
+              <div className="flex flex-col items-center text-center gap-6">
+                <div className="flex flex-col items-center gap-2">
+                  <CheckCircle2 className="w-12 h-12 text-green-500" />
+                  <h3 className="text-2xl font-bold">
+                    {target ? "Правилен контейнер" : materialLabels[prediction!]}
+                  </h3>
                 </div>
 
-                {/* QR код */}
+                {/* Statistics Section with CO2 */}
+                <div className="flex flex-wrap gap-2 w-full justify-center">
+                  <div className="bg-primary/10 px-3 py-2 rounded-lg flex items-center gap-2 border border-primary/20">
+                    <Hash className="w-4 h-4 text-primary" />
+                    <span className="text-sm font-bold text-primary">{itemCount} бр.</span>
+                  </div>
+                  <div className="bg-amber-500/10 px-3 py-2 rounded-lg flex items-center gap-2 border border-amber-500/20">
+                    <Sparkles className="w-4 h-4 text-amber-500" />
+                    <span className="text-sm font-bold text-amber-600">+{qrData?.points || 0} т.</span>
+                  </div>
+                   {/* CO2 Indicator */}
+                  <div className="bg-emerald-500/10 px-3 py-2 rounded-lg flex items-center gap-2 border border-emerald-500/20">
+                    <Leaf className="w-4 h-4 text-emerald-500" />
+                    <span className="text-sm font-bold text-emerald-600">{co2Saved}kg CO₂</span>
+                  </div>
+                </div>
+
                 {qrData ? (
                   <div className="flex flex-col items-center gap-3">
                     <div className="p-5 bg-background/50 dark:bg-[#1D1D1D] rounded-lg">
-                      <QRCodeSVG 
+                      <QRCodeSVG
                         value={qrData.qrUrl}
-                        size={200}
+                        size={180}
                         fgColor="#00CD56"
                         bgColor="transparent"
                       />
                     </div>
-                    <p className="text-base text-muted-foreground dark:text-neutral-600">
-                      Сканирай, за да получиш точки
+                    <p className="text-sm text-muted-foreground dark:text-neutral-400">
+                      Сканирай за точки
                     </p>
                     <p className="text-xs text-muted-foreground/60">
-                      Валиден до: {new Date(qrData.expiresAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                      Валиден до: {new Date(qrData.expiresAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
                 ) : (
@@ -266,9 +321,7 @@ export default function BinCamera({ target, binId }: Props) {
                     <div className="p-5 bg-background/50 dark:bg-[#1D1D1D] rounded-lg">
                       <SimpleSpinningRecycling />
                     </div>
-                    <p className="text-base text-muted-foreground">
-                      Генериране на QR код...
-                    </p>
+                    <p className="text-base text-muted-foreground">Генериране на награда...</p>
                   </div>
                 )}
               </div>
@@ -277,9 +330,8 @@ export default function BinCamera({ target, binId }: Props) {
         )}
 
         {verifyResult === "NO" && !loading && (
-          <div className="absolute inset-0 bg-background/95 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-background/95 backdrop-blur-sm flex items-center justify-center p-4 z-20">
             <div className="relative bg-card rounded-xl p-10 max-w-md w-full border shadow-lg">
-              
               <button
                 onClick={() => setVerifyResult(null)}
                 className="absolute top-4 right-4 text-foreground/70 hover:text-foreground transition-colors"
@@ -292,24 +344,10 @@ export default function BinCamera({ target, binId }: Props) {
                   <CircleX className="w-9 h-9 text-red-500" />
                   <h3 className="text-3xl font-semibold text-red-500">Грешен контейнер</h3>
                 </div>
-
                 <p className="text-sm text-muted-foreground">
                   Този обект не принадлежи към категорията!
                 </p>
-
-                <p className="text-lg mt-3">
-                  Опитайте с друг контейнер или се уверете, че снимката е ясна!
-                </p>
               </div>
-            </div>
-          </div>
-        )}
-
-        {!target && prediction && !loading && (
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background via-background/90 to-transparent p-6">
-            <div className="bg-card/80 backdrop-blur-sm rounded-lg p-4 border border-border">
-              <p className="text-sm text-foreground/60 mb-1">Открит материал</p>
-              <p className="text-2xl font-bold text-primary">{materialLabels[prediction]}</p>
             </div>
           </div>
         )}
@@ -319,7 +357,7 @@ export default function BinCamera({ target, binId }: Props) {
         {!cameraOn ? (
           <button
             onClick={startCamera}
-            className="flex-1 flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-4 rounded-lg transition-all active:scale-[0.98] shadow-lg hover:shadow-xl"
+            className="flex-1 flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-4 rounded-lg transition-all active:scale-[0.98] shadow-lg"
           >
             <CameraIcon className="w-5 h-5" />
             <span>Включи камера</span>
@@ -328,7 +366,7 @@ export default function BinCamera({ target, binId }: Props) {
           <button
             onClick={handleScanClick}
             disabled={loading}
-            className="flex-1 flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 disabled:bg-accent disabled:text-foreground/40 text-primary-foreground font-medium px-6 py-4 rounded-lg transition-all active:scale-[0.98] shadow-lg hover:shadow-xl disabled:cursor-not-allowed disabled:shadow-none"
+            className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 disabled:bg-accent disabled:text-foreground/40 text-primary-foreground font-medium px-6 py-4 rounded-lg transition-all active:scale-[0.98] shadow-lg disabled:cursor-not-allowed"
           >
             {loading ? (
               <>
@@ -338,7 +376,7 @@ export default function BinCamera({ target, binId }: Props) {
             ) : (
               <>
                 <Scan className="w-5 h-5" />
-                <span>{target ? "Потвърди материал" : "Разпознай материал"}</span>
+                <span>{target ? "Потвърди" : "Разпознай"}</span>
               </>
             )}
           </button>

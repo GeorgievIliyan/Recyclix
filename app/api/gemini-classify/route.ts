@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import sharp from "sharp";
 import { supabase } from "@/lib/supabase-browser";
-import { error } from "console";
 
 // CORS headers за frontend достъп
 const corsHeaders = {
@@ -15,40 +14,11 @@ const corsHeaders = {
 const ipLastCalls = new Map<string, number>();
 const COOLDOWN_MS = 5000;
 
-export async function GET(req: NextRequest) {
-  return NextResponse.json(
-    {error: "Method not allowed"},
-    {status: 405}
-  )
-}
-
-export async function PUT(req: NextRequest) {
-  return NextResponse.json(
-    {error: "Method not allowed"},
-    {status: 405}
-  )
-}
-
-export async function DELETE(req: NextRequest) {
-  return NextResponse.json(
-    {error: "Method not allowed"},
-    {status: 405}
-  )
-}
-
-export async function PATCH(req: NextRequest) {
-  return NextResponse.json(
-    {error: "Method not allowed"},
-    {status: 405}
-  )
-}
-
 export async function OPTIONS() {
   return NextResponse.json({}, { headers: corsHeaders });
 }
 
 export async function POST(req: Request) {
-
   try {
     const body = await req.json();
     const binId = body.binId;
@@ -88,15 +58,25 @@ export async function POST(req: Request) {
     const { error: dbError } = await supabase.from("images").insert({ bin_id: binId, sha_hash: shaHash, p_hash: pHash });
     if (dbError) console.error("Supabase error:", dbError);
 
-    // Подготовка на prompt за Gemini API
+    // Подготовка на prompt за Gemini API с броене на обекти
     const prompt = target
-      ? `You are verifying waste material.\nTarget: ${target}\nQuestion: Does the object belong to the target material?\nRespond YES or NO.`
-      : `Classify the object into ONE of: plastic, paper, glass, metal, textile, organic, wood.\nRespond with ONE WORD only. If unsure, respond unknown.`;
+      ? `You are verifying waste material. 
+          Target: ${target}
+          Question: Does the object belong to the target material? 
+          Also, count how many distinct items of this material are visible.
+          Respond exactly in this format:
+          RESULT: [YES/NO]
+          COUNT: [number]`
+        : `Classify the recycling objects in the image. 
+          Categories: plastic, paper, glass, metal, textile, organic, wood.
+          Respond exactly in this format:
+          MATERIAL: [category]
+          COUNT: [number]
+          If unsure, MATERIAL: unknown`;
 
     const MODEL = "gemini-2.0-flash";
     const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`;
 
-    // Изпращане на изображението и prompt към Gemini
     const response = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -124,23 +104,46 @@ export async function POST(req: Request) {
     if (process.env.NODE_ENV === "development") {
       console.log("Raw response:", rawText);
     }
+    const countMatch = rawText.match(/COUNT:\s*(\d+)/i);
+    const count = countMatch ? parseInt(countMatch[1], 10) : 1;
 
     const allowedMaterials = ["plastic", "paper", "glass", "metal", "textile", "organic", "wood"];
 
-    // Ако е проверка за конкретен материал
     if (target) {
-      const result = rawText.toUpperCase().includes("YES") ? "YES" : "NO";
-      return NextResponse.json({ result }, { headers: corsHeaders });
+      const result = rawText.toUpperCase().includes("RESULT: YES") ? "YES" : "NO";
+      const points = result === "YES" ? count * 10 : 0;
+      
+      return NextResponse.json({ result, count, points }, { headers: corsHeaders });
     } else {
-      // Ако е класификация
-      const normalized = rawText.toLowerCase().trim();
+      const matMatch = rawText.match(/MATERIAL:\s*(\w+)/i);
+      const normalized = matMatch ? matMatch[1].toLowerCase().trim() : "unknown";
       const found = allowedMaterials.find(m => normalized.includes(m));
       const material = found || "unknown";
-      
-      return NextResponse.json({ material }, { headers: corsHeaders });
+      const points = material !== "unknown" ? count * 10 : 0;
+
+      return NextResponse.json({ material, count, points }, { headers: corsHeaders });
     }
   } catch (err: any) {
     console.error("POST error:", err);
-    return NextResponse.json({ result: "NO", error: err.message, material: "unknown" }, { status: 500, headers: corsHeaders });
+    return NextResponse.json(
+      { result: "NO", error: err.message, material: "unknown", count: 0, points: 0 }, 
+      { status: 500, headers: corsHeaders }
+    );
   }
+}
+
+export async function GET(req: NextRequest) {
+  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
+}
+
+export async function PUT(req: NextRequest) {
+  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
+}
+
+export async function DELETE(req: NextRequest) {
+  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
+}
+
+export async function PATCH(req: NextRequest) {
+  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
 }
