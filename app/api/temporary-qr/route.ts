@@ -2,7 +2,6 @@ import { nanoid } from "nanoid";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import { isDev } from "@/lib/isDev";
 
 // Настройка на Supabase клиента
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -23,9 +22,9 @@ const TemporaryQRSchema = z.object({
 export async function POST(req: NextRequest) {
   // против нежелани заявки
   const token = req.headers.get("x-api-token");
-  const isDev = process.env.NODE_ENV === "development"
+  const isDev = process.env.NODE_ENV === "development";
 
-  if (!isDev){
+  if (!isDev) {
     if (!token || token !== process.env.SECURE_API_KEY) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -53,13 +52,9 @@ export async function POST(req: NextRequest) {
     const points = rawPoints ?? 10; // Стандартни 10 точки
     const binCode = codeFromBinCode || codeFromBinId;
 
-    if (isDev){
-      console.log("QR API Request:", { points, binCode, fullBody: body });
-    }
-
     // Генериране на уникален QR токен и срок на валидност
     const qrToken = nanoid(12);
-    const expiresAt = new Date(Date.now() + 120 * 1000).toISOString(); // 2 минути валидност
+    const expiresAt = new Date(Date.now() + 300 * 1000).toISOString(); // 5 минути валидност
 
     // Подготовка на данни за вмъкване в Supabase
     const insertData: Record<string, any> = {
@@ -87,9 +82,17 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const qrUrl = `${baseUrl}/app/claim?token=${qrToken}`;
+
+    if (isDev) {
+      console.log("QR API Request:", { points, binCode, fullBody: body, qrUrl });
+    }
+
     return NextResponse.json({
       success: true,
       token: qrToken,
+      qrUrl: qrUrl,
       expiresAt,
     });
   } catch (err: any) {
@@ -101,23 +104,40 @@ export async function POST(req: NextRequest) {
   }
 }
 
+export async function OPTIONS() {
+  return NextResponse.json({}, {
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, x-api-token",
+    }
+  });
+}
+
+export async function GET(req: NextRequest) {
+  return NextResponse.json(
+    { error: "Method not allowed" },
+    { status: 405 }
+  );
+}
+
 export async function PUT(req: NextRequest) {
   return NextResponse.json(
-    {error: "Method not allowed"},
-    {status: 405}
-  )
+    { error: "Method not allowed" },
+    { status: 405 }
+  );
 }
 
 export async function DELETE(req: NextRequest) {
   return NextResponse.json(
-    {error: "Method not allowed"},
-    {status: 405}
-  )
+    { error: "Method not allowed" },
+    { status: 405 }
+  );
 }
 
 export async function PATCH(req: NextRequest) {
   return NextResponse.json(
-    {error: "Method not allowed"},
-    {status: 405}
-  )
+    { error: "Method not allowed" },
+    { status: 405 }
+  );
 }
