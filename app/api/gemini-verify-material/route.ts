@@ -115,10 +115,13 @@ export async function POST(req: NextRequest) {
     Task:
     1. Does the object(s) in this image belong to the "${target}" (${targetBulgarian}) material category for recycling?
     2. Count how many separate items of this specific material are in the image.
+    3. Give a real rough estimate based on the material type and image
     
     Respond in exactly this format:
     RESULT: [YES or NO]
-    COUNT: [number]`;
+    COUNT: [number]
+    CO2: [float]
+    `;
 
     const geminiRes = await fetch(API_URL, {
       method: "POST",
@@ -145,6 +148,8 @@ export async function POST(req: NextRequest) {
     const result = rawText.toUpperCase().includes("RESULT: YES") ? "YES" : "NO";
     const countMatch = rawText.match(/COUNT:\s*(\d+)/i);
     const count = countMatch ? parseInt(countMatch[1], 10) : 1;
+    const co2Match = rawText.match(/CO2:\s*([\d.]+)/i);
+    const co2 = co2Match ? parseFloat(co2Match[1]) : 0;
 
     const points = result === "YES" ? count * 10 : 0;
 
@@ -156,7 +161,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ 
       result, 
       count, 
-      points 
+      points,
+      co2 
     }, { headers: corsHeaders });
 
   } catch (err: any) {

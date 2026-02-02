@@ -64,14 +64,19 @@ export async function POST(req: Request) {
           Target: ${target}
           Question: Does the object belong to the target material? 
           Also, count how many distinct items of this material are visible.
+          Give a rough estimate of save CO2.
           Respond exactly in this format:
           RESULT: [YES/NO]
-          COUNT: [number]`
+          COUNT: [number]
+          CO2: [float]
+          `
         : `Classify the recycling objects in the image. 
           Categories: plastic, paper, glass, metal, textile, organic, wood.
+          Give a rough estimate of save CO2.
           Respond exactly in this format:
           MATERIAL: [category]
           COUNT: [number]
+          CO2: [float]
           If unsure, MATERIAL: unknown`;
 
     const MODEL = "gemini-2.0-flash";
@@ -107,13 +112,16 @@ export async function POST(req: Request) {
     const countMatch = rawText.match(/COUNT:\s*(\d+)/i);
     const count = countMatch ? parseInt(countMatch[1], 10) : 1;
 
+    const co2Match = rawText.match(/CO2:\s*([\d.]+)/i);
+    const co2 = co2Match ? parseFloat(co2Match[1]) : 0;
+
     const allowedMaterials = ["plastic", "paper", "glass", "metal", "textile", "organic", "wood"];
 
     if (target) {
       const result = rawText.toUpperCase().includes("RESULT: YES") ? "YES" : "NO";
       const points = result === "YES" ? count * 10 : 0;
       
-      return NextResponse.json({ result, count, points }, { headers: corsHeaders });
+      return NextResponse.json({ result, count, points, co2 }, { headers: corsHeaders });
     } else {
       const matMatch = rawText.match(/MATERIAL:\s*(\w+)/i);
       const normalized = matMatch ? matMatch[1].toLowerCase().trim() : "unknown";

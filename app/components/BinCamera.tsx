@@ -28,7 +28,6 @@ export default function BinCamera({ target, binId }: Props) {
   const [co2Saved, setCo2Saved] = useState<number>(0);
   const [qrData, setQrData] = useState<{ qrUrl: string; expiresAt: string; points: number } | null>(null);
 
-  // Success state: Targeted verification is YES OR Auto-classification found a material
   const showSuccessModal = (target && verifyResult === "YES") || (!target && prediction && prediction !== "unknown");
 
   useEffect(() => {
@@ -71,40 +70,40 @@ export default function BinCamera({ target, binId }: Props) {
     return canvas.toDataURL("image/jpeg", 0.6);
   };
 
-  const logRecyclingEvent = async (material: string, points: number, count: number) => {
+  const logRecyclingEvent = async (
+    material: string,
+    points: number,
+    count: number,
+    co2: number
+  ) => {
     try {
-      const calculatedCo2 = Number((points * 0.05).toFixed(2)); 
+      const calculatedCo2 = Number(co2.toFixed(3));
       setCo2Saved(calculatedCo2);
 
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      const headers: Record<string, string> = {
-        "Content-Type": "application/json"
-      };
-      
-      if (session?.access_token) {
-        headers["Authorization"] = `Bearer ${session.access_token}`;
-      }
-
       const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+          console.error("No user found");
+          return;
+      }
 
       const res = await fetch("/api/recycling/log", {
         method: "POST",
-        headers,
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           material,
           points,
+          count,
           co2_saved: calculatedCo2,
-          user_id: user?.id
+          user_id: user.id,
         }),
       });
 
       if (!res.ok) {
         const errorData = await res.json();
-        console.error("❌ Log error:", errorData.error);
+        console.error("Log error:", errorData);
         return;
       }
-      
+
       if (isDev) console.log("Event logged successfully");
     } catch (error) {
       console.error("Failed to log recycling event:", error);
@@ -144,17 +143,15 @@ export default function BinCamera({ target, binId }: Props) {
 
       const detectedCount = data.count || 1;
       const detectedPoints = data.points || 10;
+      const co2 = data.co2 || 0.1
       setItemCount(detectedCount);
 
-      // Handle Success Cases
       if (target) {
         const result = data.result as VerifyResult;
         setVerifyResult(result);
 
         if (result === "YES") {
-          // 1. Log to DB
-          await logRecyclingEvent(target, detectedPoints, detectedCount);
-          // 2. Generate QR
+          await logRecyclingEvent(target, detectedPoints, detectedCount, co2);
           await generateQR(detectedPoints);
         }
       } else {
@@ -162,9 +159,7 @@ export default function BinCamera({ target, binId }: Props) {
         setPrediction(material);
 
         if (material && material !== "unknown") {
-          // 1. Log to DB
-          await logRecyclingEvent(material, detectedPoints, detectedCount);
-          // 2. Generate QR
+          await logRecyclingEvent(material, detectedPoints, detectedCount, co2);
           await generateQR(detectedPoints);
         }
       }
@@ -259,7 +254,7 @@ export default function BinCamera({ target, binId }: Props) {
           </div>
         )}
 
-        {/* Success Modal */}
+        {/* модал при успех */}
         {showSuccessModal && !loading && (
           <div className="absolute inset-0 bg-background/95 backdrop-blur-sm flex items-center justify-center p-4 z-20">
             <div className="relative bg-card rounded-xl p-8 max-w-md w-full border shadow-lg">
@@ -282,7 +277,7 @@ export default function BinCamera({ target, binId }: Props) {
                   </h3>
                 </div>
 
-                {/* Statistics Section with CO2 */}
+                {/* секция със статистики */}
                 <div className="flex flex-wrap gap-2 w-full justify-center">
                   <div className="bg-primary/10 px-3 py-2 rounded-lg flex items-center gap-2 border border-primary/20">
                     <Hash className="w-4 h-4 text-primary" />
@@ -292,10 +287,10 @@ export default function BinCamera({ target, binId }: Props) {
                     <Sparkles className="w-4 h-4 text-amber-500" />
                     <span className="text-sm font-bold text-amber-600">+{qrData?.points || 0} т.</span>
                   </div>
-                   {/* CO2 Indicator */}
+                   {/* CO2 индикатор */}
                   <div className="bg-emerald-500/10 px-3 py-2 rounded-lg flex items-center gap-2 border border-emerald-500/20">
                     <Leaf className="w-4 h-4 text-emerald-500" />
-                    <span className="text-sm font-bold text-emerald-600">{co2Saved}kg CO₂</span>
+                    <span className="text-sm font-bold text-emerald-600">{co2Saved}кг CO₂</span>
                   </div>
                 </div>
 
