@@ -1,19 +1,13 @@
 "use client"
 
-import { useState, useEffect } from 'react'
-import { useRouter, usePathname } from 'next/navigation'
+import { useState, useEffect, useRef } from 'react'
+import { usePathname } from 'next/navigation'
+import Link from 'next/link'
 import { LayoutDashboard, MapPin, ListTodo, User } from 'lucide-react'
+import { motion, LayoutGroup } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
-// типове и интерфейси
 type Module = 'dashboard' | 'map' | 'tasks' | 'account'
-type NavigationVariant = 'default' | 'compact' | 'transparent'
-
-interface NavigationProps {
-  variant?: NavigationVariant
-  autoHideOnScroll?: boolean
-  className?: string
-}
 
 interface ModuleItem {
   id: Module
@@ -29,164 +23,135 @@ const modules: ModuleItem[] = [
   { id: 'account', label: 'Акаунт', icon: User, path: '/auth/account' },
 ]
 
-export function Navigation({
-  variant = 'default',
-  autoHideOnScroll = false,
-  className,
-}: NavigationProps) {
-  const router = useRouter()
+export function Navigation({ className }: { className?: string }) {
   const pathname = usePathname()
-  const [lastScrollY, setLastScrollY] = useState(0)
   const [isVisible, setIsVisible] = useState(true)
-  
-  const getActiveModule = (): Module => {
-    if (pathname?.startsWith('/app/dashboard')) return 'dashboard'
-    if (pathname?.startsWith('/app/map')) return 'map'
-    if (pathname?.startsWith('/app/tasks')) return 'tasks'
-    if (pathname?.startsWith('/auth/account')) return 'account'
-    return 'dashboard'
-  }
-  
-  const activeModule = getActiveModule()
+  const lastScrollY = useRef(0)
+  const activeModule = modules.find(m => pathname?.startsWith(m.path))?.id || 'dashboard'
 
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY
-
-      if (autoHideOnScroll && window.innerWidth < 768) {
-        if (currentScrollY > lastScrollY && currentScrollY > 100) {
+      if (window.innerWidth < 768) {
+        if (currentScrollY > lastScrollY.current && currentScrollY > 80) {
           setIsVisible(false)
-        } else {
+        } else if (currentScrollY < lastScrollY.current) {
           setIsVisible(true)
         }
       }
-
-      setLastScrollY(currentScrollY)
+      lastScrollY.current = currentScrollY
     }
 
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [lastScrollY, autoHideOnScroll])
-
-  const isCompact = variant === 'compact'
-  const isTransparent = variant === 'transparent'
-
-  const desktopHeight = isCompact ? 'h-14' : 'h-16'
-
-  // ефекти за стъкло
-  const desktopBg = isTransparent
-    ? 'bg-white/15 dark:bg-neutral-900/15 border border-white/15 dark:border-neutral-700/15 backdrop-blur-sm'
-    : 'bg-white/50 dark:bg-neutral-900/50 border border-white/20 dark:border-neutral-700/20 backdrop-blur-sm shadow-sm'
-
-  const mobileBg = isTransparent
-    ? 'bg-white/15 dark:bg-neutral-900/15 border-t border-white/15 dark:border-neutral-700/15 backdrop-blur-sm'
-    : 'bg-white/50 dark:bg-neutral-900/50 border-t border-white/20 dark:border-neutral-700/20 backdrop-blur-sm shadow-sm'
-  const handleNavigation = (path: string) => {
-    router.push(path)
-  }
+  }, [])
 
   return (
-    <>
-      {/* за десктоп */}
-      <nav
-        className={cn(
-          'hidden md:block fixed top-0 left-0 right-0 z-50 transition-all duration-300',
-          desktopHeight,
+    <LayoutGroup>
+      <div className="hidden md:flex fixed top-5 left-0 right-0 z-[100] justify-center pointer-events-none">
+        <nav className={cn(
+          "pointer-events-auto relative flex items-center gap-1 p-1.5 rounded-full transition-all duration-200",
+          "bg-white/40 dark:bg-zinc-900/40 backdrop-blur-[45px]",
+          "border border-white/40 dark:border-white/10", 
+          "shadow-[0_20px_50px_rgba(0,0,0,0.1),0_1px_1px_rgba(255,255,255,0.3)_inset]",
+          "dark:shadow-[0_30px_60px_rgba(0,0,0,0.5),0_1px_0px_rgba(255,255,255,0.05)_inset]",
           className
-        )}
-      >
-        <div
-          className={cn(
-            'w-full h-full px-4 sm:px-6 lg:px-8 flex items-center justify-center gap-2',
-            desktopBg,
-            'before:absolute before:inset-0 before:bg-gradient-to-b before:from-white/10 before:to-transparent before:dark:from-neutral-900/10'
-          )}
-        >
+        )}>
           {modules.map((module) => {
-            const Icon = module.icon
             const isActive = activeModule === module.id
+            const Icon = module.icon
 
             return (
-              <button
+              <Link
                 key={module.id}
-                onClick={() => handleNavigation(module.path)}
+                href={module.path}
                 className={cn(
-                  'flex items-center gap-2 px-4 sm:px-6 py-2 rounded-xl transition-all duration-200 text-sm font-medium relative',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-                  'hover:bg-white/30 dark:hover:bg-white/10',
-                  isActive
-                    ? 'bg-green-500/90 text-primary-foreground shadow-lg shadow-primary/20 backdrop-blur-sm hover:bg-green-600 dark:hover:bg-green-400 dark:text-white'
-                    : 'text-muted-foreground hover:text-foreground dark:hover:neutral-100'
+                  "relative flex items-center gap-2 px-6 py-2 rounded-full text-sm font-semibold transition-all duration-200",
+                  isActive ? "text-white" : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-100"
                 )}
-                aria-current={isActive ? 'page' : undefined}
               >
-                <Icon className="h-4 w-4" />
-                <span>{module.label}</span>
-              </button>
+                {isActive && (
+                  <motion.div
+                    layoutId="desktop-pill"
+                    layout
+                    className={cn(
+                      "absolute inset-0 z-0 rounded-full",
+                      "bg-gradient-to-tr from-emerald-500/90 to-emerald-400/90 dark:from-emerald-600/80 dark:to-emerald-500/80",
+                      "border border-white/20 shadow-[0_4px_15px_rgba(16,185,129,0.3)]"
+                    )}
+                    transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                  />
+                )}
+                
+                <Icon className={cn("relative z-10 h-4 w-4 transition-transform duration-300", isActive && "scale-110")} />
+                <span className="relative z-10 tracking-tight">{module.label}</span>
+              </Link>
             )
           })}
-        </div>
-      </nav>
+        </nav>
+      </div>
 
-      {/* за телефони */}
-      <nav
-        className={cn(
-          'md:hidden fixed bottom-0 left-0 right-0 z-50 transition-transform duration-300',
-          isVisible ? 'translate-y-0' : 'translate-y-full',
+      <div className={cn(
+        "md:hidden fixed bottom-8 left-0 right-0 z-[100] transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] px-8",
+        isVisible ? "translate-y-0 opacity-100" : "translate-y-28 opacity-0"
+      )}>
+        <nav className={cn(
+          "mx-auto flex items-center justify-around p-3 rounded-[35px]",
+          "bg-white/40 dark:bg-zinc-950/50 backdrop-blur-[45px]",
+          "border border-white/40 dark:border-white/10",
+          "shadow-[0_15px_45px_rgba(0,0,0,0.15),0_1px_2px_rgba(255,255,255,0.3)_inset]",
+          "dark:shadow-[0_25px_65px_rgba(0,0,0,0.6),0_1px_1px_rgba(255,255,255,0.05)_inset]",
           className
-        )}
-      >
-        <div
-          className={cn(
-            'backdrop-blur-2xl',
-            mobileBg,
-            'safe-bottom',
-            'before:absolute before:inset-0 before:bg-gradient-to-t before:from-white/10 before:to-transparent before:dark:from-neutral-900/10' // Extra glass gradient
-          )}
-        >
-          <div className="flex items-center justify-around px-4 py-3 relative">
-            {modules.map((module) => {
-              const Icon = module.icon
-              const isActive = activeModule === module.id
+        )}>
+          {modules.map((module) => {
+            const isActive = activeModule === module.id
+            const Icon = module.icon
 
-              return (
-                <button
-                  key={module.id}
-                  onClick={() => handleNavigation(module.path)}
-                  className={cn(
-                    'flex flex-col items-center gap-1 px-4 py-2 rounded-xl min-w-[72px] transition-all duration-200',
-                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                    'hover:bg-white/30',
-                    isActive ? 'text-primary' : 'text-muted-foreground'
+            return (
+              <Link
+                key={module.id}
+                href={module.path}
+                className={cn(
+                  "relative flex flex-col items-center justify-center min-w-[65px] transition-all duration-300",
+                  isActive ? "text-emerald-600 dark:text-emerald-400" : "text-zinc-500"
+                )}
+              >
+                <div className="relative p-2">
+                  <Icon className={cn(
+                    "h-6 w-6 transition-all duration-200", 
+                    isActive ? "scale-110 drop-shadow-[0_0_10px_rgba(16,185,129,0.4)]" : "scale-100 opacity-70"
+                  )} />
+                  
+                  {isActive && (
+                    <motion.div
+                      layoutId="mobile-glow"
+                      layout
+                      className="absolute inset-0 bg-emerald-500/20 blur-2xl rounded-full z-[-1]"
+                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    />
                   )}
-                  aria-current={isActive ? 'page' : undefined}
-                  aria-label={module.label}
-                >
-                  <div
-                    className={cn(
-                      'relative transition-all duration-200',
-                      isActive && 'scale-110'
-                    )}
-                  >
-                    <Icon className="h-6 w-6" strokeWidth={isActive ? 2.5 : 2} />
-                    {isActive && (
-                      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary/80 backdrop-blur-sm" />
-                    )}
-                  </div>
-                  <span
-                    className={cn(
-                      'text-xs font-medium transition-all duration-200',
-                      isActive ? 'opacity-100' : 'opacity-0'
-                    )}
-                  >
-                    {module.label}
-                  </span>
-                </button>
-              )
-            })}
-          </div>
-        </div>
-      </nav>
-    </>
+                </div>
+
+                <span className={cn(
+                  "text-[10px] font-semibold uppercase tracking-[0.12em] transition-all duration-200",
+                  isActive ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
+                )}>
+                  {module.label}
+                </span>
+
+                {isActive && (
+                  <motion.div 
+                    layoutId="mobile-dot"
+                    layout
+                    className="absolute -bottom-1 w-2 h-[2px] bg-emerald-500 rounded-full"
+                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                  />
+                )}
+              </Link>
+            )
+          })}
+        </nav>
+      </div>
+    </LayoutGroup>
   )
 }

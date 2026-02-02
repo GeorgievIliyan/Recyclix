@@ -1,5 +1,5 @@
 "use client"
-import { createClient } from "@supabase/supabase-js"
+import { supabase } from "@/lib/supabase-browser"
 import { useState, useEffect, type ReactNode } from "react"
 import {
   CheckCircle,
@@ -63,8 +63,6 @@ export type RecyclingBin = {
   last_emptied?: string
   osm_id?: string
 }
-
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
 interface EditSuggestion {
   id: string

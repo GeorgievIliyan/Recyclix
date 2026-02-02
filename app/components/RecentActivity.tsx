@@ -10,14 +10,30 @@ interface RecentActivityProps {
   activities: Activity[]
 }
 
+const MATERIAL_TRANSLATIONS: Record<string, string> = {
+  paper: "Хартия",
+  plastic: "Пластмаса",
+  glass: "Стъкло",
+  metal: "Метал",
+  organic: "Органични",
+  electronics: "Електроника",
+  textiles: "Текстил",
+  general: "Общи отпадъци",
+};
+
 export function RecentActivity({ activities }: RecentActivityProps) {
   const hasActivities = activities && activities.length > 0
+
+  const formatMaterial = (material: string) => {
+    const translated = MATERIAL_TRANSLATIONS[material.toLowerCase()] || material;
+    return translated.charAt(0).toUpperCase() + translated.slice(1);
+  };
   
   return (
     <div className="bg-white dark:bg-neutral-900 rounded-xl border border-border dark:border-neutral-700 shadow-md">
       <div className="p-4 sm:p-6 border-b border-border dark:border-neutral-700">
         <h3 className="text-lg sm:text-xl font-semibold flex items-center gap-2 text-foreground dark:text-white">
-          <Clock className="h-5 w-5 dark:text-gray-300" />
+          <Clock className="h-6 w-6 text-blue-500 mr-1" />
           Скорошна активност
         </h3>
       </div>
@@ -36,7 +52,7 @@ export function RecentActivity({ activities }: RecentActivityProps) {
               >
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-foreground dark:text-white truncate">
-                    {activity.material}
+                    {formatMaterial(activity.material)}
                   </p>
                   <p className="text-xs text-muted-foreground dark:text-gray-400 mt-1">
                     {activity.date}

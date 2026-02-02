@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { X, CheckCircle, XCircle, AlertTriangle, Info } from "lucide-react"
-import type { JSX } from "react/jsx-runtime" // Import JSX to avoid undeclared variable error
+import type { JSX } from "react/jsx-runtime"
 
 // Типове на алертовете
 export type AlertType = "success" | "danger" | "warning" | "info"

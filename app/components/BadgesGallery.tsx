@@ -120,7 +120,7 @@ export function BadgesGallery({
         
         setBadges(data)
       } catch (err) {
-        console.error('❌ Fetch error:', err)
+        console.error('Fetch error:', err)
         setError('Грешка при зареждане на значките')
         setBadges([])
       } finally {
@@ -198,7 +198,6 @@ function BadgeItem({
   aspectRatio,
   showName,
   showDescription,
-  showRarity,
   showCategory = false,
   className,
   imageClassName,
@@ -238,7 +237,7 @@ function BadgeItem({
 
       {(showName || showDescription || showCategory) && (
         <div className="mt-2 space-y-1">
-          {showName && <h3 className="text-sm font-semibold line-clamp-1">{badge.title}</h3>}
+          {showName && <h3 className="text-lg text-center font-semibold line-clamp-1">{isLocked? "?" : badge.title}</h3>}
           {showCategory && badge.category && <p className="text-xs line-clamp-1">{badge.category}</p>}
           {showDescription && badge.description && <p className="text-xs line-clamp-2">{badge.description}</p>}
         </div>

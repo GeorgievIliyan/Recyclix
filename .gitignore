@@ -25,6 +25,7 @@ app/api/test
 db_setup.txt
 *.pem
 policies.txt
+Instructions.md
 
 # debug
 npm-debug.log*
