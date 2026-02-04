@@ -237,7 +237,7 @@ export default function ConfirmCamera({ userDailyTaskId, onConfirm, inlineMode =
                 <div className="flex gap-2 mt-3">
                   <button
                     onClick={retakePhoto}
-                    className="flex-1 px-4 py-2 bg-white hover:bg-muted/80 text-foreground text-sm font-medium rounded-lg transition-all duration-200"
+                    className="flex-1 px-4 py-2 bg-white hover:bg-muted/80 text-foreground text-sm font-medium rounded-lg transition-all duration-200 dark:text-neutral-900 dark:hover:bg-neutral-300 transition duration-150"
                   >
                     Нова снимка
                   </button>

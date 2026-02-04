@@ -76,7 +76,7 @@ export function Navigation({ className }: { className?: string }) {
                     layout
                     className={cn(
                       "absolute inset-0 z-0 rounded-full",
-                      "bg-gradient-to-tr from-emerald-500/90 to-emerald-400/90 dark:from-emerald-600/80 dark:to-emerald-500/80",
+                      "bg-gradient-to-tr from-green-500/90 to-green-400/90 dark:from-green-600/80 dark:to-green-500/80",
                       "border border-white/20 shadow-[0_4px_15px_rgba(16,185,129,0.3)]"
                     )}
                     transition={{ type: "spring", stiffness: 350, damping: 30 }}
@@ -113,7 +113,7 @@ export function Navigation({ className }: { className?: string }) {
                 href={module.path}
                 className={cn(
                   "relative flex flex-col items-center justify-center min-w-[65px] transition-all duration-300",
-                  isActive ? "text-emerald-600 dark:text-emerald-400" : "text-zinc-500"
+                  isActive ? "text-green-600 dark:text-green-400" : "text-zinc-500"
                 )}
               >
                 <div className="relative p-2">
@@ -126,7 +126,7 @@ export function Navigation({ className }: { className?: string }) {
                     <motion.div
                       layoutId="mobile-glow"
                       layout
-                      className="absolute inset-0 bg-emerald-500/20 blur-2xl rounded-full z-[-1]"
+                      className="absolute inset-0 bg-green-500/20 blur-2xl rounded-full z-[-1]"
                       transition={{ type: "spring", stiffness: 300, damping: 30 }}
                     />
                   )}
@@ -143,7 +143,7 @@ export function Navigation({ className }: { className?: string }) {
                   <motion.div 
                     layoutId="mobile-dot"
                     layout
-                    className="absolute -bottom-1 w-2 h-[2px] bg-emerald-500 rounded-full"
+                    className="absolute -bottom-1 w-2 h-[2px] bg-green-500 rounded-full"
                     transition={{ type: "spring", stiffness: 500, damping: 30 }}
                   />
                 )}

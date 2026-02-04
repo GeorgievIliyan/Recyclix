@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import sharp from "sharp";
 import { createClient } from "@supabase/supabase-js";
+import { isDev } from "@/lib/isDev";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -46,8 +47,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    console.log(`Processing task confirmation for userDailyTaskId: ${userDailyTaskId}`);
-    console.log(`Image size: ${Math.round(image.length / 1024)} KB`);
+    if (isDev){
+      console.log(`Processing task confirmation for userDailyTaskId: ${userDailyTaskId}`);
+      console.log(`Image size: ${Math.round(image.length / 1024)} KB`);
+    }
 
     const ip = req.headers.get("x-forwarded-for") || "unknown";
     const now = Date.now();
@@ -95,13 +98,14 @@ export async function POST(req: NextRequest) {
     const taskTitle = taskData.title || "Task";
     const taskDescription = taskData.description;
     
-    console.log(`Task: ${taskTitle}`);
-    console.log(`Description: ${taskDescription}`);
+    if (isDev){
+      console.log(`Task: ${taskTitle}`);
+      console.log(`Description: ${taskDescription}`);
+    }
 
     const base64Image = image.includes(",") ? image.split(",")[1] : image;
     
     const shaHash = crypto.createHash("sha256").update(base64Image, "base64").digest("hex");
-    console.log(`Image SHA256 hash: ${shaHash.substring(0, 16)}...`);
 
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
     if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY not set");
@@ -113,13 +117,12 @@ export async function POST(req: NextRequest) {
                     Description: ${taskDescription}
 
                     Look at the image.
-                    Does the image clearly show the correct material mentioned in the task
-                    (e.g. aluminum can, plastic bottle, paper), even if the task itself is
-                    not fully completed yet?
+                    1. Does the image show the correct material mentioned?
+                    2. Does the image show the EXACT number of objects specified in the task title or description? (e.g., if it asks for "3 bottles", there must be exactly 3).
+
+                    Respond with "YES" only if the material is correct AND the quantity matches the description exactly. If the quantity is wrong or the material is incorrect, respond with "NO".
 
                     Respond with only YES or NO.`;
-
-    console.log("Calling Gemini API...");
     
     const geminiRes = await fetch(API_URL, {
       method: "POST",
