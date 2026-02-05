@@ -28,9 +28,11 @@ import {
   Flag,
   MessageCircle,
   X,
+  LogOut,
 } from "lucide-react"
 import LeafletMap from "./LeafletMap"
-import { RecyclingLoader, SimpleSpinningRecycling } from "./RecyclingLoader"
+import { SimpleSpinningRecycling } from "./RecyclingLoader"
+import LogoutButtonAlt from "./LogoutButtonAlt"
 
 export interface Bin {
   id: string
@@ -387,7 +389,7 @@ function getStorageImageUrl(filePath: string): string {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
   return `${supabaseUrl}/storage/v1/object/public/bins/${filePath}`
 }
-
+/*
 async function getBinImages(binId: string): Promise<string[]> {
   try {
     const { data, error } = await supabase.storage
@@ -399,17 +401,17 @@ async function getBinImages(binId: string): Promise<string[]> {
       })
 
     if (error) {
-      console.error('❌ Error fetching bin images:', error);
+      console.error('Error fetching bin images:', error);
       console.error('Error details:', {
         message: error.message
       });
       return [];
     }
 
-    console.log(`📁 Files found for bin ${binId}:`, data);
+    console.log(`Files found for bin ${binId}:`, data);
 
     if (!data || data.length === 0) {
-      console.log(`ℹ️ No files found in bucket 'bins' for bin ID: ${binId}`);
+      console.log(`ℹNo files found in bucket 'bins' for bin ID: ${binId}`);
       return [];
     }
 
@@ -426,13 +428,15 @@ async function getBinImages(binId: string): Promise<string[]> {
         return url;
       });
 
-    console.log(`✅ Total image URLs for bin ${binId}: ${imageUrls.length}`);
+    console.log(`Total image URLs for bin ${binId}: ${imageUrls.length}`);
     return imageUrls;
   } catch (error) {
-    console.error('❌ Error in getBinImages:', error);
+    console.error('Error in getBinImages:', error);
     return [];
   }
 }
+*/
+
 export async function approveBin(binId: string, binData: Bin): Promise<boolean> {
   try {
     console.log("одобряване на кош:", binId, binData)
@@ -757,13 +761,13 @@ function BinDetails({
           className="bg-white dark:bg-neutral-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-neutral-700">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Интерактивна карта</h3>
+          <div className="flex items-center justify-between p-4 border-b border-neutral-200 dark:border-neutral-700">
+            <h3 className="text-lg font-semibold text-neutral-900 dark:text-white">Интерактивна карта</h3>
             <button
               onClick={() => setShowMapModal(false)}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+              className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-lg"
             >
-              <XCircle className="w-5 h-5 text-gray-500" />
+              <XCircle className="w-5 h-5 text-neutral-500" />
             </button>
           </div>
 
@@ -776,7 +780,7 @@ function BinDetails({
               height={500}
             />
 
-            <div className="mt-3 text-sm text-gray-600 dark:text-gray-400 flex items-center justify-center gap-2">
+            <div className="mt-3 text-sm text-neutral-600 dark:text-neutral-400 flex items-center justify-center gap-2">
               <Navigation className="w-4 h-4" />
               <span>
                 Координати: {bin.lat.toFixed(6)}, {bin.lon.toFixed(6)}
@@ -799,9 +803,9 @@ function BinDetails({
         <div className="relative max-w-4xl max-h-[90vh]">
           <button
             onClick={() => setSelectedImage(null)}
-            className="absolute top-2 right-2 p-2 bg-white rounded-full hover:bg-gray-100"
+            className="absolute top-2 right-2 p-2 bg-white rounded-full hover:bg-neutral-100"
           >
-            <X className="w-5 h-5 text-gray-900" />
+            <X className="w-5 h-5 text-neutral-900" />
           </button>
           <img
             src={selectedImage || "/placeholder.svg"}
@@ -824,25 +828,25 @@ function BinDetails({
     return (
       <div className="mt-4">
         <div className="flex items-center gap-2 mb-2">
-          <MapPin className="w-4 h-4 text-blue-500 dark:text-gray-300" />
-          <span className="font-medium text-gray-700 dark:text-gray-300">Местоположение:</span>
+          <MapPin className="w-4 h-4 text-blue-500 dark:text-neutral-300" />
+          <span className="font-medium text-neutral-700 dark:text-neutral-300">Местоположение:</span>
         </div>
 
         <div className="p-3 bg-blue-50 dark:bg-neutral-700/50 rounded-lg mb-3 border border-blue-200 dark:border-neutral-600">
           <div className="flex items-start gap-3">
-            <Navigation className="w-5 h-5 text-blue-600 dark:text-gray-300 mt-0.5" />
+            <Navigation className="w-5 h-5 text-blue-600 dark:text-neutral-300 mt-0.5" />
             <div className="flex-1">
-              <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">GPS Координати:</p>
+              <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">GPS Координати:</p>
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div>
-                  <span className="text-gray-500 dark:text-gray-400">Географска ширина:</span>
-                  <code className="block font-mono text-blue-700 dark:text-gray-200 font-semibold mt-1">
+                  <span className="text-neutral-500 dark:text-neutral-400">Географска ширина:</span>
+                  <code className="block font-mono text-blue-700 dark:text-neutral-200 font-semibold mt-1">
                     {bin.lat.toFixed(6)}°
                   </code>
                 </div>
                 <div>
-                  <span className="text-gray-500 dark:text-gray-400">Географска дължина:</span>
-                  <code className="block font-mono text-blue-700 dark:text-gray-200 font-semibold mt-1">
+                  <span className="text-neutral-500 dark:text-neutral-400">Географска дължина:</span>
+                  <code className="block font-mono text-blue-700 dark:text-neutral-200 font-semibold mt-1">
                     {bin.lon.toFixed(6)}°
                   </code>
                 </div>
@@ -851,9 +855,9 @@ function BinDetails({
           </div>
         </div>
 
-        <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-neutral-700">
-          <div className="p-3 bg-gray-50 dark:bg-neutral-800 flex items-center justify-between">
-            <div className="text-sm text-gray-600 dark:text-gray-400">Интерактивна карта</div>
+        <div className="rounded-lg overflow-hidden border border-neutral-200 dark:border-neutral-700">
+          <div className="p-3 bg-neutral-50 dark:bg-neutral-800 flex items-center justify-between">
+            <div className="text-sm text-neutral-600 dark:text-neutral-400">Интерактивна карта</div>
             <button
               onClick={() => setShowMapModal(true)}
               className="flex items-center gap-1 px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-md text-sm font-medium"
@@ -868,18 +872,18 @@ function BinDetails({
   }
 
   return (
-    <div className="border border-gray-200 dark:border-neutral-700 rounded-lg p-4 bg-white dark:bg-neutral-800">
+    <div className="border border-neutral-200 dark:border-neutral-700 rounded-lg p-4 bg-white dark:bg-neutral-800">
       <div className="flex flex-col lg:flex-row gap-4">
         <div className="flex-1">
           <div className="flex items-start justify-between mb-3">
             <div>
-              <h3 className="font-semibold text-lg text-gray-900 dark:text-white">
+              <h3 className="font-semibold text-lg text-neutral-900 dark:text-white">
                 {formData.amenity === "recycling" ? "Контейнер за рециклиране" : "Кошче за отпадъци"}
                 {formData.operator && ` - ${formData.operator}`}
               </h3>
               <div className="flex items-center gap-2 mt-1">
-                <MapPin className="w-4 h-4 text-gray-400" />
-                <span className="text-gray-600 dark:text-gray-400">
+                <MapPin className="w-4 h-4 text-neutral-400" />
+                <span className="text-neutral-600 dark:text-neutral-400">
                   {bin.lat != null && bin.lon != null ? `${bin.lat.toFixed(6)}, ${bin.lon.toFixed(6)}` : "—"}
                 </span>
               </div>
@@ -888,7 +892,7 @@ function BinDetails({
               className={`px-3 py-1 rounded-full text-sm font-medium ${
                 formData.amenity === "recycling"
                   ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
-                  : "bg-blue-100 text-blue-800 dark:bg-neutral-700 dark:text-gray-300"
+                  : "bg-blue-100 text-blue-800 dark:bg-neutral-700 dark:text-neutral-300"
               }`}
             >
               {formData.amenity}
@@ -898,21 +902,21 @@ function BinDetails({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <User className="w-4 h-4 text-gray-400" />
+                <User className="w-4 h-4 text-neutral-400" />
                 <div>
-                  <span className="text-sm text-gray-500 dark:text-gray-400">Добавен от:</span>
-                  <p className="text-gray-700 dark:text-gray-300 font-medium">{bin.user_username || "Анонимен"}</p>
+                  <span className="text-sm text-neutral-500 dark:text-neutral-400">Добавен от:</span>
+                  <p className="text-neutral-700 dark:text-neutral-300 font-medium">{bin.user_username || "Анонимен"}</p>
                   {bin.user_email && bin.user_email !== "Анонимен" && (
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{bin.user_email}</p>
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400">{bin.user_email}</p>
                   )}
                 </div>
               </div>
 
               <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-gray-400" />
+                <Calendar className="w-4 h-4 text-neutral-400" />
                 <div>
-                  <span className="text-sm text-gray-500 dark:text-gray-400">Дата на добавяне:</span>
-                  <p className="text-gray-700 dark:text-gray-300">
+                  <span className="text-sm text-neutral-500 dark:text-neutral-400">Дата на добавяне:</span>
+                  <p className="text-neutral-700 dark:text-neutral-300">
                     {bin.created_at
                       ? new Date(bin.created_at).toLocaleDateString("bg-BG", {
                           year: "numeric",
@@ -928,10 +932,10 @@ function BinDetails({
 
               {formData.operator && (
                 <div className="flex items-center gap-2">
-                  <Building className="w-4 h-4 text-gray-400" />
+                  <Building className="w-4 h-4 text-neutral-400" />
                   <div>
-                    <span className="text-sm text-gray-500 dark:text-gray-400">Оператор:</span>
-                    <p className="text-gray-700 dark:text-gray-300">{formData.operator}</p>
+                    <span className="text-sm text-neutral-500 dark:text-neutral-400">Оператор:</span>
+                    <p className="text-neutral-700 dark:text-neutral-300">{formData.operator}</p>
                   </div>
                 </div>
               )}
@@ -940,19 +944,19 @@ function BinDetails({
             <div className="space-y-3">
               {formData.recycling_type && (
                 <div className="flex items-center gap-2">
-                  <Package className="w-4 h-4 text-gray-400" />
+                  <Package className="w-4 h-4 text-neutral-400" />
                   <div>
-                    <span className="text-sm text-gray-500 dark:text-gray-400">Тип рециклиране:</span>
-                    <p className="text-gray-700 dark:text-gray-300">{formData.recycling_type}</p>
+                    <span className="text-sm text-neutral-500 dark:text-neutral-400">Тип рециклиране:</span>
+                    <p className="text-neutral-700 dark:text-neutral-300">{formData.recycling_type}</p>
                   </div>
                 </div>
               )}
 
               <div className="flex items-center gap-2">
-                <Hash className="w-4 h-4 text-gray-400" />
+                <Hash className="w-4 h-4 text-neutral-400" />
                 <div>
-                  <span className="text-sm text-gray-500 dark:text-gray-400">Брой контейнери:</span>
-                  <p className="text-gray-700 dark:text-gray-300">{formData.count}</p>
+                  <span className="text-sm text-neutral-500 dark:text-neutral-400">Брой контейнери:</span>
+                  <p className="text-neutral-700 dark:text-neutral-300">{formData.count}</p>
                 </div>
               </div>
 
@@ -960,8 +964,8 @@ function BinDetails({
                 <div className="flex items-center gap-2">
                   <Shield className="w-4 h-4 text-green-500" />
                   <div>
-                    <span className="text-sm text-gray-500 dark:text-gray-400">Код:</span>
-                    <p className="text-gray-700 dark:text-gray-300 font-mono text-sm">{bin.code}</p>
+                    <span className="text-sm text-neutral-500 dark:text-neutral-400">Код:</span>
+                    <p className="text-neutral-700 dark:text-neutral-300 font-mono text-sm">{bin.code}</p>
                   </div>
                 </div>
               )}
@@ -972,7 +976,7 @@ function BinDetails({
             <div className="mb-4">
               <div className="flex items-center gap-2 mb-2">
                 <Trash2 className="w-4 h-4 text-green-500" />
-                <span className="font-medium text-gray-700 dark:text-gray-300">Приема:</span>
+                <span className="font-medium text-neutral-700 dark:text-neutral-300">Приема:</span>
               </div>
               <div className="flex flex-wrap gap-2">
                 {formData.recycling_type && (
@@ -998,7 +1002,7 @@ function BinDetails({
           {bin.image_urls && bin.image_urls.length > 0 ? (
             <div className="mb-4">
               <div className="flex items-center gap-2 mb-2">
-                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -1006,13 +1010,13 @@ function BinDetails({
                     d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                   />
                 </svg>
-                <span className="font-medium text-gray-700 dark:text-gray-300">Снимки на коша:</span>
+                <span className="font-medium text-neutral-700 dark:text-neutral-300">Снимки на коша:</span>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                 {bin.image_urls.map((imageUrl, index) => (
                   <div
                     key={index}
-                    className="relative group cursor-pointer overflow-hidden rounded-lg border border-gray-200 dark:border-neutral-700"
+                    className="relative group cursor-pointer overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-700"
                     onClick={() => setSelectedImage(imageUrl)}
                   >
                     <img
@@ -1034,8 +1038,8 @@ function BinDetails({
               </div>
             </div>
           ) : (
-            <div className="mb-4 p-4 bg-gray-50 dark:bg-neutral-800/30 rounded-lg border border-gray-200 dark:border-neutral-700">
-              <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+            <div className="mb-4 p-4 bg-neutral-50 dark:bg-neutral-800/30 rounded-lg border border-neutral-200 dark:border-neutral-700">
+              <div className="flex items-center gap-2 text-neutral-500 dark:text-neutral-400">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
@@ -1056,7 +1060,7 @@ function BinDetails({
           <button
             onClick={handleApprove}
             disabled={isProcessing}
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors"
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 disabled:bg-neutral-400 text-white rounded-lg font-medium transition-colors"
           >
             {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
             Одобри
@@ -1064,7 +1068,7 @@ function BinDetails({
           <button
             onClick={handleReject}
             disabled={isProcessing}
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors"
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 disabled:bg-neutral-400 text-white rounded-lg font-medium transition-colors"
           >
             {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
             Откажи
@@ -1105,84 +1109,84 @@ function SuggestionDetails({
   }
 
   return (
-    <div className="border border-gray-200 dark:border-neutral-700 rounded-lg p-4 bg-white dark:bg-neutral-900">
+    <div className="border border-neutral-200 dark:border-neutral-700 rounded-lg p-4 bg-white dark:bg-neutral-900">
       <div className="flex flex-col lg:flex-row gap-4">
         <div className="flex-1">
           {/* Заглавие на предложението за промяна */}
-          <h3 className="font-semibold text-gray-900 dark:text-gray-50 mb-2">Предложение за промяна</h3>
+          <h3 className="font-semibold text-neutral-900 dark:text-neutral-50 mb-2">Предложение за промяна</h3>
 
           {/* Информационен панел с идентификатор на коша */}
-          <div className="mb-4 p-3 bg-gray-50 dark:bg-neutral-800 rounded-lg border border-gray-200 dark:border-neutral-700">
+          <div className="mb-4 p-3 bg-neutral-50 dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Идентификатор на кош:</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{suggestion.bin_id}</p>
+                <p className="text-sm text-neutral-600 dark:text-neutral-400">Идентификатор на кош:</p>
+                <p className="text-2xl font-bold text-neutral-900 dark:text-white">{suggestion.bin_id}</p>
               </div>
-              <Shield className="w-8 h-8 text-gray-500 dark:text-gray-400" />
+              <Shield className="w-8 h-8 text-neutral-500 dark:text-neutral-400" />
             </div>
           </div>
 
           {/* Предложени промени */}
           <div className="space-y-3">
             {suggestion.field_name && (
-              <div className="p-3 bg-gray-50 dark:bg-neutral-800 rounded border border-gray-200 dark:border-neutral-700">
-                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
+              <div className="p-3 bg-neutral-50 dark:bg-neutral-800 rounded border border-neutral-200 dark:border-neutral-700">
+                <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-1">
                   Поле
                 </p>
-                <p className="text-sm font-medium text-gray-900 dark:text-gray-50">{suggestion.field_name}</p>
+                <p className="text-sm font-medium text-neutral-900 dark:text-neutral-50">{suggestion.field_name}</p>
               </div>
             )}
 
             {suggestion.name && (
-              <div className="p-3 bg-gray-50 dark:bg-neutral-800 rounded border border-gray-200 dark:border-neutral-700">
-                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Име</p>
-                <p className="text-sm font-medium text-gray-900 dark:text-gray-50">{suggestion.name}</p>
+              <div className="p-3 bg-neutral-50 dark:bg-neutral-800 rounded border border-neutral-200 dark:border-neutral-700">
+                <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-1">Име</p>
+                <p className="text-sm font-medium text-neutral-900 dark:text-neutral-50">{suggestion.name}</p>
               </div>
             )}
 
             {suggestion.opening_hours && (
-              <div className="p-3 bg-gray-50 dark:bg-neutral-800 rounded border border-gray-200 dark:border-neutral-700">
-                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
+              <div className="p-3 bg-neutral-50 dark:bg-neutral-800 rounded border border-neutral-200 dark:border-neutral-700">
+                <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-1">
                   Работно време
                 </p>
-                <p className="text-sm font-medium text-gray-900 dark:text-gray-50">{suggestion.opening_hours}</p>
+                <p className="text-sm font-medium text-neutral-900 dark:text-neutral-50">{suggestion.opening_hours}</p>
               </div>
             )}
 
             {suggestion.materials && (
-              <div className="p-3 bg-gray-50 dark:bg-neutral-800 rounded border border-gray-200 dark:border-neutral-700">
-                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
+              <div className="p-3 bg-neutral-50 dark:bg-neutral-800 rounded border border-neutral-200 dark:border-neutral-700">
+                <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-1">
                   Материали
                 </p>
-                <p className="text-sm font-medium text-gray-900 dark:text-gray-50">{suggestion.materials}</p>
+                <p className="text-sm font-medium text-neutral-900 dark:text-neutral-50">{suggestion.materials}</p>
               </div>
             )}
 
             {suggestion.notes && (
-              <div className="p-3 bg-gray-50 dark:bg-neutral-800 rounded border border-gray-200 dark:border-neutral-700">
-                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
+              <div className="p-3 bg-neutral-50 dark:bg-neutral-800 rounded border border-neutral-200 dark:border-neutral-700">
+                <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-1">
                   Бележки
                 </p>
-                <p className="text-sm text-gray-700 dark:text-gray-300">{suggestion.notes}</p>
+                <p className="text-sm text-neutral-700 dark:text-neutral-300">{suggestion.notes}</p>
               </div>
             )}
           </div>
 
           {(suggestion.old_value !== undefined || suggestion.new_value !== undefined) && (
-            <div className="mt-4 p-3 bg-gray-50 dark:bg-neutral-800 rounded border border-gray-200 dark:border-neutral-700">
-              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+            <div className="mt-4 p-3 bg-neutral-50 dark:bg-neutral-800 rounded border border-neutral-200 dark:border-neutral-700">
+              <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-2">
                 Сравнение на стойности
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                 <div>
-                  <p className="text-gray-500 dark:text-gray-400 mb-1">Стара стойност</p>
-                  <p className="text-gray-900 dark:text-gray-50 font-mono">
+                  <p className="text-neutral-500 dark:text-neutral-400 mb-1">Стара стойност</p>
+                  <p className="text-neutral-900 dark:text-neutral-50 font-mono">
                     {suggestion.old_value !== undefined ? String(suggestion.old_value) : "—"}
                   </p>
                 </div>
                 <div>
-                  <p className="text-gray-500 dark:text-gray-400 mb-1">Нова стойност</p>
-                  <p className="text-gray-900 dark:text-gray-50 font-mono">
+                  <p className="text-neutral-500 dark:text-neutral-400 mb-1">Нова стойност</p>
+                  <p className="text-neutral-900 dark:text-neutral-50 font-mono">
                     {suggestion.new_value !== undefined ? String(suggestion.new_value) : "—"}
                   </p>
                 </div>
@@ -1191,12 +1195,12 @@ function SuggestionDetails({
           )}
 
           {/* Метаданни */}
-          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-neutral-700">
-            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+          <div className="mt-4 pt-4 border-t border-neutral-200 dark:border-neutral-700">
+            <div className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
               <User className="w-4 h-4" />
               <span>{suggestion.user_email || "Неизвестен потребител"}</span>
             </div>
-            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mt-2">
+            <div className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400 mt-2">
               <Calendar className="w-4 h-4" />
               <span>{new Date(suggestion.created_at).toLocaleString("bg-BG")}</span>
             </div>
@@ -1221,11 +1225,11 @@ function SuggestionDetails({
 
           {/* Информация за преглед (ако има) */}
           {suggestion.reviewed_by && (
-            <div className="mt-4 p-3 bg-gray-100 dark:bg-neutral-800 rounded border border-gray-300 dark:border-neutral-600">
-              <p className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-2">
+            <div className="mt-4 p-3 bg-neutral-100 dark:bg-neutral-800 rounded border border-neutral-300 dark:border-neutral-600">
+              <p className="text-xs font-medium text-neutral-600 dark:text-neutral-400 uppercase tracking-wide mb-2">
                 Информация за преглед
               </p>
-              <div className="space-y-1 text-sm text-gray-700 dark:text-gray-300">
+              <div className="space-y-1 text-sm text-neutral-700 dark:text-neutral-300">
                 <p>Прегледано от: {suggestion.reviewed_by}</p>
                 {suggestion.reviewed_at && <p>Дата: {new Date(suggestion.reviewed_at).toLocaleString("bg-BG")}</p>}
                 {suggestion.review_notes && <p>Бележки: {suggestion.review_notes}</p>}
@@ -1240,7 +1244,7 @@ function SuggestionDetails({
             <button
               onClick={handleApprove}
               disabled={isProcessing}
-              className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white rounded-lg transition-colors"
+              className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-neutral-400 text-white rounded-lg transition-colors"
             >
               {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
               <span>Одобри</span>
@@ -1251,12 +1255,12 @@ function SuggestionDetails({
                 placeholder="Бележки за отхвърляне (опционално)..."
                 value={reviewNotes}
                 onChange={(e) => setReviewNotes(e.target.value)}
-                className="p-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-sm bg-white dark:bg-neutral-700 text-gray-900 dark:text-white"
+                className="p-2 border border-neutral-300 dark:border-neutral-600 rounded-lg text-sm bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white"
               />
               <button
                 onClick={handleReject}
                 disabled={isProcessing}
-                className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white rounded-lg transition-colors"
+                className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-neutral-400 text-white rounded-lg transition-colors"
               >
                 {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
                 <span>Отхвърли</span>
@@ -1371,20 +1375,20 @@ function ReportDetails({
           className="bg-white dark:bg-neutral-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-neutral-700">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Местоположение на коша</h3>
+          <div className="flex items-center justify-between p-4 border-b border-neutral-200 dark:border-neutral-700">
+            <h3 className="text-lg font-semibold text-neutral-900 dark:text-white">Местоположение на коша</h3>
             <button
               onClick={() => setShowMapModal(false)}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+              className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-lg"
             >
-              <XCircle className="w-5 h-5 text-gray-500" />
+              <XCircle className="w-5 h-5 text-neutral-500" />
             </button>
           </div>
 
           <div className="p-4">
             <LeafletMap lat={report.bin_lat} lon={report.bin_lon} />
 
-            <div className="mt-3 text-sm text-gray-600 dark:text-gray-400 flex items-center justify-center gap-2">
+            <div className="mt-3 text-sm text-neutral-600 dark:text-neutral-400 flex items-center justify-center gap-2">
               <Navigation className="w-4 h-4" />
               <span>
                 Координати: {report.bin_lat?.toFixed(6)}, {report.bin_lon?.toFixed(6)}
@@ -1407,9 +1411,9 @@ function ReportDetails({
         <div className="relative max-w-4xl max-h-[90vh]">
           <button
             onClick={() => setSelectedImage(null)}
-            className="absolute top-2 right-2 p-2 bg-white rounded-full hover:bg-gray-100"
+            className="absolute top-2 right-2 p-2 bg-white rounded-full hover:bg-neutral-100"
           >
-            <X className="w-5 h-5 text-gray-900" />
+            <X className="w-5 h-5 text-neutral-900" />
           </button>
           <img
             src={selectedImage || "/placeholder.svg"}
@@ -1423,12 +1427,12 @@ function ReportDetails({
   }
 
   return (
-    <div className="border border-gray-200 dark:border-neutral-700 rounded-lg p-4 bg-white dark:bg-neutral-800">
+    <div className="border border-neutral-200 dark:border-neutral-700 rounded-lg p-4 bg-white dark:bg-neutral-800">
       <div className="flex flex-col lg:flex-row gap-4">
         <div className="flex-1">
           <div className="flex items-start justify-between mb-3">
             <div>
-              <h3 className="font-semibold text-3xl mb-3 text-gray-900 dark:text-white">{report.title}</h3>
+              <h3 className="font-semibold text-3xl mb-3 text-neutral-900 dark:text-white">{report.title}</h3>
               <div className="flex items-center justify-items-center gap-2 mt-1">
                 <Flag className="w-4 h-4 text-red-500 translate-y-[1px]" />
                 <span className="text-red-600 dark:text-red-500">{getReportTypeLabel(report.type)}</span>
@@ -1448,9 +1452,9 @@ function ReportDetails({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <User className="w-4 h-4 text-gray-400" />
+                <User className="w-4 h-4 text-neutral-400" />
                 <div>
-                  <span className="text-sm text-gray-500 dark:text-gray-400">Докладван от:</span>
+                  <span className="text-sm text-neutral-500 dark:text-neutral-400">Докладван от:</span>
                   <p className="text-blue-600 dark:text-blue-400 font-medium">{report.user_username || "Анонимен"}</p>
                   {report.user_email && report.user_email !== "Анонимен" && (
                     <p className="text-xs text-blue-600 dark:text-blue-400">{report.user_email}</p>
@@ -1459,9 +1463,9 @@ function ReportDetails({
               </div>
 
               <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-gray-400" />
+                <Calendar className="w-4 h-4 text-neutral-400" />
                 <div>
-                  <span className="text-sm text-gray-500 dark:text-gray-400">Дата на докладване:</span>
+                  <span className="text-sm text-neutral-500 dark:text-neutral-400">Дата на докладване:</span>
                   <p className="text-blue-600 dark:text-blue-400">
                     {report.created_at
                       ? new Date(report.created_at).toLocaleDateString("bg-BG", {
@@ -1480,9 +1484,9 @@ function ReportDetails({
             <div className="space-y-3">
               {report.bin_code && (
                 <div className="flex items-center gap-2">
-                  <Hash className="w-4 h-4 text-gray-400" />
+                  <Hash className="w-4 h-4 text-neutral-400" />
                   <div>
-                    <span className="text-sm text-gray-500 dark:text-gray-400">Код на кош:</span>
+                    <span className="text-sm text-neutral-500 dark:text-neutral-400">Код на кош:</span>
                     <p className="text-blue-600 dark:text-blue-400 font-mono text-sm">{report.bin_code}</p>
                   </div>
                 </div>
@@ -1490,9 +1494,9 @@ function ReportDetails({
 
               {report.bin_lat && report.bin_lon && (
                 <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-gray-400" />
+                  <MapPin className="w-4 h-4 text-neutral-400" />
                   <div>
-                    <span className="text-sm text-gray-500 dark:text-gray-400">Локация:</span>
+                    <span className="text-sm text-neutral-500 dark:text-neutral-400">Локация:</span>
                     <div>
                       <button
                         onClick={() => setShowMapModal(true)}
@@ -1510,11 +1514,11 @@ function ReportDetails({
           {report.description && (
             <div className="mb-4">
               <div className="flex items-center gap-2 mb-2">
-                <MessageCircle className="w-4 h-4 text-gray-400" />
-                <span className="font-medium text-gray-700 dark:text-gray-300">Описание на проблема:</span>
+                <MessageCircle className="w-4 h-4 text-neutral-400" />
+                <span className="font-medium text-neutral-700 dark:text-neutral-300">Описание на проблема:</span>
               </div>
-              <div className="px- bg-gray-50 dark:bg-neutral-800/50 rounded-lg">
-                <p className="text-gray-700 dark:text-gray-300">{report.description}</p>
+              <div className="px- bg-neutral-50 dark:bg-neutral-800/50 rounded-lg">
+                <p className="text-neutral-700 dark:text-neutral-300">{report.description}</p>
               </div>
             </div>
           )}
@@ -1522,7 +1526,7 @@ function ReportDetails({
           {allImages.length > 0 ? (
             <div className="mb-4">
               <div className="flex items-center gap-2 mb-2">
-                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -1530,7 +1534,7 @@ function ReportDetails({
                     d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                   />
                 </svg>
-                <span className="font-medium text-gray-700 dark:text-gray-300">
+                <span className="font-medium text-neutral-700 dark:text-neutral-300">
                   Прикачена снимка: 
                 </span>
               </div>
@@ -1538,7 +1542,7 @@ function ReportDetails({
                 {allImages.map((imageUrl, index) => (
                   <div
                     key={index}
-                    className="relative group cursor-pointer overflow-hidden rounded-lg border border-gray-200 dark:border-neutral-700"
+                    className="relative group cursor-pointer overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-700"
                     onClick={() => setSelectedImage(imageUrl)}
                   >
                     <img
@@ -1562,8 +1566,8 @@ function ReportDetails({
               </div>
             </div>
           ) : (
-            <div className="mb-4 p-4 bg-gray-50 dark:bg-neutral-800/30 rounded-lg border border-gray-200 dark:border-neutral-700">
-              <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+            <div className="mb-4 p-4 bg-neutral-50 dark:bg-neutral-800/30 rounded-lg border border-neutral-200 dark:border-neutral-700">
+              <div className="flex items-center gap-2 text-neutral-500 dark:text-neutral-400">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
@@ -1583,7 +1587,7 @@ function ReportDetails({
             <button
               onClick={handleResolve}
               disabled={isProcessing}
-              className="flex items-center justify-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors"
+              className="flex items-center justify-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 disabled:bg-neutral-400 text-white rounded-lg font-medium transition-colors"
             >
               {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
               Разреши
@@ -1592,7 +1596,7 @@ function ReportDetails({
           <button
             onClick={handleDelete}
             disabled={isProcessing}
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors"
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 disabled:bg-neutral-400 text-white rounded-lg font-medium transition-colors"
           >
             {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
             Изтрий
@@ -1725,26 +1729,27 @@ export function AdminPanel() {
   })
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-neutral-900">
-      <header className="bg-white dark:bg-neutral-800 border-b border-gray-200 dark:border-neutral-700 sticky top-0 z-10">
+    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900">
+      <header className="bg-white dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-gray-100 dark:bg-neutral-700">
-                <Shield className="w-6 h-6 text-gray-600 dark:text-gray-300" />
+              <div className="p-2 rounded-lg bg-neutral-100 dark:bg-neutral-700">
+                <Shield className="w-6 h-6 text-neutral-600 dark:text-neutral-300" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">Администраторско табло</h1>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Управление</p>
+                <h1 className="text-xl font-bold text-neutral-900 dark:text-white">Администраторско табло</h1>
+                <p className="text-sm text-neutral-600 dark:text-neutral-400">Управление</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <button onClick={toggleDarkMode} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
-                {darkMode ? <Sun className="w-5 h-5 text-yellow-500" /> : <Moon className="w-5 h-5 text-gray-600" />}
+              <button onClick={toggleDarkMode} className="p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-700">
+                {darkMode ? <Sun className="w-5 h-5 text-yellow-500" /> : <Moon className="w-5 h-5 text-neutral-600" />}
               </button>
-              <button onClick={loadData} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
-                <RefreshCw className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+              <button onClick={loadData} className="p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-700">
+                <RefreshCw className="w-5 h-5 text-neutral-600 dark:text-neutral-400" />
               </button>
+              <LogoutButtonAlt />
             </div>
           </div>
         </div>
@@ -1753,47 +1758,47 @@ export function AdminPanel() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            <div className="bg-white dark:bg-neutral-800 rounded-lg p-4 border border-gray-200 dark:border-neutral-70 shadow-sm">
+            <div className="bg-white dark:bg-neutral-800 rounded-lg p-4 border border-neutral-200 dark:border-neutral-700 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Общо кошове</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
+                  <p className="text-sm text-neutral-600 dark:text-neutral-400">Общо кошове</p>
+                  <p className="text-2xl font-bold text-neutral-900 dark:text-white">{stats.total}</p>
                 </div>
                 <Recycle className="w-8 h-8 text-green-500" />
               </div>
             </div>
-            <div className="bg-white dark:bg-neutral-800 rounded-lg p-4 border border-gray-200 dark:border-neutral-700 shadow-sm">
+            <div className="bg-white dark:bg-neutral-800 rounded-lg p-4 border border-neutral-200 dark:border-neutral-700 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Одобрени</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.approved}</p>
+                  <p className="text-sm text-neutral-600 dark:text-neutral-400">Одобрени</p>
+                  <p className="text-2xl font-bold text-neutral-900 dark:text-white">{stats.approved}</p>
                 </div>
                 <CircleCheck className="w-8 h-8 text-green-500" />
               </div>
             </div>
-            <div className="bg-white dark:bg-neutral-800 rounded-lg p-4 border border-gray-200 dark:border-neutral-700 shadow-sm">
+            <div className="bg-white dark:bg-neutral-800 rounded-lg p-4 border border-neutral-200 dark:border-neutral-700 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Чакащи одобрение</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.pending}</p>
+                  <p className="text-sm text-neutral-600 dark:text-neutral-400">Чакащи одобрение</p>
+                  <p className="text-2xl font-bold text-neutral-900 dark:text-white">{stats.pending}</p>
                 </div>
                 <List className="w-8 h-8 text-orange-500" />
               </div>
             </div>
-            <div className="bg-white dark:bg-neutral-800 rounded-lg p-4 border border-gray-200 dark:border-neutral-700 shadow-sm">
+            <div className="bg-white dark:bg-neutral-800 rounded-lg p-4 border border-neutral-200 dark:border-neutral-700 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Предложения</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.suggestions}</p>
+                  <p className="text-sm text-neutral-600 dark:text-neutral-400">Предложения</p>
+                  <p className="text-2xl font-bold text-neutral-900 dark:text-white">{stats.suggestions}</p>
                 </div>
                 <PenLine className="w-8 h-8 text-blue-500" />
               </div>
             </div>
-            <div className="bg-white dark:bg-neutral-800 rounded-lg p-4 border border-gray-200 dark:border-neutral-700 shadow-sm">
+            <div className="bg-white dark:bg-neutral-800 rounded-lg p-4 border border-neutral-200 dark:border-neutral-700 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Активни отчети</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.reports}</p>
+                  <p className="text-sm text-neutral-600 dark:text-neutral-400">Активни отчети</p>
+                  <p className="text-2xl font-bold text-neutral-900 dark:text-white">{stats.reports}</p>
                 </div>
                 <Flag className="w-8 h-8 text-red-500" />
               </div>
@@ -1801,8 +1806,8 @@ export function AdminPanel() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-neutral-800 rounded-xl border border-gray-200 dark:border-neutral-700 shadow-sm">
-          <div className="border-b border-gray-200 dark:border-neutral-700">
+        <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 shadow-sm">
+          <div className="border-b border-neutral-200 dark:border-neutral-700">
             <div className="px-6 py-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex space-x-2">
@@ -1811,7 +1816,7 @@ export function AdminPanel() {
                     className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                       activeTab === "bins"
                         ? "bg-neutral-600 dark:bg-neutral-600 text-white"
-                        : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        : "text-neutral-600 dark:text-neutral-400 hover:bg--100 dark:hover:bg-neutral-700"
                     }`}
                   >
                     Кошове ({bins.length})
@@ -1821,7 +1826,7 @@ export function AdminPanel() {
                     className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                       activeTab === "suggestions"
                         ? "bg-neutral-600 dark:bg-neutral-600 text-white"
-                        : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        : "text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700"
                     }`}
                   >
                     Предложения ({suggestions.length})
@@ -1831,20 +1836,20 @@ export function AdminPanel() {
                     className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                       activeTab === "reports"
                         ? "bg-neutral-600 dark:bg-neutral-600 text-white"
-                        : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        : "text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700"
                     }`}
                   >
                     Отчети ({reports.length})
                   </button>
                 </div>
                 <div className="relative flex-1 sm:w-64">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-400" />
                   <input
                     type="text"
                     placeholder="Търси..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-gray-900 dark:text-white"
+                    className="w-full pl-10 pr-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white"
                   />
                 </div>
               </div>
@@ -1859,8 +1864,8 @@ export function AdminPanel() {
             ) : activeTab === "bins" ? (
               filteredBins.length === 0 ? (
                 <div className="text-center py-12">
-                  <Trash className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500 dark:text-gray-400">
+                  <Trash className="w-12 h-12 text-neutral-400 mx-auto mb-4" />
+                  <p className="text-neutral-500 dark:text-neutral-400">
                     {searchQuery ? "Няма намерени резултати" : "Няма чакащи кошове"}
                   </p>
                 </div>
@@ -1874,8 +1879,8 @@ export function AdminPanel() {
             ) : activeTab === "suggestions" ? (
               suggestions.length === 0 ? (
                 <div className="text-center py-12">
-                  <PenLine className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500 dark:text-gray-400">Няма чакащи предложения</p>
+                  <PenLine className="w-12 h-12 text-neutral-400 mx-auto mb-4" />
+                  <p className="text-neutral-500 dark:text-neutral-400">Няма чакащи предложения</p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -1892,8 +1897,8 @@ export function AdminPanel() {
             ) : activeTab === "reports" ? (
               filteredReports.length === 0 ? (
                 <div className="text-center py-12">
-                  <Flag className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500 dark:text-gray-400">
+                  <Flag className="w-12 h-12 text-neutral-400 mx-auto mb-4" />
+                  <p className="text-neutral-500 dark:text-neutral-400">
                     {searchQuery ? "Няма намерени резултати" : "Няма активни отчети"}
                   </p>
                 </div>
@@ -1952,7 +1957,7 @@ export function AdminRoute({ children }: { children: ReactNode }) {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-gray-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-neutral-500" />
       </div>
     )
   }
@@ -1963,7 +1968,7 @@ export function AdminRoute({ children }: { children: ReactNode }) {
         <div className="text-center">
           <Shield className="w-12 h-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-xl font-semibold mb-2">Достъп отказан</h2>
-          <p className="text-gray-600 mb-4">Нямате администраторски права</p>
+          <p className="text-neutral-600 mb-4">Нямате администраторски права</p>
           <a href="/" className="text-blue-500 hover:underline">
             Върни се в началото
           </a>

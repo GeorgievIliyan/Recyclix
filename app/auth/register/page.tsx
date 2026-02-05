@@ -188,18 +188,18 @@ function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 dark:from-gray-950 dark:via-gray-900 dark:to-black p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-neutral-50 via-neutral-100 to-neutral-200 dark:from-neutral-950 dark:via-neutral-900 dark:to-black p-4">
       <div className="w-full max-w-md">
-        <div className="relative backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 rounded-3xl shadow-2xl dark:shadow-[0_0_50px_rgba(0,205,86,0.1)] border border-gray-200/50 dark:border-gray-800/50 p-8 md:p-10 overflow-hidden">
+        <div className="relative backdrop-blur-xl bg-white/80 dark:bg-neutral-900/80 rounded-3xl shadow-2xl dark:shadow-[0_0_50px_rgba(0,205,86,0.1)] border border-neutral-200/50 dark:border-neutral-800/50 p-8 md:p-10 overflow-hidden">
           <div className="absolute -top-24 -right-24 w-48 h-48 bg-[#00CD56]/20 dark:bg-[#00CD56]/10 rounded-full blur-3xl" />
           <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-[#00CD56]/10 dark:bg-[#00CD56]/5 rounded-full blur-3xl" />
 
           <div className="relative z-10">
             <div className="text-center mb-8">
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 dark:from-white dark:via-gray-100 dark:to-white bg-clip-text text-transparent mb-2">
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-neutral-900 via-neutral-800 to-neutral-900 dark:from-white dark:via-neutral-100 dark:to-white bg-clip-text text-transparent mb-2">
                 Създайте акаунт
               </h1>
-              <p className="text-gray-600 dark:text-gray-400 text-sm">
+              <p className="text-neutral-600 dark:text-neutral-400 text-sm">
                 Започнете умното рециклиране днес
               </p>
             </div>
@@ -236,7 +236,7 @@ function RegisterPage() {
 
             <div className="space-y-5 mb-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
                   Потребителско име
                 </label>
                 <input
@@ -245,12 +245,12 @@ function RegisterPage() {
                   value={fullName}
                   onChange={(e) => handleInputChange('fullName', e.target.value)}
                   maxLength={100}
-                  className="w-full px-4 py-3.5 rounded-xl bg-gray-50/50 dark:bg-gray-800/50 border border-gray-300/50 dark:border-gray-700/50 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00CD56]/50 dark:focus:ring-[#00CD56]/40 focus:border-[#00CD56] dark:focus:border-[#00CD56] transition-all duration-200 backdrop-blur-sm"
+                  className="w-full px-4 py-3.5 rounded-xl bg-neutral-50/50 dark:bg-neutral-800/50 border border-neutral-300/50 dark:border-neutral-700/50 text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-[#00CD56]/50 dark:focus:ring-[#00CD56]/40 focus:border-[#00CD56] dark:focus:border-[#00CD56] transition-all duration-200 backdrop-blur-sm"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
                   Имейл <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -260,7 +260,7 @@ function RegisterPage() {
                   onChange={(e) => handleInputChange('email', e.target.value)}
                   maxLength={254}
                   required
-                  className="w-full px-4 py-3.5 rounded-xl bg-gray-50/50 dark:bg-gray-800/50 border border-gray-300/50 dark:border-gray-700/50 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00CD56]/50 dark:focus:ring-[#00CD56]/40 focus:border-[#00CD56] dark:focus:border-[#00CD56] transition-all duration-200 backdrop-blur-sm"
+                  className="w-full px-4 py-3.5 rounded-xl bg-neutral-50/50 dark:bg-neutral-800/50 border border-neutral-300/50 dark:border-neutral-700/50 text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-[#00CD56]/50 dark:focus:ring-[#00CD56]/40 focus:border-[#00CD56] dark:focus:border-[#00CD56] transition-all duration-200 backdrop-blur-sm"
                 />
               </div>
 
@@ -270,11 +270,11 @@ function RegisterPage() {
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-4 py-3.5 pr-12 rounded-xl bg-gray-50/50 dark:bg-gray-800/50 border border-gray-300/50 dark:border-gray-700/50 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00CD56]/50 dark:focus:ring-[#00CD56]/40 focus:border-[#00CD56] dark:focus:border-[#00CD56] transition-all duration-200 backdrop-blur-sm"
+                    className="w-full px-4 py-3.5 pr-12 rounded-xl bg-neutral-50/50 dark:bg-neutral-800/50 border border-neutral-300/50 dark:border-neutral-700/50 text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-[#00CD56]/50 dark:focus:ring-[#00CD56]/40 focus:border-[#00CD56] dark:focus:border-[#00CD56] transition-all duration-200 backdrop-blur-sm"
                   />
                   <button
                     type="button"
-                    className="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-600 transition duration-150 dark:hover:text-gray-300"
+                    className="absolute inset-y-0 right-3 flex items-center text-neutral-400 hover:text-neutral-600 transition duration-150 dark:hover:text-neutral-300"
                   >
                     {passwordShown? 
                       <EyeOff className="w-5 h-5" onClick={handleTogglePassword}/>
@@ -317,10 +317,10 @@ function RegisterPage() {
 
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300/50 dark:border-gray-700/50" />
+                <div className="w-full border-t border-neutral-300/50 dark:border-neutral-700/50" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white/80 dark:bg-gray-900/80 text-gray-500 dark:text-gray-400 backdrop-blur-sm">
+                <span className="px-4 bg-white/80 dark:bg-neutral-900/80 text-neutral-500 dark:text-neutral-400 backdrop-blur-sm">
                   или продължете с
                 </span>
               </div>
@@ -328,7 +328,7 @@ function RegisterPage() {
 
             <button
               onClick={handleGoogleRegister}
-              className="w-full py-4 px-6 bg-white dark:bg-gray-800 border-2 border-gray-300/50 dark:border-gray-700/50 text-gray-700 dark:text-gray-200 font-semibold rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-400 dark:hover:border-gray-600 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg flex items-center justify-center gap-3"
+              className="w-full py-4 px-6 bg-white dark:bg-neutral-800 border-2 border-neutral-300/50 dark:border-neutral-700/50 text-neutral-700 dark:text-neutral-200 font-semibold rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-600 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg flex items-center justify-center gap-3"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path
@@ -351,7 +351,7 @@ function RegisterPage() {
               Регистрация с Google
             </button>
 
-            <p className="text-center text-sm text-gray-600 dark:text-gray-400 mt-6">
+            <p className="text-center text-sm text-neutral-600 dark:text-neutral-400 mt-6">
               Вече имате акаунт?{" "}
               <a
                 href="/auth/login"

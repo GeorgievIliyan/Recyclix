@@ -169,28 +169,31 @@ export function FreeCamera({ task }: { task: string }) {
         </div>
       </div>
 
-      {/* камера модал */}
+      {/* камера модал с тъмен слой и центриране */}
       {open && (
-        <div className="fixed inset-0 bg-black/95 dark:bg-black/95 flex items-center justify-center z-50 p-4 md:p-6 backdrop-blur-md">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Тъмен слой (overlay) */}
+          <div 
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm" 
+            onClick={() => setOpen(false)} 
+          />
+          
+          {/* Модален прозорец в абсолютния център */}
           <div className="
-            bg-background overflow-hidden relative w-full h-full flex flex-col 
-            /* Mobile: Full screen */
-            /* Tablet: Large modal with padding */
-            md:max-w-5xl md:w-[95vw] md:h-[90vh] md:rounded-3xl
-            /* Desktop: Wider modal */
-            lg:max-w-6xl lg:w-[92vw] lg:h-[88vh]
-            /* Large Desktop: Optimal width */
-            xl:max-w-7xl xl:w-[90vw] xl:h-[85vh]
-            shadow-2xl border-0 md:border-2 md:border-border/50
+            relative bg-background overflow-hidden w-full h-full flex flex-col 
+            /* Десктоп размери и центриране */
+            md:max-w-5xl md:h-[85vh] md:rounded-3xl
+            shadow-2xl border-0 md:border md:border-border/50
+            z-50
           ">
             
             {/* заглавна част */}
             <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/60 to-transparent p-4 md:p-6">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 md:gap-3">
+                <div className="flex items-center gap-3 md:gap-4">
                   <Camera className="h-5 w-5 md:h-6 md:w-6 text-white" />
                   <h3 className="text-white font-semibold text-base md:text-lg">
-                    Режим на свободно сканиране
+                    Свободно сканиране
                   </h3>
                 </div>
                 <button
@@ -210,7 +213,7 @@ export function FreeCamera({ task }: { task: string }) {
               </div>
             </div>
 
-            {/* камера */}
+            {/* видео изход */}
             <video 
               ref={videoRef} 
               className="w-full h-full object-cover"
@@ -284,7 +287,6 @@ export function FreeCamera({ task }: { task: string }) {
                       </h3>
                     </div>
 
-                    {/* Statistics section - Responsive */}
                     <div className="flex flex-wrap gap-2 md:gap-3 w-full justify-center">
                       <div className="bg-primary/10 px-3 py-1.5 md:px-4 md:py-2 rounded-lg flex items-center gap-1.5 md:gap-2 border border-primary/20">
                         <Hash className="w-3.5 h-3.5 md:w-4 md:h-4 text-primary" />

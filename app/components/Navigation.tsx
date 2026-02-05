@@ -48,19 +48,17 @@ export function Navigation({ className }: { className?: string }) {
 
   return (
     <LayoutGroup>
+      {/* Desktop Navigation */}
       <div className="hidden md:flex fixed top-5 left-0 right-0 z-[100] justify-center pointer-events-none">
         <nav className={cn(
           "pointer-events-auto relative flex items-center gap-1 p-1.5 rounded-full transition-all duration-200",
           "bg-white/40 dark:bg-zinc-900/40 backdrop-blur-[45px]",
-          "border border-white/40 dark:border-white/10", 
-          "shadow-[0_20px_50px_rgba(0,0,0,0.1),0_1px_1px_rgba(255,255,255,0.3)_inset]",
-          "dark:shadow-[0_30px_60px_rgba(0,0,0,0.5),0_1px_0px_rgba(255,255,255,0.05)_inset]",
+          "border border-white/40 dark:border-white/10 shadow-lg",
           className
         )}>
           {modules.map((module) => {
             const isActive = activeModule === module.id
             const Icon = module.icon
-
             return (
               <Link
                 key={module.id}
@@ -73,34 +71,28 @@ export function Navigation({ className }: { className?: string }) {
                 {isActive && (
                   <motion.div
                     layoutId="desktop-pill"
-                    layout
-                    className={cn(
-                      "absolute inset-0 z-0 rounded-full",
-                      "bg-gradient-to-tr from-green-500/90 to-green-400/90 dark:from-green-600/80 dark:to-green-500/80",
-                      "border border-white/20 shadow-[0_4px_15px_rgba(16,185,129,0.3)]"
-                    )}
+                    className="absolute inset-0 z-0 rounded-full bg-gradient-to-tr from-green-500 to-green-400 border border-white/20"
                     transition={{ type: "spring", stiffness: 350, damping: 30 }}
                   />
                 )}
-                
-                <Icon className={cn("relative z-10 h-4 w-4 transition-transform duration-300", isActive && "scale-110")} />
-                <span className="relative z-10 tracking-tight">{module.label}</span>
+                <Icon className="relative z-10 h-4 w-4" />
+                <span className="relative z-10">{module.label}</span>
               </Link>
             )
           })}
         </nav>
       </div>
 
+      {/* Mobile Navigation - Wider & Spacious UX */}
       <div className={cn(
-        "md:hidden fixed bottom-8 left-0 right-0 z-[100] transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] px-8",
-        isVisible ? "translate-y-0 opacity-100" : "translate-y-28 opacity-0"
+        "md:hidden fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] transition-all duration-300 ease-in-out",
+        isVisible ? "translate-y-0 opacity-100" : "translate-y-24 opacity-0"
       )}>
         <nav className={cn(
-          "mx-auto flex items-center justify-around p-3 rounded-[35px]",
-          "bg-white/40 dark:bg-zinc-950/50 backdrop-blur-[45px]",
-          "border border-white/40 dark:border-white/10",
-          "shadow-[0_15px_45px_rgba(0,0,0,0.15),0_1px_2px_rgba(255,255,255,0.3)_inset]",
-          "dark:shadow-[0_25px_65px_rgba(0,0,0,0.6),0_1px_1px_rgba(255,255,255,0.05)_inset]",
+          "flex items-center gap-10 px-9 py-3 rounded-full", // Увеличено разстояние (gap-10) и вътрешен отстъп (px-9)
+          "bg-white/70 dark:bg-zinc-900/85 backdrop-blur-2xl",
+          "border border-white/30 dark:border-white/10",
+          "shadow-[0_12px_40px_rgba(0,0,0,0.12)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)]",
           className
         )}>
           {modules.map((module) => {
@@ -112,41 +104,24 @@ export function Navigation({ className }: { className?: string }) {
                 key={module.id}
                 href={module.path}
                 className={cn(
-                  "relative flex flex-col items-center justify-center min-w-[65px] transition-all duration-300",
-                  isActive ? "text-green-600 dark:text-green-400" : "text-zinc-500"
+                  "relative flex items-center justify-center transition-all duration-300",
+                  isActive ? "text-green-500" : "text-zinc-400 dark:text-zinc-500"
                 )}
               >
-                <div className="relative p-2">
+                <div className="relative">
                   <Icon className={cn(
-                    "h-6 w-6 transition-all duration-200", 
-                    isActive ? "scale-110 drop-shadow-[0_0_10px_rgba(16,185,129,0.4)]" : "scale-100 opacity-70"
+                    "h-6 w-6 transition-all duration-200", // Запазен голям размер на иконите
+                    isActive ? "scale-110 drop-shadow-[0_0_8px_rgba(34,197,94,0.3)]" : "scale-100 opacity-80"
                   )} />
                   
                   {isActive && (
-                    <motion.div
-                      layoutId="mobile-glow"
-                      layout
-                      className="absolute inset-0 bg-green-500/20 blur-2xl rounded-full z-[-1]"
-                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    <motion.div 
+                      layoutId="mobile-dot"
+                      className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-green-500 rounded-full"
+                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
                     />
                   )}
                 </div>
-
-                <span className={cn(
-                  "text-[10px] font-semibold uppercase tracking-[0.12em] transition-all duration-200",
-                  isActive ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
-                )}>
-                  {module.label}
-                </span>
-
-                {isActive && (
-                  <motion.div 
-                    layoutId="mobile-dot"
-                    layout
-                    className="absolute -bottom-1 w-2 h-[2px] bg-green-500 rounded-full"
-                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                  />
-                )}
               </Link>
             )
           })}

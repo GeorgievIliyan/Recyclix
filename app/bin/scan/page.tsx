@@ -212,7 +212,7 @@ export default function Page() {
                   >
                     <button
                       onClick={handleClearCode}
-                      className="w-full px-3 py-2 text-sm text-white hover:bg-red-500/15 hover:text-red-500 rounded-md text-left flex items-center gap-2 transition duration-150"
+                      className="w-full px-3 py-2 text-sm text-black dark:text-white hover:bg-red-500/15 hover:text-red-500 rounded-md text-left flex items-center gap-2 transition duration-150"
                     >
                       <span>Смени код</span>
                     </button>

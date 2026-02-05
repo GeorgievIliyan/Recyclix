@@ -65,7 +65,7 @@ export function GamificationProgress({ totalXp }: GamificationProgressProps) {
         </div>
 
         {/* Съвети */}
-        <div className="flex items-start gap-2 sm:gap-3 p-3 sm:p-4 bg-muted rounded-lg border border-border">
+        <div className="flex items-start gap-2 sm:gap-3 p-3 sm:p-4 bg-neutral-100 dark:bg-neutral-700 rounded-lg border border-border">
           <Star className="h-5 w-5 text-yellow-400" />
           <div className="min-w-0">
             <p className="text-xs sm:text-sm font-semibold text-card-foreground">Продължавай</p>

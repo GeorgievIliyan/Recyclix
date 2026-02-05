@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { supabase } from "@/lib/supabase-browser"
 import ConfirmCamera from "@/app/components/ConfirmCamera"
 import { FreeCamera } from "@/app/components/FreeCamera"
@@ -30,6 +30,7 @@ export default function DailyTasksPage() {
   const [error, setError] = useState<string | null>(null)
   const [cameraOpenForTask, setCameraOpenForTask] = useState<string | null>(null)
 
+  // Зареждане на задачите за деня
   useEffect(() => {
     const fetchTasks = async () => {
       try {
@@ -55,6 +56,7 @@ export default function DailyTasksPage() {
     fetchTasks()
   }, [])
 
+  // Маркиране на задача като завършена
   const handleCompleteTask = async (id: string) => {
     await supabase.from("user_daily_tasks").update({ completed: true }).eq("id", id)
     setTasks((t) => t.map((x) => (x.id === id ? { ...x, completed: true } : x)))
@@ -90,7 +92,7 @@ export default function DailyTasksPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 
-            {/* Task Cards */}
+            {/* Списък със задачи */}
             {tasks.map((task, index) => (
               <div
                 key={task.id}
@@ -103,7 +105,7 @@ export default function DailyTasksPage() {
                 `}
                 style={{
                   animationDelay: `${index * 50}ms`,
-                  animation: "fadeIn 0.5s ease-out forwards",
+                  animation: "fadeInSimple 0.5s ease-out forwards",
                 }}
               >
                 {task.completed && (
@@ -158,7 +160,7 @@ export default function DailyTasksPage() {
                         onClick={() => setCameraOpenForTask(task.id)}
                         className="group relative w-full px-4 py-2.5 bg-[#00CD56] hover:bg-[#00B84C] text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
                       >
-                        Open Task Camera
+                        Отвори камера за задача
                       </button>
                     </div>
                   ) : null}
@@ -166,11 +168,11 @@ export default function DailyTasksPage() {
               </div>
             ))}
 
-            {/* Free Scan Card - Now using the redesigned FreeCamera component */}
+            {/* Карта за свободно сканиране - фиксирано центриране чрез избягване на transform в родителя */}
             <div
               style={{ 
                 animationDelay: `${tasks.length * 50}ms`,
-                animation: "fadeIn 0.5s ease-out forwards" 
+                animation: "fadeInSimple 0.5s ease-out forwards" 
               }}
             >
               <FreeCamera task="Classify the recycling objects" />
@@ -178,6 +180,7 @@ export default function DailyTasksPage() {
 
           </div>
 
+          {/* Съобщение за успех при завършване на всички задачи */}
           {completedCount === tasks.length && tasks.length > 0 && (
             <div className="mt-8 p-6 rounded-xl bg-gradient-to-r from-[#00CD56]/10 to-[#00ff6a]/10 border border-[#00CD56]/30 text-center">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#00CD56]/20 mb-4">
@@ -196,9 +199,9 @@ export default function DailyTasksPage() {
       </div>
 
       <style jsx>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
+        @keyframes fadeInSimple {
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
       `}</style>
     </>

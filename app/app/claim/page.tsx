@@ -70,16 +70,24 @@ export default function ClaimPage() {
           <div className="w-20 h-20 rounded-full bg-orange-500/10 flex items-center justify-center mx-auto mb-6">
             <AlertCircle className="w-12 h-12 text-orange-500" />
           </div>
-          <h1 className="text-2xl font-bold mb-2">Вече използван</h1>
+          <h1 className="text-2xl font-bold mb-2">Използван...</h1>
           <p className="text-muted-foreground mb-6">
-            Този QR код вече е бил сканиран и точките са добавени.
+            Този QR код вече е бил сканиран
           </p>
-          <button
-            onClick={() => router.push('/app/dashboard')}
-            className="bg-primary text-primary-foreground px-6 py-3 rounded-lg font-medium w-full"
-          >
-            Начално табло
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => router.push('/app/dashboard')}
+              className="bg-primary text-primary-foreground px-6 py-3 hover:bg-neutral-400 transition duration-250 rounded-lg font-medium w-full"
+            >
+              Начално табло
+            </button>
+            <button
+              onClick={() => router.back()}
+              className="bg-primary text-primary-foreground hover:text-white hover:bg-red-500 transition duration-250 px-6 py-3 rounded-lg font-medium w-full"
+            >
+              Назад
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -96,12 +104,20 @@ export default function ClaimPage() {
           <p className="text-muted-foreground mb-6">
             QR кодът е изтекъл и вече не е валиден.
           </p>
-          <button
-            onClick={handleBack}
-            className="bg-primary text-primary-foreground px-6 py-3 rounded-lg font-medium w-full"
-          >
-            Назад
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => router.push('/app/dashboard')}
+              className="bg-primary text-primary-foreground px-6 py-3 hover:bg-neutral-400 transition duration-250 rounded-lg font-medium w-full"
+            >
+              Начално табло
+            </button>
+            <button
+              onClick={() => router.back()}
+              className="bg-primary text-primary-foreground hover:text-white hover:bg-red-500 transition duration-250 px-6 py-3 rounded-lg font-medium w-full"
+            >
+              Назад
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -114,16 +130,24 @@ export default function ClaimPage() {
           <div className="w-20 h-20 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-6">
             <XCircle className="w-12 h-12 text-red-500" />
           </div>
-          <h1 className="text-2xl font-bold mb-2">Невалиден код</h1>
+          <h1 className="text-2xl font-bold mb-2">Невалиден код....</h1>
           <p className="text-muted-foreground mb-6">
-            QR кодът е несъществуващ или грешен.
+            QR кодът не съществува или е грешен
           </p>
-          <button
-            onClick={() => router.push("/")}
-            className="bg-primary text-primary-foreground px-6 py-3 rounded-lg font-medium w-full"
-          >
-            Начална страница
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => router.push('/app/dashboard')}
+              className="bg-primary text-primary-foreground px-6 py-3 hover:bg-neutral-400 transition duration-250 rounded-lg font-medium w-full"
+            >
+              Начално табло
+            </button>
+            <button
+              onClick={() => router.back()}
+              className="bg-primary text-primary-foreground hover:text-white hover:bg-red-500 transition duration-250 px-6 py-3 rounded-lg font-medium w-full"
+            >
+              Назад
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -147,18 +171,18 @@ export default function ClaimPage() {
           точки получени
         </p>
 
-        <div className="space-y-3">
+        <div className="flex gap-2">
           <button
-            onClick={handleBack}
-            className="w-full bg-primary text-primary-foreground py-3 rounded-lg font-medium hover:bg-green-500 hover:text-white transition duration-150"
+            onClick={() => router.push('/app/dashboard')}
+            className="bg-primary text-primary-foreground px-6 py-3 hover:bg-neutral-400 transition duration-250 rounded-lg font-medium w-full"
           >
-            Назад
+            Начално табло
           </button>
           <button
-            onClick={() => router.push("/")}
-            className="w-full border py-3 rounded-lg font-medium transition duraiton-150 hover:text-green-500 hover:border-green-500/10"
+            onClick={() => router.back()}
+            className="bg-primary text-primary-foreground hover:text-white hover:bg-red-500 transition duration-250 px-6 py-3 rounded-lg font-medium w-full"
           >
-            Начална страница
+            Назад
           </button>
         </div>
       </div>
