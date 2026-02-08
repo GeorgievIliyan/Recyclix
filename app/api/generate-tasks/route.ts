@@ -61,7 +61,7 @@ export const GET = async (req: NextRequest) => {
     const { data: tasks, error: tasksError } = await supabase
       .from("tasks_pool")
       .select("id")
-      .limit(3);
+      .limit(5);
 
     if (tasksError || !tasks?.length) {
       return NextResponse.json({

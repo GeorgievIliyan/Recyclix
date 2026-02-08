@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from "react"
 import { supabase } from "@/lib/supabase-browser";
+import { isDev } from "@/lib/isDev";
+
+const CACHE_DURATION = 2 * 60 * 60 * 1000;
 
 export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -11,85 +14,240 @@ export default function Home() {
   const [totalPlasticRecycled, setTotalPlasticRecycled] = useState<number | string>("...")
   const [totalPaperRecycled, setTotalPaperRecycled] = useState<number | string>("...")
   const [totalGlassMetalRecycled, setTotalGlassMetalRecycled] = useState<number | string>("...")
+  const [totalKgRecycled, setTotalKgRecycled] = useState<number | string>("...")
+
+  // Функция за вземане на кеширани данни
+  const getCachedData = (key: string) => {
+    try {
+      const cached = localStorage.getItem(`recyclix_${key}`);
+      if (!cached) return null;
+      
+      const { data, timestamp } = JSON.parse(cached);
+      const now = Date.now();
+      
+      // Проверка дали кеша е валиден (по-малко от 2 часа)
+      if (now - timestamp < CACHE_DURATION) {
+        return data;
+      }
+      
+      // Кеша е изтекъл - изтриваме го
+      localStorage.removeItem(`recyclix_${key}`);
+      return null;
+    } catch (error) {
+      if (isDev) console.error("Грешка при четене от кеш:", error);
+      return null;
+    }
+  };
+
+  // Функция за запазване на данни в кеша
+  const saveToCache = (key: string, data: any) => {
+    try {
+      const cacheData = {
+        data,
+        timestamp: Date.now()
+      };
+      localStorage.setItem(`recyclix_${key}`, JSON.stringify(cacheData));
+    } catch (error) {
+      if (isDev) console.error("Грешка при запазване в кеш:", error);
+    }
+  };
+
+  // Функция за конвертиране на CO2 в kWh
+  function co2ToKwh(co2Kg: number | string): number {
+    const CO2_PER_KWH = 0.4;
+    const kgNum = Number(co2Kg) || 0;
+    const kwh = kgNum / CO2_PER_KWH;
+    return Math.round(kwh * 10) / 10;
+  }
+
+  // Функция за конвертиране на CO2 във вода
+  function co2ToWater(co2Kg: number | string): number {
+    const WATER_PER_CO2 = 1.8;
+    const kgNum = Number(co2Kg) || 0;
+    const liters = kgNum * WATER_PER_CO2;
+    return Math.round(liters * 10) / 10;
+  }
 
   const fetchUserCount = async () => {
+    // Първо проверяваме кеша
+    const cached = getCachedData('users');
+    if (cached !== null) {
+      setTotalUsers(cached);
+      return;
+    }
+    
+    // Ако няма кеш, извличаме от Supabase
     const { data, error } = await supabase.rpc('get_user_count');
     if (!error && data !== null) {
       setTotalUsers(data);
+      saveToCache('users', data);
     } else {
-      console.error("Error fetching user count:", error);
+      if (isDev){
+        console.error("Грешка при извличане на потребители:", error);
+      }
       setTotalUsers(0);
     }
   };
 
   const fetchBinCount = async () => {
+    const cached = getCachedData('bins');
+    if (cached !== null) {
+      setTotalBins(cached);
+      return;
+    }
+    
     const { data, error } = await supabase.rpc('get_bins_count');
     if (!error && data !== null) {
       setTotalBins(data);
+      saveToCache('bins', data);
     } else {
-      console.error("Error fetching bin count:", error);
+      if (isDev){
+        console.error("Грешка при извличане на контейнери:", error);
+      }
       setTotalBins("2000+");
     }
   };
 
   const fetchCO2Reduction = async () => {
+    const cached = getCachedData('co2');
+    if (cached !== null) {
+      setTotalCO2Reduction(cached);
+      return;
+    }
+    
     const { data, error } = await supabase.rpc('get_total_co2');
     if (!error) {
       setTotalCO2Reduction(data || 0);
+      saveToCache('co2', data || 0);
     } else {
-      console.error("Error fetching CO2:", error);
+      if (isDev){
+        console.error("Грешка при извличане на CO2:", error);
+      }
+      console.error("Грешка при извличане на CO2.")
       setTotalCO2Reduction(0);
     }
   }
 
   const fetchPlasticsRecycled = async () => {
+    const cached = getCachedData('plastics');
+    if (cached !== null) {
+      setTotalPlasticRecycled(cached);
+      return;
+    }
+    
     const { data, error } = await supabase.rpc('get_plastic_total');
     if (!error) {
       setTotalPlasticRecycled(data || 0);
+      saveToCache('plastics', data || 0);
     } else {
-      console.error("Error fetching plastic recycled:", error);
+      if (isDev){
+        console.error("Грешка при извличане на пластмаса:", error);
+      }
+      console.error("Не може да се извлекат пластмасите.")
       setTotalPlasticRecycled(0);
     }
   }
 
   const fetchPaperRecycled = async () => {
+    const cached = getCachedData('paper');
+    if (cached !== null) {
+      setTotalPaperRecycled(cached);
+      return;
+    }
+    
     const { data, error } = await supabase.rpc('get_paper_total');
     if (!error) {
       setTotalPaperRecycled(data || 0);
+      saveToCache('paper', data || 0);
     } else {
-      console.error("Error fetching paper recycled:", error);
+      if (isDev){
+        console.error("Грешка при извличане на хартия:", error);
+      }
+      console.error("Не може да се извлекат хартиите.")
       setTotalPaperRecycled(0);
     }
   }
 
   const fetchGlassMetalRecycled = async () => {
+    const cached = getCachedData('glass_metal');
+    if (cached !== null) {
+      setTotalGlassMetalRecycled(cached);
+      return;
+    }
+    
     const { data, error } = await supabase.rpc('get_glass_metal_total');
     if (!error) {
       setTotalGlassMetalRecycled(data || 0);
+      saveToCache('glass_metal', data || 0);
     } else {
-      console.error("Error fetching glass/metal recycled:", error);
+      if (isDev){
+        console.error("Грешка при извличане на стъкло и метал:", error);
+      }
+      console.error("Не може да се извлекат стъкло и метал.")
       setTotalGlassMetalRecycled(0);
     }
   }
 
+  const fetchTotalKgRecycled = async () => {
+    const cached = getCachedData('total_kg');
+    if (cached !== null) {
+      setTotalKgRecycled(cached);
+      return;
+    }
+    
+    const {data, error} = await supabase.rpc('get_kg_total')
+    if (!error) {
+      setTotalKgRecycled(data || 0);
+      saveToCache('total_kg', data || 0);
+    } else {
+      if (isDev){
+        console.error("Грешка при извличане на общо KG:", error);
+      }
+      console.error("Не може да се извлекат общите KG.")
+      setTotalKgRecycled(0);
+    }
+  }
+
+  // Функция за принудително обновяване на всички данни
+  const forceRefreshAll = async () => {
+    // Изчистваме целия кеш
+    const keys = ['users', 'bins', 'co2', 'plastics', 'paper', 'glass_metal', 'total_kg'];
+    keys.forEach(key => {
+      localStorage.removeItem(`recyclix_${key}`);
+    });
+    
+    // Извличаме наново всички данни
+    await Promise.all([
+      fetchUserCount(),
+      fetchBinCount(),
+      fetchCO2Reduction(),
+      fetchGlassMetalRecycled(),
+      fetchPlasticsRecycled(),
+      fetchPaperRecycled(),
+      fetchTotalKgRecycled()
+    ]);
+  }
+
   useEffect(() => {
+    // Извличаме всички данни при зареждане на страницата
     fetchUserCount()
     fetchBinCount()
     fetchCO2Reduction()
     fetchGlassMetalRecycled()
     fetchPlasticsRecycled()
     fetchPaperRecycled()
+    fetchTotalKgRecycled()
   }, []);
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-zinc-50 via-zinc-100 to-zinc-200 dark:from-zinc-950 dark:via-zinc-900 dark:to-black">
       <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-white/80 dark:bg-zinc-950/80 border-b border-zinc-200/50 dark:border-zinc-800/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-0">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
               <div className="flex items-center gap-2">
                 <img src="/logos/logo.svg" alt="Logo" className="aspect-1/1 h-7" />
-                <span className="text-2xl font-semibold bg-gradient-to-r from-[#00CD56] to-[#00b849] bg-clip-text text-transparent">
+                <span className="text-2xl font-bold bg-gradient-to-r from-green-500 to-green-600 bg-clip-text text-transparent">
                   Recyclix
                 </span>
               </div>
@@ -161,8 +319,8 @@ export default function Home() {
                 <div className="text-zinc-600 dark:text-zinc-400">Активни потребители</div>
               </div>
               <div className="text-center">
-                <div className="text-4xl font-bold bg-gradient-to-r from-[#00CD56] to-[#00b849] bg-clip-text text-transparent mb-2">50,000+</div>
-                <div className="text-zinc-600 dark:text-zinc-400">Рециклирани материали (кг)</div>
+                <div className="text-4xl font-bold bg-gradient-to-r from-[#00CD56] to-[#00b849] bg-clip-text text-transparent mb-2">{totalKgRecycled} кг.</div>
+                <div className="text-zinc-600 dark:text-zinc-400">Рециклирани материали</div>
               </div>
               <div className="text-center">
                 <div className="text-4xl font-bold bg-gradient-to-r from-[#00CD56] to-[#00b849] bg-clip-text text-transparent mb-2">{totalBins}</div>
@@ -250,11 +408,11 @@ export default function Home() {
                 </div>
                 <div className="flex justify-between items-center p-4 bg-zinc-100/80 dark:bg-zinc-950/40 rounded-xl border border-transparent dark:border-zinc-800/50">
                   <span className="text-zinc-700 dark:text-zinc-300 font-medium">Спестена вода</span>
-                  <span className="text-2xl font-bold bg-gradient-to-r from-[#00CD56] to-[#00b849] bg-clip-text text-transparent">2.5M литра</span>
+                  <span className="text-2xl font-bold bg-gradient-to-r from-[#00CD56] to-[#00b849] bg-clip-text text-transparent">{co2ToWater(totalC02Reduction)} литра</span>
                 </div>
                 <div className="flex justify-between items-center p-4 bg-zinc-100/80 dark:bg-zinc-950/40 rounded-xl border border-transparent dark:border-zinc-800/50">
                   <span className="text-zinc-700 dark:text-zinc-300 font-medium">Спестена енергия</span>
-                  <span className="text-2xl font-bold bg-gradient-to-r from-[#00CD56] to-[#00b849] bg-clip-text text-transparent">50,000 kWh</span>
+                  <span className="text-2xl font-bold bg-gradient-to-r from-[#00CD56] to-[#00b849] bg-clip-text text-transparent">{co2ToKwh(totalC02Reduction)} kWh</span>
                 </div>
               </div>
             </div>

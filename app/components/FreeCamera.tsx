@@ -119,6 +119,24 @@ export function FreeCamera({ task }: { task: string }) {
     }
   }
 
+  // спиране на QR кода след 5 минути
+  useEffect(() => {
+    if (!qrData) return;
+
+    const expirationTime = new Date(qrData.expiresAt).getTime();
+    const now = new Date().getTime();
+    const timeRemaining = expirationTime - now;
+
+    const timeoutDuration = Math.min(timeRemaining, 5 * 60 * 1000);
+    
+    const timer = setTimeout(() => {
+      setQrData(null);
+      setResult(null);
+    }, timeoutDuration);
+
+    return () => clearTimeout(timer);
+  }, [qrData]);
+
   return (
     <div>
       {/* карта за камерата */}

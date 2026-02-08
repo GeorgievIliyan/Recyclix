@@ -93,11 +93,6 @@ export default function Page() {
 
     const trimmedCode = inputCode.trim()
 
-    if (trimmedCode.length !== 6) {
-      setCodeError("Кодът трябва да е 6 символа дълъг!")
-      return
-    }
-
     try {
       const { data, error } = await supabase
         .from('recycling_bins')
@@ -250,7 +245,7 @@ export default function Page() {
             </p>
 
             {codeError && (
-              <span className="text-red-500 bg-red-500/15 rounded-full text-md inline-flex gap-2 py-2 px-2.5">
+              <span className="text-red-500 bg-red-500/10 rounded-full text-md inline-flex gap-2 py-3 px-3.5">
                 <OctagonAlert /> {codeError}
               </span>
             )}

@@ -111,8 +111,22 @@ interface Report {
   bin_lat?: number
   bin_lon?: number
   bin?: Bin
-  photo_url?: string // Директно поле в reports таблицата
-  images?: ReportImage[] // От report_photos таблицата
+  photo_url?: string
+  images?: ReportImage[]
+}
+
+interface OrganizationRequest {
+  id: string
+  organization_name: string
+  organization_type: 'municipality' | 'school' | 'company' | 'ngo' | 'other'
+  contact_name: string
+  contact_email: string
+  intended_bin_count: number
+  city?: string
+  country?: string
+  message: string
+  status: 'pending' | 'approved' | 'rejected'
+  created_at: string
 }
 
 export async function checkAdminStatus(userId: string): Promise<boolean> {
@@ -157,6 +171,153 @@ function parseTagsObject(tags: any): {
     recycling_shoes: tags["recycling:shoes"] === "yes",
     count: Number.parseInt(tags.count) || 1,
   }
+}
+
+export async function getOrganizationRequests(): Promise<OrganizationRequest[]> {
+  try {
+    const { data, error } = await supabase
+      .from("organization_requests")
+      .select("*")
+      .eq("status", "pending")
+      .order("created_at", { ascending: false })
+
+    if (error) throw error
+    return data || []
+  } catch (error) {
+    console.error("Грешка при зареждане на заявки:", error)
+    return []
+  }
+}
+
+function OrganizationRequestDetails({
+  request,
+  onApprove,
+  onReject,
+}: {
+  request: OrganizationRequest
+  onApprove: (requestId: string) => Promise<void>
+  onReject: (requestId: string) => Promise<void>
+}) {
+  const [isProcessing, setIsProcessing] = useState(false)
+
+  const handleApprove = async () => {
+    setIsProcessing(true)
+    await onApprove(request.id)
+    setIsProcessing(false)
+  }
+
+  const handleReject = async () => {
+    setIsProcessing(true)
+    await onReject(request.id)
+    setIsProcessing(false)
+  }
+
+  return (
+    <div className="border border-neutral-200 dark:border-neutral-700 rounded-lg p-4 bg-white dark:bg-neutral-800">
+      <div className="flex flex-col lg:flex-row gap-4">
+        <div className="flex-1">
+          <div className="flex items-start justify-between mb-3">
+            <div>
+              <h3 className="font-semibold text-lg text-neutral-900 dark:text-white">
+                {request.organization_name}
+              </h3>
+              <div className="flex items-center gap-2 mt-1">
+                <Building className="w-4 h-4 text-neutral-400" />
+                <span className="text-neutral-600 dark:text-neutral-400 capitalize">
+                  {request.organization_type}
+                </span>
+              </div>
+            </div>
+            <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+              request.status === 'pending' 
+                ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
+                : request.status === 'approved'
+                  ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+                  : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+            }`}>
+              {request.status === 'pending' ? 'Чакаща' : request.status === 'approved' ? 'Одобрена' : 'Отхвърлена'}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <User className="w-4 h-4 text-neutral-400" />
+                <div>
+                  <span className="text-sm text-neutral-500 dark:text-neutral-400">Контактно лице:</span>
+                  <p className="text-neutral-700 dark:text-neutral-300 font-medium">{request.contact_name}</p>
+                  <p className="text-sm text-neutral-600 dark:text-neutral-400">{request.contact_email}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Package className="w-4 h-4 text-neutral-400" />
+                <div>
+                  <span className="text-sm text-neutral-500 dark:text-neutral-400">Брой кошове:</span>
+                  <p className="text-neutral-700 dark:text-neutral-300">{request.intended_bin_count}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              {(request.city || request.country) && (
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-neutral-400" />
+                  <div>
+                    <span className="text-sm text-neutral-500 dark:text-neutral-400">Локация:</span>
+                    <p className="text-neutral-700 dark:text-neutral-300">
+                      {[request.city, request.country].filter(Boolean).join(', ')}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-neutral-400" />
+                <div>
+                  <span className="text-sm text-neutral-500 dark:text-neutral-400">Дата на заявка:</span>
+                  <p className="text-neutral-700 dark:text-neutral-300">
+                    {new Date(request.created_at).toLocaleDateString('bg-BG')}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {request.message && (
+            <div className="mb-4">
+              <div className="flex items-center gap-2 mb-2">
+                <MessageCircle className="w-4 h-4 text-neutral-400" />
+                <span className="font-medium text-neutral-700 dark:text-neutral-300">Съобщение:</span>
+              </div>
+              <div className="p-3 bg-neutral-50 dark:bg-neutral-800/50 rounded-lg border border-neutral-200 dark:border-neutral-700">
+                <p className="text-neutral-700 dark:text-neutral-300">{request.message}</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="flex lg:flex-col gap-2">
+          <button
+            onClick={handleApprove}
+            disabled={isProcessing || request.status !== 'pending'}
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 disabled:bg-neutral-400 text-white rounded-lg font-medium transition-colors"
+          >
+            {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+            Одобри
+          </button>
+          <button
+            onClick={handleReject}
+            disabled={isProcessing || request.status !== 'pending'}
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 disabled:bg-neutral-400 text-white rounded-lg font-medium transition-colors"
+          >
+            {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
+            Откажи
+          </button>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export async function getPendingBins(): Promise<Bin[]> {
@@ -366,11 +527,18 @@ export async function getReports(): Promise<Report[]> {
 
 export async function getStats() {
   try {
-    const [{ count: pending }, { count: approved }, { count: suggestions }, { count: reports }] = await Promise.all([
+    const [
+      { count: pending },
+      { count: approved },
+      { count: suggestions },
+      { count: reports },
+      { count: orgRequests }
+    ] = await Promise.all([
       supabase.from("pending_bins").select("*", { count: "exact", head: true }).eq("status", "pending"),
       supabase.from("recycling_bins").select("*", { count: "exact", head: true }),
       supabase.from("edit_suggestions").select("*", { count: "exact", head: true }).eq("status", "pending"),
       supabase.from("reports").select("*", { count: "exact", head: true }).eq("resolved", false),
+      supabase.from("organization_requests").select("*", { count: "exact", head: true }).eq("status", "pending"),
     ])
 
     return {
@@ -379,9 +547,10 @@ export async function getStats() {
       total: (pending || 0) + (approved || 0),
       suggestions: suggestions || 0,
       reports: reports || 0,
+      orgRequests: orgRequests || 0,
     }
   } catch (error) {
-    return { pending: 0, approved: 0, total: 0, suggestions: 0, reports: 0 }
+    return { pending: 0, approved: 0, total: 0, suggestions: 0, reports: 0, orgRequests: 0 }
   }
 }
 
@@ -389,53 +558,6 @@ function getStorageImageUrl(filePath: string): string {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
   return `${supabaseUrl}/storage/v1/object/public/bins/${filePath}`
 }
-/*
-async function getBinImages(binId: string): Promise<string[]> {
-  try {
-    const { data, error } = await supabase.storage
-      .from('bins')
-      .list(binId, {
-        limit: 100,
-        offset: 0,
-        sortBy: { column: 'name', order: 'asc' }
-      })
-
-    if (error) {
-      console.error('Error fetching bin images:', error);
-      console.error('Error details:', {
-        message: error.message
-      });
-      return [];
-    }
-
-    console.log(`Files found for bin ${binId}:`, data);
-
-    if (!data || data.length === 0) {
-      console.log(`ℹNo files found in bucket 'bins' for bin ID: ${binId}`);
-      return [];
-    }
-
-    const imageUrls = data
-      .filter(file => {
-        const extension = file.name.toLowerCase().split('.').pop();
-        const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'].includes(extension || '');
-        console.log(`📄 File: ${file.name}, extension: .${extension}, isImage: ${isImage}`);
-        return isImage;
-      })
-      .map(file => {
-        const url = getStorageImageUrl(`${binId}/${file.name}`);
-        console.log(`🔗 Generated URL: ${url}`);
-        return url;
-      });
-
-    console.log(`Total image URLs for bin ${binId}: ${imageUrls.length}`);
-    return imageUrls;
-  } catch (error) {
-    console.error('Error in getBinImages:', error);
-    return [];
-  }
-}
-*/
 
 export async function approveBin(binId: string, binData: Bin): Promise<boolean> {
   try {
@@ -503,6 +625,42 @@ export async function rejectBin(binId: string): Promise<boolean> {
     return true
   } catch (error) {
     console.error("Грешка:", error)
+    return false
+  }
+}
+
+export async function approveOrganizationRequest(requestId: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from("organization_requests")
+      .update({
+        status: "approved",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", requestId)
+
+    if (error) throw error
+    return true
+  } catch (error) {
+    console.error("Грешка при одобряване на заявка:", error)
+    return false
+  }
+}
+
+export async function rejectOrganizationRequest(requestId: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from("organization_requests")
+      .update({
+        status: "rejected",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", requestId)
+
+    if (error) throw error
+    return true
+  } catch (error) {
+    console.error("Грешка при отхвърляне на заявка:", error)
     return false
   }
 }
@@ -1614,9 +1772,10 @@ export function AdminPanel() {
   const [bins, setBins] = useState<Bin[]>([])
   const [suggestions, setSuggestions] = useState<EditSuggestion[]>([])
   const [reports, setReports] = useState<Report[]>([])
-  const [stats, setStats] = useState({ pending: 0, approved: 0, total: 0, suggestions: 0, reports: 0 })
+  const [orgRequests, setOrgRequests] = useState<OrganizationRequest[]>([])
+  const [stats, setStats] = useState({ pending: 0, approved: 0, total: 0, suggestions: 0, reports: 0, orgRequests: 0 })
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<"bins" | "suggestions" | "reports">("bins")
+  const [activeTab, setActiveTab] = useState<"bins" | "suggestions" | "reports" | "orgRequests">("bins")
   const [searchQuery, setSearchQuery] = useState("")
   const [darkMode, setDarkMode] = useState(false)
 
@@ -1642,15 +1801,17 @@ export function AdminPanel() {
   const loadData = async () => {
     setLoading(true)
     try {
-      const [binsData, suggestionsData, reportsData, statsData] = await Promise.all([
+      const [binsData, suggestionsData, reportsData, orgRequestsData, statsData] = await Promise.all([
         getPendingBins(),
         getEditSuggestions(),
         getReports(),
+        getOrganizationRequests(),
         getStats(),
       ])
       setBins(binsData)
       setSuggestions(suggestionsData)
       setReports(reportsData)
+      setOrgRequests(orgRequestsData)
       setStats(statsData)
     } catch (error) {
       console.error("Грешка при зареждане:", error)
@@ -1669,27 +1830,33 @@ export function AdminPanel() {
     if (success) loadData()
   }
 
-  // Одобряване на 
   const handleApproveSuggestion = async (suggestionId: string, suggestionData: EditSuggestion) => {
     const success = await approveSuggestion(suggestionId, suggestionData)
-    if (success) loadData() // Презараждена на данните
+    if (success) loadData()
   }
 
-  // За отказване
   const handleRejectSuggestion = async (suggestionId: string) => {
     const success = await rejectSuggestion(suggestionId)
     if (success) loadData()
   }
 
-  // За отбелязване на оправени доклади
   const handleResolveReport = async (reportId: string) => {
     const success = await resolveReport(reportId)
     if (success) loadData()
   }
 
-  // За изтриване на доклади
   const handleDeleteReport = async (reportId: string) => {
     const success = await deleteReport(reportId)
+    if (success) loadData()
+  }
+
+  const handleApproveOrgRequest = async (requestId: string) => {
+    const success = await approveOrganizationRequest(requestId)
+    if (success) loadData()
+  }
+
+  const handleRejectOrgRequest = async (requestId: string) => {
+    const success = await rejectOrganizationRequest(requestId)
     if (success) loadData()
   }
 
@@ -1728,6 +1895,18 @@ export function AdminPanel() {
     return fields.some((field) => field.toLowerCase().includes(searchLower))
   })
 
+  const filteredOrgRequests = orgRequests.filter((request) => {
+    const searchLower = searchQuery.toLowerCase()
+    const fields = [
+      request.organization_name ?? "",
+      request.contact_name ?? "",
+      request.contact_email ?? "",
+      request.city ?? "",
+      request.country ?? "",
+    ]
+    return fields.some((field) => field.toLowerCase().includes(searchLower))
+  })
+
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900">
       <header className="bg-white dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700 sticky top-0 z-10">
@@ -1757,7 +1936,7 @@ export function AdminPanel() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
             <div className="bg-white dark:bg-neutral-800 rounded-lg p-4 border border-neutral-200 dark:border-neutral-700 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
@@ -1803,6 +1982,15 @@ export function AdminPanel() {
                 <Flag className="w-8 h-8 text-red-500" />
               </div>
             </div>
+            <div className="bg-white dark:bg-neutral-800 rounded-lg p-4 border border-neutral-200 dark:border-neutral-700 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-neutral-600 dark:text-neutral-400">Заявки</p>
+                  <p className="text-2xl font-bold text-neutral-900 dark:text-white">{stats.orgRequests}</p>
+                </div>
+                <Building className="w-8 h-8 text-purple-500" />
+              </div>
+            </div>
           </div>
         </div>
 
@@ -1816,7 +2004,7 @@ export function AdminPanel() {
                     className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                       activeTab === "bins"
                         ? "bg-neutral-600 dark:bg-neutral-600 text-white"
-                        : "text-neutral-600 dark:text-neutral-400 hover:bg--100 dark:hover:bg-neutral-700"
+                        : "text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700"
                     }`}
                   >
                     Кошове ({bins.length})
@@ -1840,6 +2028,16 @@ export function AdminPanel() {
                     }`}
                   >
                     Отчети ({reports.length})
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("orgRequests")}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                      activeTab === "orgRequests"
+                        ? "bg-neutral-600 dark:bg-neutral-600 text-white"
+                        : "text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+                    }`}
+                  >
+                    Заявки ({orgRequests.length})
                   </button>
                 </div>
                 <div className="relative flex-1 sm:w-64">
@@ -1877,10 +2075,12 @@ export function AdminPanel() {
                 </div>
               )
             ) : activeTab === "suggestions" ? (
-              suggestions.length === 0 ? (
+              filteredSuggestions.length === 0 ? (
                 <div className="text-center py-12">
                   <PenLine className="w-12 h-12 text-neutral-400 mx-auto mb-4" />
-                  <p className="text-neutral-500 dark:text-neutral-400">Няма чакащи предложения</p>
+                  <p className="text-neutral-500 dark:text-neutral-400">
+                    {searchQuery ? "Няма намерени резултати" : "Няма чакащи предложения"}
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -1910,6 +2110,26 @@ export function AdminPanel() {
                       report={report}
                       onResolve={handleResolveReport}
                       onDelete={handleDeleteReport}
+                    />
+                  ))}
+                </div>
+              )
+            ) : activeTab === "orgRequests" ? (
+              filteredOrgRequests.length === 0 ? (
+                <div className="text-center py-12">
+                  <Building className="w-12 h-12 text-neutral-400 mx-auto mb-4" />
+                  <p className="text-neutral-500 dark:text-neutral-400">
+                    {searchQuery ? "Няма намерени резултати" : "Няма чакащи заявки"}
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {filteredOrgRequests.map((request) => (
+                    <OrganizationRequestDetails
+                      key={request.id}
+                      request={request}
+                      onApprove={handleApproveOrgRequest}
+                      onReject={handleRejectOrgRequest}
                     />
                   ))}
                 </div>

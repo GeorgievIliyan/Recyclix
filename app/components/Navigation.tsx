@@ -48,7 +48,7 @@ export function Navigation({ className }: { className?: string }) {
 
   return (
     <LayoutGroup>
-      {/* Desktop Navigation */}
+      {/* навигация за десктоп */}
       <div className="hidden md:flex fixed top-5 left-0 right-0 z-[100] justify-center pointer-events-none">
         <nav className={cn(
           "pointer-events-auto relative flex items-center gap-1 p-1.5 rounded-full transition-all duration-200",
@@ -83,13 +83,13 @@ export function Navigation({ className }: { className?: string }) {
         </nav>
       </div>
 
-      {/* Mobile Navigation - Wider & Spacious UX */}
+      {/* За мобилни у-ва*/}
       <div className={cn(
         "md:hidden fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] transition-all duration-300 ease-in-out",
         isVisible ? "translate-y-0 opacity-100" : "translate-y-24 opacity-0"
       )}>
         <nav className={cn(
-          "flex items-center gap-10 px-9 py-3 rounded-full", // Увеличено разстояние (gap-10) и вътрешен отстъп (px-9)
+          "flex items-center gap-10 px-9 py-3 rounded-full",
           "bg-white/70 dark:bg-zinc-900/85 backdrop-blur-2xl",
           "border border-white/30 dark:border-white/10",
           "shadow-[0_12px_40px_rgba(0,0,0,0.12)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)]",

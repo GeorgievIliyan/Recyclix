@@ -3,7 +3,7 @@
 import { useRef, useState, useEffect } from "react";
 import { Scan, CameraIcon, CheckCircle2, X, CircleX, Hash, Sparkles, Leaf } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
-import { SimpleSpinningRecycling } from "./RecyclingLoader";
+import { RecyclingLoader, SimpleSpinningRecycling, SpinningRecyclingLoader } from "./RecyclingLoader";
 import { isDev } from "@/lib/isDev";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
@@ -272,7 +272,7 @@ export default function BinCamera({ target, binId }: Props) {
               <div className="flex flex-col items-center text-center gap-6">
                 <div className="flex flex-col items-center gap-2">
                   <CheckCircle2 className="w-12 h-12 text-green-500" />
-                  <h3 className="text-2xl font-bold">
+                  <h3 className="text-4xl font-bold">
                     {target ? "Правилен контейнер" : materialLabels[prediction!]}
                   </h3>
                 </div>
@@ -281,16 +281,16 @@ export default function BinCamera({ target, binId }: Props) {
                 <div className="flex flex-wrap gap-2 w-full justify-center">
                   <div className="bg-primary/10 px-3 py-2 rounded-lg flex items-center gap-2 border border-primary/20">
                     <Hash className="w-4 h-4 text-primary" />
-                    <span className="text-sm font-bold text-primary">{itemCount} бр.</span>
+                    <span className="text-sm font-semibold text-primary">{itemCount} бр.</span>
                   </div>
                   <div className="bg-amber-500/10 px-3 py-2 rounded-lg flex items-center gap-2 border border-amber-500/20">
                     <Sparkles className="w-4 h-4 text-amber-500" />
-                    <span className="text-sm font-bold text-amber-600">+{qrData?.points || 0} т.</span>
+                    <span className="text-sm font-semibold text-amber-600">+{qrData?.points || 0} т.</span>
                   </div>
                    {/* CO2 индикатор */}
                   <div className="bg-emerald-500/10 px-3 py-2 rounded-lg flex items-center gap-2 border border-emerald-500/20">
                     <Leaf className="w-4 h-4 text-emerald-500" />
-                    <span className="text-sm font-bold text-emerald-600">{co2Saved}кг CO₂</span>
+                    <span className="text-sm font-semibold text-emerald-600">{co2Saved} кг. CO₂</span>
                   </div>
                 </div>
 
@@ -314,7 +314,7 @@ export default function BinCamera({ target, binId }: Props) {
                 ) : (
                   <div className="flex flex-col items-center gap-3">
                     <div className="p-5 bg-background/50 dark:bg-[#1D1D1D] rounded-lg">
-                      <SimpleSpinningRecycling />
+                      <SpinningRecyclingLoader />
                     </div>
                     <p className="text-base text-muted-foreground">Генериране на награда...</p>
                   </div>
