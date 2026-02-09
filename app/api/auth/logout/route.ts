@@ -1,10 +1,9 @@
 import { supabaseServer } from "@/lib/supabase-server";
 import { NextRequest, NextResponse } from "next/server";
 
-const supabase = supabaseServer()
-
 export async function POST() {
   try {
+    const supabase = supabaseServer()
     const response = NextResponse.redirect("/login");
 
     response.cookies.set("sb-access-token", "", { path: "/", maxAge: 0 });
