@@ -200,16 +200,181 @@ function OrganizationRequestDetails({
 }) {
   const [isProcessing, setIsProcessing] = useState(false)
 
+  const sendApprovalEmail = () => {
+    // Създаване на тема и съдържание на имейл
+    const subject = encodeURIComponent(`Заявка за кошове от ${request.organization_name} - ОДОБРЕНО`);
+    const body = encodeURIComponent(
+      `Уважаеми/а ${request.contact_name},
+
+      Вашата заявка за получаване на ${request.intended_bin_count} кош${request.intended_bin_count > 1 ? 'а' : ''} за рециклиране е одобрена!
+
+      Детайли на заявката:
+      - Организация: ${request.organization_name}
+      - Тип организация: ${request.organization_type}
+      - Контактно лице: ${request.contact_name}
+      - Брой кошове: ${request.intended_bin_count}
+      ${request.city ? `- Град: ${request.city}` : ''}
+      ${request.country ? `- Държава: ${request.country}` : ''}
+      ${request.message ? `- Съобщение: ${request.message}` : ''}
+
+      Следващи стъпки:
+      1. Ще се свържем с вас в рамките на 2 работни дни за координиране на доставката.
+      2. Ще ви предоставим инструкции за инсталиране и използване на кошовете.
+
+      За допълнителни въпроси, можете да се свържете с нас на този имейл.
+
+      С уважение,
+      Екипът на Recyclix`
+    );  
+    
+    // Създаване на линк и отваряне в нов прозорец
+    const mailtoLink =
+    `https://mail.google.com/mail/u/0/?view=cm&fs=1` +
+    `&to=${encodeURIComponent(request.contact_email)}` +
+    `&su=${encodeURIComponent(subject)}` +
+    `&body=${encodeURIComponent(body)}`;
+
+    
+    // Първо пробвайте с window.open
+    const emailWindow = window.open(mailtoLink, '_blank');
+    
+    // Ако window.open не работи, пробвайте със създаване на линк и кликване
+    if (!emailWindow || emailWindow.closed || typeof emailWindow.closed === 'undefined') {
+      const link = document.createElement('a');
+      link.href = mailtoLink;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  }
+
+  const sendRejectionEmail = () => {
+    const subject = encodeURIComponent(`Заявка за кошове от ${request.organization_name} - ОТХВЪРЛЕНА`);
+    const body = encodeURIComponent(
+      `Уважаеми/а ${request.contact_name},
+
+      Съжаляваме да Ви информираме, че вашата заявка за получаване на ${request.intended_bin_count} кош${request.intended_bin_count > 1 ? 'а' : ''} за рециклиране не бе одобрена.
+
+      Детайли на заявката:
+      - Организация: ${request.organization_name}
+      - Тип организация: ${request.organization_type}
+      - Контактно лице: ${request.contact_name}
+      - Брой кошове: ${request.intended_bin_count}
+      ${request.city ? `- Град: ${request.city}` : ''}
+      ${request.country ? `- Държава: ${request.country}` : ''}
+
+      Причина за отхвърляне:
+      -
+
+      Можете да подадете нова заявка след 24 часа.
+
+      За допълнителна информация, моля свържете се с нас.
+
+      С уважение,
+      Екипът на Recyclix`
+    );
+
+    // Създаване на линк и отваряне в нов прозорец
+    const mailtoLink = `mailto:${request.contact_email}?subject=${subject}&body=${body}`;
+    
+    const emailWindow = window.open(mailtoLink, '_blank');
+    
+    if (!emailWindow || emailWindow.closed || typeof emailWindow.closed === 'undefined') {
+      const link = document.createElement('a');
+      link.href = mailtoLink;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  }
+
   const handleApprove = async () => {
-    setIsProcessing(true)
-    await onApprove(request.id)
-    setIsProcessing(false)
+    const confirmMessage = `Сигурни ли сте, че искате да одобрите заявката от "${request.organization_name}"? След потвърждение ще се отвори имейл клиент за изпращане на одобрение.`;
+    
+    if (!window.confirm(confirmMessage)) {
+      return; // Потребителят отмени
+    }
+
+    setIsProcessing(true);
+    
+    try {
+      // Първо отваряме имейл клиент
+      sendApprovalEmail();
+      
+      // Дадем малко време преди да одобрим в базата данни
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // След това одобряваме заявката в базата данни
+      await onApprove(request.id);
+    } catch (error) {
+      console.error("Грешка при одобряване на заявка:", error);
+    } finally {
+      setIsProcessing(false);
+    }
   }
 
   const handleReject = async () => {
-    setIsProcessing(true)
-    await onReject(request.id)
-    setIsProcessing(false)
+    const confirmMessage = `Сигурни ли сте, че искате да отхвърлите заявката от "${request.organization_name}"?`;
+    
+    if (!window.confirm(confirmMessage)) {
+      return; // Потребителят отмени
+    }
+
+    const sendEmail = window.confirm('Желаете ли да изпратите имейл за отхвърляне?');
+    
+    setIsProcessing(true);
+    
+    try {
+      if (sendEmail) {
+        sendRejectionEmail();
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+      await onReject(request.id);
+    } catch (error) {
+      console.error("Грешка при отхвърляне на заявка:", error);
+    } finally {
+      setIsProcessing(false);
+    }
+  }
+
+  const handleSendEmailOnly = () => {
+    const subject = encodeURIComponent(`Заявка за кошове от ${request.organization_name}`);
+    const body = encodeURIComponent(
+      `Уважаеми/а ${request.contact_name},
+
+      Относно Вашата заявка за получаване на ${request.intended_bin_count} кош${request.intended_bin_count > 1 ? 'а' : ''} за рециклиране.
+
+      Детайли на заявката:
+      - Организация: ${request.organization_name}
+      - Тип организация: ${request.organization_type}
+      - Контактно лице: ${request.contact_name}
+      - Брой кошове: ${request.intended_bin_count}
+      ${request.city ? `- Град: ${request.city}` : ''}
+      ${request.country ? `- Държава: ${request.country}` : ''}
+      ${request.message ? `- Съобщение: ${request.message}` : ''}
+
+      С уважение,
+      Екипът на Recyclix`
+    );
+
+    // Създаване на линк и отваряне в нов прозорец
+    const mailtoLink = `mailto:${request.contact_email}?subject=${subject}&body=${body}`;
+    
+    const emailWindow = window.open(mailtoLink, '_blank');
+    
+    if (!emailWindow || emailWindow.closed || typeof emailWindow.closed === 'undefined') {
+      const link = document.createElement('a');
+      link.href = mailtoLink;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   }
 
   return (
@@ -246,7 +411,20 @@ function OrganizationRequestDetails({
                 <div>
                   <span className="text-sm text-neutral-500 dark:text-neutral-400">Контактно лице:</span>
                   <p className="text-neutral-700 dark:text-neutral-300 font-medium">{request.contact_name}</p>
-                  <p className="text-sm text-neutral-600 dark:text-neutral-400">{request.contact_email}</p>
+                  <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                    <a 
+                      href={`mailto:${request.contact_email}`}
+                      className="text-blue-500 hover:underline"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        window.open(`mailto:${request.contact_email}`, '_blank');
+                      }}
+                    >
+                      {request.contact_email}
+                    </a>
+                  </p>
                 </div>
               </div>
 
@@ -298,28 +476,43 @@ function OrganizationRequestDetails({
         </div>
 
         <div className="flex lg:flex-col gap-2">
-          <button
-            onClick={handleApprove}
-            disabled={isProcessing || request.status !== 'pending'}
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 disabled:bg-neutral-400 text-white rounded-lg font-medium transition-colors"
-          >
-            {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
-            Одобри
-          </button>
-          <button
-            onClick={handleReject}
-            disabled={isProcessing || request.status !== 'pending'}
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 disabled:bg-neutral-400 text-white rounded-lg font-medium transition-colors"
-          >
-            {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
-            Откажи
-          </button>
+          {request.status === 'pending' && (
+            <>
+              <button
+                onClick={handleSendEmailOnly}
+                disabled={isProcessing}
+                className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-neutral-400 text-white rounded-lg font-medium transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                Изпрати имейл
+              </button>
+              
+              <button
+                onClick={handleApprove}
+                disabled={isProcessing}
+                className="flex items-center justify-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 disabled:bg-neutral-400 text-white rounded-lg font-medium transition-colors"
+              >
+                {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+                Одобри
+              </button>
+              
+              <button
+                onClick={handleReject}
+                disabled={isProcessing}
+                className="flex items-center justify-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 disabled:bg-neutral-400 text-white rounded-lg font-medium transition-colors"
+              >
+                {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
+                Откажи
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>
   )
 }
-
 export async function getPendingBins(): Promise<Bin[]> {
   try {
     const { data, error } = await supabase
