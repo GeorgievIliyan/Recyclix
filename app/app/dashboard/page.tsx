@@ -1,18 +1,36 @@
 'use client'
 
+export const dynamic = 'force-dynamic'
+
 import { useEffect, useState } from 'react'
 import { Recycle, Sparkles, Flame, Calendar } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import dynamicImport from 'next/dynamic' // Renamed import to avoid conflict
 import { RecyclingLoader } from '@/app/components/RecyclingLoader'
 
 import { StatCard } from '@/app/components/StatCard'
-import { RecyclingActivityChart } from '@/app/components/RecyclingActivityChart'
-import { MaterialsBreakdownChart } from '@/app/components/MaterialsBreakdownChart'
 import { GamificationProgress } from '@/app/components/GamificationProgress'
 import { RecentActivity } from '@/app/components/RecentActivity'
 import { Navigation } from '@/app/components/Navigation'
 import { BadgesGallery } from '@/app/components/BadgesGallery'
 import { supabase } from '@/lib/supabase-browser'
+
+// 2. Load chart components dynamically to prevent "window is not defined" error
+const RecyclingActivityChart = dynamicImport(
+  () => import('@/app/components/RecyclingActivityChart').then(mod => mod.RecyclingActivityChart),
+  { 
+    ssr: false,
+    loading: () => <div className="h-[300px] w-full bg-muted animate-pulse rounded-lg" />
+  }
+)
+
+const MaterialsBreakdownChart = dynamicImport(
+  () => import('@/app/components/MaterialsBreakdownChart').then(mod => mod.MaterialsBreakdownChart),
+  { 
+    ssr: false,
+    loading: () => <div className="h-[300px] w-full bg-muted animate-pulse rounded-lg" />
+  }
+)
 
 // типове
 type RecyclingEvent = {
@@ -59,8 +77,15 @@ export default function DashboardPage() {
   const [activityData, setActivityData] = useState<ActivityPoint[]>([])
   const [materialsData, setMaterialsData] = useState<MaterialPoint[]>([])
   const [recentActivities, setRecentActivities] = useState<RecentActivityItem[]>([])
+  const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {
+    setIsClient(true)
+  }, [])
+
+  useEffect(() => {
+    if (!isClient) return
+
     const loadDashboard = async () => {
       try {
         const { data: userDataResponse } = await supabase.auth.getUser()
@@ -179,9 +204,18 @@ export default function DashboardPage() {
     }
 
     loadDashboard()
-  }, [router])
+  }, [router, isClient])
 
   if (loading || !userData) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <RecyclingLoader />
+      </div>
+    )
+  }
+
+  // Don't render chart components during SSR
+  if (!isClient) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <RecyclingLoader />
