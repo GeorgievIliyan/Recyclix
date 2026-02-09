@@ -2,11 +2,11 @@
 
 import { CheckCircle2, XCircle, Clock, AlertCircle } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 
 type ClaimStatus = "loading" | "valid" | "invalid" | "expired" | "claimed";
 
-export default function ClaimPage() {
+function ClaimContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
@@ -187,5 +187,22 @@ export default function ClaimPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ClaimPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center p-4 bg-background">
+        <div className="max-w-md w-full text-center bg-card border rounded-xl shadow-lg p-8">
+          <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-6">
+            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          </div>
+          <h1 className="text-2xl font-bold mb-2">Зареждане...</h1>
+        </div>
+      </div>
+    }>
+      <ClaimContent />
+    </Suspense>
   );
 }
