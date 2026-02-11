@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
   const isDev = process.env.NODE_ENV === "development";
 
   if (!isDev) {
-    if (!token || token !== process.env.SECURE_API_KEY) {
+    if (!token || token !== process.env.NEXT_PUBLIC_SECURE_API_KEY) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
   }

@@ -7,6 +7,7 @@ import { RecyclingLoader, SimpleSpinningRecycling, SpinningRecyclingLoader } fro
 import { isDev } from "@/lib/isDev";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
+import { env } from "process";
 
 // типове
 type MaterialType = "plastic" | "textile" | "metal" | "paper" | "glass" | "unknown";
@@ -176,7 +177,10 @@ export default function BinCamera({ target, binId }: Props) {
     try {
       const qrRes = await fetch("/api/temporary-qr", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "x-api-token": process.env.NEXT_PUBLIC_SECURE_API_KEY!
+        },
         body: JSON.stringify({
           points: points,
           binCode: binId,
