@@ -163,7 +163,8 @@ const materialTranslations: Record<string, string> = {
   "small electrical appliances": "малки електоур.",
   "metal packaging": "метални опаковки",
   "glass jars": "стъклени буркани",
-  "beverage cartons": "опаковки от сок"
+  "beverage cartons": "опаковки от сок",
+  "construction materials": "строителни материали"
 }
 
 const dayMap: Record<string, string> = {
@@ -918,7 +919,7 @@ const FilterPanel = memo(function FilterPanel({
   if (!showFilterPanel) return null
 
   return (
-    <div className="absolute top-[160px] left-[10px] z-[1000] bg-white p-4 rounded-md shadow-lg border max-w-xs w-64">
+    <div className="absolute top-[8px] left-[54px] z-[1000] bg-white p-4 rounded-md shadow-lg border max-w-xs w-64">
       <div className="flex justify-between items-center mb-4">
         <h3 className="font-semibold text-lg text-gray-800">Филтри за материали</h3>
         <button onClick={() => setShowFilterPanel(false)} className="p-1 hover:bg-gray-100 rounded">
@@ -2448,7 +2449,7 @@ export default function MapComponent({ bins, onNewBinCreated, jawgApiKey }: MapP
       {/* Копче за нулиране на изгледа */}
       <button
         onClick={handleZoomHome}
-        className="absolute top-[80px] left-[10px] z-[1000] bg-white dark:bg-neutral-800 p-2 rounded-md shadow-md border hover:bg-gray-50 transition-colors"
+        className="absolute top-[52px] left-[8px] z-[1000] bg-white dark:bg-neutral-800 p-2 rounded-md shadow-md border hover:bg-gray-50 transition-colors"
         title="Нулирай изгледа"
         disabled={isSubmitting || uploadingImages}
       >
@@ -2458,7 +2459,7 @@ export default function MapComponent({ bins, onNewBinCreated, jawgApiKey }: MapP
       {/* Копче за показване/скриване на филтрите */}
       <button
         onClick={() => setShowFilterPanel(!showFilterPanel)}
-        className="absolute top-[120px] left-[10px] z-[1000] bg-white dark:bg-neutral-800 p-2 rounded-md shadow-md border hover:bg-gray-50 transition-colors"
+        className="absolute top-[8px] left-[8px] z-[1000] bg-white dark:bg-neutral-800 p-2 rounded-md shadow-md border hover:bg-gray-50 transition-colors"
         title="Филтри"
         disabled={isSubmitting || uploadingImages}
       >

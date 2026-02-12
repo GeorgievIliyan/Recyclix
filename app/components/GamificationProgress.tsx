@@ -24,7 +24,8 @@ export function GamificationProgress({ totalXp }: GamificationProgressProps) {
   const progressPercentage = (currentXp / xpForNextLevel) * 100
 
   return (
-    <div className="group relative backdrop-blur-xl bg-gradient-to-br from-white/90 via-white/80 to-zinc-50/90 dark:from-zinc-900/70 dark:via-zinc-900/60 dark:to-zinc-800/70 rounded-xl border border-zinc-200/50 dark:border-zinc-800/50 shadow-md hover:shadow-xl hover:border-green-500/30 transition-all duration-300 overflow-hidden">
+    /* h-fit prevents the component from stretching vertically in flex/grid layouts */
+    <div className="group relative h-fit backdrop-blur-xl bg-gradient-to-br from-white/90 via-white/80 to-zinc-50/90 dark:from-zinc-900/70 dark:via-zinc-900/60 dark:to-zinc-800/70 rounded-xl border border-zinc-200/50 dark:border-zinc-800/50 shadow-md hover:shadow-xl hover:border-green-500/30 transition-all duration-300 overflow-hidden">
       {/* Декоративен градиент във фона */}
       <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-green-500/10 to-transparent rounded-full blur-2xl" />
       <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-emerald-400/10 to-transparent rounded-full blur-2xl" />
@@ -32,8 +33,8 @@ export function GamificationProgress({ totalXp }: GamificationProgressProps) {
       <div className="relative z-10">
         <div className="p-4 sm:p-6 border-b border-zinc-200/50 dark:border-zinc-800/50">
           <h3 className="text-lg sm:text-xl font-semibold flex items-center gap-3 text-card-foreground">
-            <div className="p-2 bg-gradient-to-br from-green-400 via-green-500 to-emerald-600 rounded-xl shadow-lg shadow-green-500/30 group-hover:shadow-green-500/50 group-hover:scale-110 transition-all duration-300">
-              <TrendingUp className='h-5 w-5 text-white'/>
+            <div className="p-2 bg-gradient-to-br from-lime-500/20 to-lime-600/20 rounded-lg group-hover:scale-110 transition-transform duration-300">
+              <TrendingUp className='h-8 w-8 text-lime-500'/>
             </div>
             Прогрес
           </h3>
