@@ -64,7 +64,7 @@ export const RECYCLING_COLORS: Record<string, string> = {
   plastic: "bg-gradient-to-r from-yellow-400 to-yellow-500",
   metal: "bg-gradient-to-r from-gray-400 to-gray-500",
   aluminum: "bg-gradient-to-r from-gray-400 to-gray-500",
-  glass: "bg-gradient-to-r from-green-400 to-green-500",
+  glass: "bg-gradient-to-r from-emerald-400 to-emerald-500",
   green_glass: "bg-gradient-to-r from-emerald-400 to-emerald-500",
   brown_glass: "bg-gradient-to-r from-amber-400 to-amber-500",
   white_glass: "bg-gradient-to-r from-slate-400 to-slate-500",
@@ -77,7 +77,7 @@ export const RECYCLING_COLORS: Record<string, string> = {
   clothing: "bg-gradient-to-r from-pink-400 to-pink-500",
   general: "bg-gradient-to-r from-red-400 to-red-500",
   residual: "bg-gradient-to-r from-red-400 to-red-500",
-  container: "bg-gradient-to-r from-green-400 to-green-500",
+  container: "bg-gradient-to-r from-emerald-400 to-emerald-500",
   center: "bg-gradient-to-r from-indigo-400 to-indigo-500",
   dropoff: "bg-gradient-to-r from-cyan-400 to-cyan-500",
   waste_basket: "bg-gradient-to-r from-red-400 to-red-500",
@@ -101,7 +101,7 @@ const FILTER_OPTIONS = [
   {
     id: "glass",
     label: "Стъкло",
-    color: "bg-gradient-to-r from-green-400 to-green-500",
+    color: "bg-gradient-to-r from-emerald-400 to-emerald-500",
     keywords: ["glass", "green_glass", "brown_glass", "white_glass", "glass_bottles"],
   },
   {
@@ -330,18 +330,18 @@ const getColorForBin = (bin: Bin): string => {
   }
 
   if (types.length > 1) {
-    return "bg-gradient-to-r from-green-400 to-green-500"
+    return "bg-gradient-to-r from-emerald-400 to-emerald-500"
   }
   
   if (recyclingTags.length > 1) {
-    return "bg-gradient-to-r from-green-400 to-green-500"
+    return "bg-gradient-to-r from-emerald-400 to-emerald-500"
   }
 
   const hasRecyclingTypes = bin.tags?.recycling_type && bin.tags.recycling_type.trim().length > 0
   const hasRecyclingTags = recyclingTags.length > 0
   
   if (!hasRecyclingTypes && !hasRecyclingTags) {
-    return "bg-gradient-to-r from-green-400 to-green-500"
+    return "bg-gradient-to-r from-emerald-400 to-emerald-500"
   }
 
   for (const cleanType of types) {
@@ -398,7 +398,7 @@ const getColorForBin = (bin: Bin): string => {
   if (amenity === "waste_basket" || amenity === "waste_basket;recycling") {
     return RECYCLING_COLORS.waste_basket
   } else if (amenity === "recycling") {
-    return "bg-gradient-to-r from-green-400 to-green-500" 
+    return "bg-gradient-to-r from-emerald-400 to-emerald-500" 
   }
 
   return RECYCLING_COLORS.unknown
@@ -799,7 +799,7 @@ const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
               </button>
 
               <button
-                className="p-1.5 rounded-md hover:bg-green-100 hover:text-green-500 text-gray-600 dark:text-neutral-300 transition hover:text-gray-800 dark:hover:text-white"
+                className="p-1.5 rounded-md hover:bg-green-100 hover:text-green-500 text-gray-600 dark:text-neutral-300 transition hover:text-gray-800 dark:hover:bg-green-500/10 dark:hover:text-green-500 transition duration-150"
                 title="Предложи редактиране"
                 onClick={() => onEdit(bin)}
               >

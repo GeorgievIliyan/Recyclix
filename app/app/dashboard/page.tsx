@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
 import { Recycle, Sparkles, Flame, Calendar } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import dynamicImport from 'next/dynamic' // Renamed import to avoid conflict
+import dynamicImport from 'next/dynamic'
 import { RecyclingLoader } from '@/app/components/RecyclingLoader'
 
 import { StatCard } from '@/app/components/StatCard'
@@ -15,12 +15,12 @@ import { Navigation } from '@/app/components/Navigation'
 import { BadgesGallery } from '@/app/components/BadgesGallery'
 import { supabase } from '@/lib/supabase-browser'
 
-// 2. Load chart components dynamically to prevent "window is not defined" error
+// 1. Dynamic Chart Imports
 const RecyclingActivityChart = dynamicImport(
   () => import('@/app/components/RecyclingActivityChart').then(mod => mod.RecyclingActivityChart),
   { 
     ssr: false,
-    loading: () => <div className="h-[300px] w-full bg-muted animate-pulse rounded-lg" />
+    loading: () => <div className="h-[300px] w-full bg-muted/20 animate-pulse rounded-3xl" />
   }
 )
 
@@ -28,11 +28,11 @@ const MaterialsBreakdownChart = dynamicImport(
   () => import('@/app/components/MaterialsBreakdownChart').then(mod => mod.MaterialsBreakdownChart),
   { 
     ssr: false,
-    loading: () => <div className="h-[300px] w-full bg-muted animate-pulse rounded-lg" />
+    loading: () => <div className="h-[300px] w-full bg-muted/20 animate-pulse rounded-3xl" />
   }
 )
 
-// типове
+// --- Types ---
 type RecyclingEvent = {
   material: string
   points: number
@@ -68,7 +68,6 @@ type UserData = {
   currentStreak: number
 }
 
-// главна фунцкия
 export default function DashboardPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
@@ -96,14 +95,12 @@ export default function DashboardPage() {
         setUser(userDataResponse.user)
         const userId = userDataResponse.user.id
 
-        // от потребителския профил
         const { data: profile } = await supabase
           .from('user_profiles')
           .select('level, xp')
           .eq('id', userId)
           .single()
 
-        // взимане на всички събития
         const { data: events = [] } = await supabase
           .from('recycling_events')
           .select('material, points, co2_saved, created_at')
@@ -112,7 +109,7 @@ export default function DashboardPage() {
 
         const typedEvents = events as RecyclingEvent[]
 
-        // изчисляване на streak
+        // Streak Calculation
         const calculateStreak = () => {
           if (!typedEvents.length) return 0
           const sortedDates = [...new Set(
@@ -134,11 +131,9 @@ export default function DashboardPage() {
               break
             }
           }
-
           return streak
         }
 
-        // Общи данни
         const totalItems = typedEvents.length
         const totalPoints = typedEvents.reduce((sum, e) => sum + e.points, 0)
         const co2Saved = typedEvents.reduce((sum, e) => sum + e.co2_saved, 0)
@@ -154,7 +149,6 @@ export default function DashboardPage() {
           currentStreak: calculateStreak(),
         })
 
-        // Данни за графиките
         const activityMap = typedEvents.reduce<Record<string, ActivityPoint>>((acc, e) => {
           const day = new Date(e.created_at).toLocaleDateString('bg-BG', {
             day: 'numeric',
@@ -166,11 +160,11 @@ export default function DashboardPage() {
         }, {})
         setActivityData(Object.values(activityMap))
 
-        // за материалите
         const materialMap = typedEvents.reduce<Record<string, number>>((acc, e) => {
           acc[e.material] = (acc[e.material] ?? 0) + 1
           return acc
         }, {})
+        
         const colors = ['#22c55e', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#ec4899']
         setMaterialsData(
           Object.entries(materialMap).map(([name, value], index) => ({
@@ -180,7 +174,6 @@ export default function DashboardPage() {
           }))
         )
 
-        // Скорошни дейности
         setRecentActivities(
           typedEvents
             .sort((a, b) => b.created_at.localeCompare(a.created_at))
@@ -206,16 +199,7 @@ export default function DashboardPage() {
     loadDashboard()
   }, [router, isClient])
 
-  if (loading || !userData) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <RecyclingLoader />
-      </div>
-    )
-  }
-
-  // Don't render chart components during SSR
-  if (!isClient) {
+  if (loading || !userData || !isClient) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <RecyclingLoader />
@@ -226,49 +210,75 @@ export default function DashboardPage() {
   return (
     <>
       <Navigation />
-      <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900 md:pt-16 lg:pt-18">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-7xl">
-          <header className="mb-6 sm:mb-8">
+      
+      {/* FIXED BACKGROUND: 
+          1. Removed opacity stops (via-zinc-50/50) to prevent banding.
+          2. Added 'bg-fixed' so the gradient doesn't stretch too thin.
+          3. Added a noise overlay div to smooth transitions.
+      */}
+      <div className="relative min-h-screen bg-fixed bg-gradient-to-br from-neutral-50 via-neutral-100 to-zinc-200 dark:from-neutral-900 dark:via-neutral-950 dark:to-black md:pt-16 lg:pt-18 overflow-hidden">
+        
+        {/* Grain Overlay (Dithering) */}
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none z-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+
+        {/* Decorative Blur Elements */}
+        <div className="absolute top-20 -left-32 w-96 h-96 bg-[#00CD56]/10 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-40 -right-32 w-96 h-96 bg-emerald-400/10 rounded-full blur-[120px] pointer-events-none" />
+        
+        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-7xl">
+          
+          <header className="mb-8">
             <div className="flex items-center justify-between flex-wrap gap-4">
               <div>
-                <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-semibold">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-neutral-900 dark:text-neutral-50">
                   Добре дошъл,{' '}
-                  <span className="font-semibold text-foreground text-green-500">
+                  <span className="bg-gradient-to-r from-[#00CD56] to-emerald-500 bg-clip-text text-transparent">
                     {userData.username}
                   </span>
                   !
-                </p>
+                </h1>
               </div>
-              <div className="bg-green-500 text-white px-4 py-2 text-base sm:text-lg rounded-full font-semibold shadow-sm">
-                Ниво {userData.level}
+              <div className="relative overflow-hidden bg-[#00CD56] text-white px-6 py-2 rounded-full font-bold shadow-xl shadow-[#00CD56]/20">
+                <span className="relative z-10">Ниво {userData.level}</span>
+                <div className="absolute inset-0 bg-white/20 skew-x-12 translate-x-full group-hover:translate-x-0 transition-transform duration-500" />
               </div>
             </div>
           </header>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-            <StatCard title="Общи рециклирани" value={userData.totalItems} icon={<Recycle className="h-6 w-6" />} iconColor="text-green-500" iconBg="bg-muted" />
-            <StatCard title="Точки общо" value={userData.totalPoints} icon={<Sparkles className="h-6 w-6" />} iconColor="text-amber-500" iconBg="bg-muted" />
-            <StatCard title="Спестени CO₂" value={`${userData.co2Saved.toFixed(1)} кг`} icon={<Flame className="h-7 w-7" />} iconColor="text-yellow-400" iconBg="bg-muted" />
-            <StatCard title="Рекорд" value={`${userData.currentStreak} дни`} icon={<Calendar className="h-6 w-6" />} iconColor="text-sky-500" iconBg="bg-muted" />
+          {/* Stats Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <StatCard title="Общи рециклирани" value={userData.totalItems} icon={<Recycle className="h-6 w-6" />} iconColor="text-green-500" iconBg="bg-green-500/10" />
+            <StatCard title="Точки общо" value={userData.totalPoints} icon={<Sparkles className="h-6 w-6" />} iconColor="text-amber-500" iconBg="bg-amber-500/10" />
+            <StatCard title="Спестени CO₂" value={`${userData.co2Saved.toFixed(1)} кг`} icon={<Flame className="h-7 w-7" />} iconColor="text-yellow-500" iconBg="bg-yellow-500/10" />
+            <StatCard title="Рекорд" value={`${userData.currentStreak} дни`} icon={<Calendar className="h-6 w-6" />} iconColor="text-sky-500" iconBg="bg-sky-500/10" />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            <RecyclingActivityChart data={activityData} />
-            <MaterialsBreakdownChart data={materialsData} />
+          {/* Charts Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div className="backdrop-blur-md bg-white/70 dark:bg-zinc-900/70 rounded-3xl border border-white/20 dark:border-zinc-800/50 shadow-2xl p-4">
+              <RecyclingActivityChart data={activityData} />
+            </div>
+            
+            <div className="backdrop-blur-md bg-white/70 dark:bg-zinc-900/70 rounded-3xl border border-white/20 dark:border-zinc-800/50 shadow-2xl p-4">
+              <MaterialsBreakdownChart data={materialsData} />
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
+          {/* Progress & Recent Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <div className="lg:col-span-2 backdrop-blur-md bg-white/70 dark:bg-zinc-900/70 rounded-3xl border border-white/20 dark:border-zinc-800/50 shadow-2xl overflow-hidden">
               <GamificationProgress totalXp={userData.totalPoints} />
             </div>
-            <div>
+            <div className="backdrop-blur-md bg-white/70 dark:bg-zinc-900/70 rounded-3xl border border-white/20 dark:border-zinc-800/50 shadow-2xl overflow-hidden">
               <RecentActivity activities={recentActivities} />
             </div>
           </div>
 
-          <div className="my-4">
+          {/* Badges Section */}
+          <div className="backdrop-blur-md bg-white/70 dark:bg-zinc-900/70 rounded-3xl border border-white/20 dark:border-zinc-800/50 shadow-2xl overflow-hidden">
             <BadgesGallery userId={user?.id} />
           </div>
+
         </div>
       </div>
     </>

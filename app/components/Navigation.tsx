@@ -52,7 +52,7 @@ export function Navigation({ className }: { className?: string }) {
       <div className="hidden md:flex fixed top-5 left-0 right-0 z-[100] justify-center pointer-events-none">
         <nav className={cn(
           "pointer-events-auto relative flex items-center gap-1 p-1.5 rounded-full transition-all duration-200",
-          "bg-white/40 dark:bg-zinc-900/40 backdrop-blur-[45px]",
+          "bg-white/40 dark:bg-zinc-900/40 backdrop-blur-[10px]",
           "border border-white/40 dark:border-white/10 shadow-lg",
           className
         )}>
@@ -110,7 +110,7 @@ export function Navigation({ className }: { className?: string }) {
               >
                 <div className="relative">
                   <Icon className={cn(
-                    "h-6 w-6 transition-all duration-200", // Запазен голям размер на иконите
+                    "h-6 w-6 transition-all duration-200",
                     isActive ? "scale-110 drop-shadow-[0_0_8px_rgba(34,197,94,0.3)]" : "scale-100 opacity-80"
                   )} />
                   

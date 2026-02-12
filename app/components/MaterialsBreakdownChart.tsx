@@ -164,15 +164,20 @@ export function MaterialsBreakdownChart({ data }: MaterialsBreakdownChartProps) 
   }, [data, hasData])
 
   return (
-    <div className="bg-white dark:bg-neutral-900 rounded-xl border border-border dark:border-neutral-700 shadow-md overflow-hidden">
-      <div className="p-4 sm:p-6 border-b border-border dark:border-neutral-700 flex flex-row gap-3 items-center justify-items-center">
-        <Recycle className='h-8 w-8 text-green-500'/>
+    <div className="group relative bg-gradient-to-br from-white/90 via-white/80 to-zinc-50/90 dark:from-neutral-900/70 dark:via-neutral-900/60 dark:to-neutral-800/70 rounded-xl border border-border dark:border-neutral-700 shadow-md overflow-hidden hover:shadow-lg hover:border-green-500/30 dark:hover:border-green-500/30 transition-all duration-300">
+      {/* Деликатен градиентен акцент */}
+      <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-to-br from-green-500/10 to-transparent rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      
+      <div className="relative z-10 p-4 sm:p-6 border-b border-border dark:border-neutral-700 flex flex-row gap-3 items-center justify-items-center">
+        <div className="p-2 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-lg group-hover:scale-110 transition-transform duration-300">
+          <Recycle className='h-8 w-8 text-green-500'/>
+        </div>
         <div>
           <h3 className="text-lg sm:text-xl font-semibold text-foreground dark:text-white">Рециклирани материали</h3>
           <p className="text-xs sm:text-sm text-muted-foreground dark:text-neutral-400">Разпределени по тип</p>
         </div>
       </div>
-      <div className="p-4 sm:p-6">
+      <div className="relative z-10 p-4 sm:p-6">
         {hasData ? (
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>    
