@@ -1,6 +1,6 @@
-"use client"
-import { supabase } from "@/lib/supabase-browser"
-import { useState, useEffect, type ReactNode } from "react"
+"use client";
+import { supabase } from "@/lib/supabase-browser";
+import { useState, useEffect, type ReactNode } from "react";
 import {
   CheckCircle,
   XCircle,
@@ -29,128 +29,132 @@ import {
   MessageCircle,
   X,
   LogOut,
-} from "lucide-react"
-import LeafletMap from "./LeafletMap"
-import { SimpleSpinningRecycling } from "./RecyclingLoader"
-import LogoutButtonAlt from "./LogoutButtonAlt"
+} from "lucide-react";
+import LeafletMap from "./LeafletMap";
+import { SimpleSpinningRecycling } from "./RecyclingLoader";
+import LogoutButtonAlt from "./LogoutButtonAlt";
 
 export interface Bin {
-  id: string
-  code?: string
-  lat?: number
-  lon?: number
-  created_at?: string
-  operator?: string
-  count?: number
-  user_username?: string
-  user_email?: string
-  amenity?: "recycling" | "trash"
-  recycling_type?: string
-  recycling_clothes?: boolean
-  recycling_shoes?: boolean
-  tags?: Record<string, any>
-  image_url?: string
-  image_urls?: string[]
-  [key: string]: any
+  id: string;
+  code?: string;
+  lat?: number;
+  lon?: number;
+  created_at?: string;
+  operator?: string;
+  count?: number;
+  user_username?: string;
+  user_email?: string;
+  amenity?: "recycling" | "trash";
+  recycling_type?: string;
+  recycling_clothes?: boolean;
+  recycling_shoes?: boolean;
+  tags?: Record<string, any>;
+  image_url?: string;
+  image_urls?: string[];
+  [key: string]: any;
 }
 
 export type RecyclingBin = {
-  code: string
-  lat?: number
-  lon?: number
-  tags?: Record<string, any>
-  stats_today?: Record<string, any>
-  created_at: string
-  updated_at?: string
-  last_emptied?: string
-  osm_id?: string
-}
+  code: string;
+  lat?: number;
+  lon?: number;
+  tags?: Record<string, any>;
+  stats_today?: Record<string, any>;
+  created_at: string;
+  updated_at?: string;
+  last_emptied?: string;
+  osm_id?: string;
+};
 
 interface EditSuggestion {
-  id: string
-  bin_id: string
-  name?: string
-  opening_hours?: string
-  materials?: string
-  notes?: string
-  status: string
-  user_id: string
-  user_email?: string
-  created_at: string
-  updated_at?: string
-  reviewed_by?: string
-  reviewed_at?: string
-  review_notes?: string
-  bin?: Bin
-  field_name?: string
-  old_value?: any
-  new_value?: any
-  reason?: string
+  id: string;
+  bin_id: string;
+  name?: string;
+  opening_hours?: string;
+  materials?: string;
+  notes?: string;
+  status: string;
+  user_id: string;
+  user_email?: string;
+  created_at: string;
+  updated_at?: string;
+  reviewed_by?: string;
+  reviewed_at?: string;
+  review_notes?: string;
+  bin?: Bin;
+  field_name?: string;
+  old_value?: any;
+  new_value?: any;
+  reason?: string;
 }
 
 interface ReportImage {
-  id: string
-  report_id: string
-  photo_url: string
-  created_at: string
-  user_id: string
+  id: string;
+  report_id: string;
+  photo_url: string;
+  created_at: string;
+  user_id: string;
 }
 
 interface Report {
-  id: string
-  bin_id: string
-  user_id: string
-  type: string
-  title: string
-  description?: string
-  resolved: boolean
-  created_at: string
-  user_email?: string
-  user_username?: string
-  bin_code?: string
-  bin_lat?: number
-  bin_lon?: number
-  bin?: Bin
-  photo_url?: string
-  images?: ReportImage[]
+  id: string;
+  bin_id: string;
+  user_id: string;
+  type: string;
+  title: string;
+  description?: string;
+  resolved: boolean;
+  created_at: string;
+  user_email?: string;
+  user_username?: string;
+  bin_code?: string;
+  bin_lat?: number;
+  bin_lon?: number;
+  bin?: Bin;
+  photo_url?: string;
+  images?: ReportImage[];
 }
 
 interface OrganizationRequest {
-  id: string
-  organization_name: string
-  organization_type: 'municipality' | 'school' | 'company' | 'ngo' | 'other'
-  contact_name: string
-  contact_email: string
-  intended_bin_count: number
-  city?: string
-  country?: string
-  message: string
-  status: 'pending' | 'approved' | 'rejected'
-  created_at: string
+  id: string;
+  organization_name: string;
+  organization_type: "municipality" | "school" | "company" | "ngo" | "other";
+  contact_name: string;
+  contact_email: string;
+  intended_bin_count: number;
+  city?: string;
+  country?: string;
+  message: string;
+  status: "pending" | "approved" | "rejected";
+  created_at: string;
 }
 
 export async function checkAdminStatus(userId: string): Promise<boolean> {
   try {
     const {
       data: { user },
-    } = await supabase.auth.getUser()
-    if (user?.role === "service_role") return true
+    } = await supabase.auth.getUser();
+    if (user?.role === "service_role") return true;
 
-    const { data, error } = await supabase.from("profiles").select("is_admin").eq("id", userId).single()
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("is_admin")
+      .eq("id", userId)
+      .single();
 
-    return data?.is_admin === true
+    return data?.is_admin === true;
   } catch (error) {
-    return false
+    return false;
   }
 }
 
 function parseTagsObject(tags: any): {
-  amenity: string
-  recycling_type: string
-  operator: string
-  recycling_clothes: boolean
-  recycling_shoes: boolean
-  count: number
+  amenity: string;
+  recycling_type: string;
+  operator: string;
+  recycling_clothes: boolean;
+  recycling_shoes: boolean;
+  count: number;
 } {
   if (!tags || typeof tags !== "object") {
     return {
@@ -160,7 +164,7 @@ function parseTagsObject(tags: any): {
       recycling_clothes: false,
       recycling_shoes: false,
       count: 1,
-    }
+    };
   }
 
   return {
@@ -170,22 +174,24 @@ function parseTagsObject(tags: any): {
     recycling_clothes: tags["recycling:clothes"] === "yes",
     recycling_shoes: tags["recycling:shoes"] === "yes",
     count: Number.parseInt(tags.count) || 1,
-  }
+  };
 }
 
-export async function getOrganizationRequests(): Promise<OrganizationRequest[]> {
+export async function getOrganizationRequests(): Promise<
+  OrganizationRequest[]
+> {
   try {
     const { data, error } = await supabase
       .from("organization_requests")
       .select("*")
       .eq("status", "pending")
-      .order("created_at", { ascending: false })
+      .order("created_at", { ascending: false });
 
-    if (error) throw error
-    return data || []
+    if (error) throw error;
+    return data || [];
   } catch (error) {
-    console.error("Грешка при зареждане на заявки:", error)
-    return []
+    console.error("Грешка при зареждане на заявки:", error);
+    return [];
   }
 }
 
@@ -194,28 +200,30 @@ function OrganizationRequestDetails({
   onApprove,
   onReject,
 }: {
-  request: OrganizationRequest
-  onApprove: (requestId: string) => Promise<void>
-  onReject: (requestId: string) => Promise<void>
+  request: OrganizationRequest;
+  onApprove: (requestId: string) => Promise<void>;
+  onReject: (requestId: string) => Promise<void>;
 }) {
-  const [isProcessing, setIsProcessing] = useState(false)
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const sendApprovalEmail = () => {
     // Създаване на тема и съдържание на имейл
-    const subject = encodeURIComponent(`Заявка за кошове от ${request.organization_name} - ОДОБРЕНО`);
+    const subject = encodeURIComponent(
+      `Заявка за кошове от ${request.organization_name} - ОДОБРЕНО`,
+    );
     const body = encodeURIComponent(
       `Уважаеми/а ${request.contact_name},
 
-      Вашата заявка за получаване на ${request.intended_bin_count} кош${request.intended_bin_count > 1 ? 'а' : ''} за рециклиране е одобрена!
+      Вашата заявка за получаване на ${request.intended_bin_count} кош${request.intended_bin_count > 1 ? "а" : ""} за рециклиране е одобрена!
 
       Детайли на заявката:
       - Организация: ${request.organization_name}
       - Тип организация: ${request.organization_type}
       - Контактно лице: ${request.contact_name}
       - Брой кошове: ${request.intended_bin_count}
-      ${request.city ? `- Град: ${request.city}` : ''}
-      ${request.country ? `- Държава: ${request.country}` : ''}
-      ${request.message ? `- Съобщение: ${request.message}` : ''}
+      ${request.city ? `- Град: ${request.city}` : ""}
+      ${request.country ? `- Държава: ${request.country}` : ""}
+      ${request.message ? `- Съобщение: ${request.message}` : ""}
 
       Следващи стъпки:
       1. Ще се свържем с вас в рамките на 2 работни дни за координиране на доставката.
@@ -224,46 +232,51 @@ function OrganizationRequestDetails({
       За допълнителни въпроси, можете да се свържете с нас на този имейл.
 
       С уважение,
-      Екипът на Recyclix`
-    );  
-    
+      Екипът на Recyclix`,
+    );
+
     // Създаване на линк и отваряне в нов прозорец
     const mailtoLink =
-    `https://mail.google.com/mail/u/0/?view=cm&fs=1` +
-    `&to=${encodeURIComponent(request.contact_email)}` +
-    `&su=${encodeURIComponent(subject)}` +
-    `&body=${encodeURIComponent(body)}`;
+      `https://mail.google.com/mail/u/0/?view=cm&fs=1` +
+      `&to=${encodeURIComponent(request.contact_email)}` +
+      `&su=${encodeURIComponent(subject)}` +
+      `&body=${encodeURIComponent(body)}`;
 
-    
     // Първо пробвайте с window.open
-    const emailWindow = window.open(mailtoLink, '_blank');
-    
+    const emailWindow = window.open(mailtoLink, "_blank");
+
     // Ако window.open не работи, пробвайте със създаване на линк и кликване
-    if (!emailWindow || emailWindow.closed || typeof emailWindow.closed === 'undefined') {
-      const link = document.createElement('a');
+    if (
+      !emailWindow ||
+      emailWindow.closed ||
+      typeof emailWindow.closed === "undefined"
+    ) {
+      const link = document.createElement("a");
       link.href = mailtoLink;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     }
-  }
+  };
 
   const sendRejectionEmail = () => {
-    const subject = encodeURIComponent(`Заявка за кошове от ${request.organization_name} - ОТХВЪРЛЕНА`);
+    const subject = encodeURIComponent(
+      `Заявка за кошове от ${request.organization_name} - ОТХВЪРЛЕНА`,
+    );
     const body = encodeURIComponent(
       `Уважаеми/а ${request.contact_name},
 
-      Съжаляваме да Ви информираме, че вашата заявка за получаване на ${request.intended_bin_count} кош${request.intended_bin_count > 1 ? 'а' : ''} за рециклиране не бе одобрена.
+      Съжаляваме да Ви информираме, че вашата заявка за получаване на ${request.intended_bin_count} кош${request.intended_bin_count > 1 ? "а" : ""} за рециклиране не бе одобрена.
 
       Детайли на заявката:
       - Организация: ${request.organization_name}
       - Тип организация: ${request.organization_type}
       - Контактно лице: ${request.contact_name}
       - Брой кошове: ${request.intended_bin_count}
-      ${request.city ? `- Град: ${request.city}` : ''}
-      ${request.country ? `- Държава: ${request.country}` : ''}
+      ${request.city ? `- Град: ${request.city}` : ""}
+      ${request.country ? `- Държава: ${request.country}` : ""}
 
       Причина за отхвърляне:
       -
@@ -273,41 +286,45 @@ function OrganizationRequestDetails({
       За допълнителна информация, моля свържете се с нас.
 
       С уважение,
-      Екипът на Recyclix`
+      Екипът на Recyclix`,
     );
 
     // Създаване на линк и отваряне в нов прозорец
     const mailtoLink = `mailto:${request.contact_email}?subject=${subject}&body=${body}`;
-    
-    const emailWindow = window.open(mailtoLink, '_blank');
-    
-    if (!emailWindow || emailWindow.closed || typeof emailWindow.closed === 'undefined') {
-      const link = document.createElement('a');
+
+    const emailWindow = window.open(mailtoLink, "_blank");
+
+    if (
+      !emailWindow ||
+      emailWindow.closed ||
+      typeof emailWindow.closed === "undefined"
+    ) {
+      const link = document.createElement("a");
       link.href = mailtoLink;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     }
-  }
+  };
 
   const handleApprove = async () => {
     const confirmMessage = `Сигурни ли сте, че искате да одобрите заявката от "${request.organization_name}"? След потвърждение ще се отвори имейл клиент за изпращане на одобрение.`;
-    
+
     if (!window.confirm(confirmMessage)) {
       return; // Потребителят отмени
     }
 
     setIsProcessing(true);
-    
+
     try {
       // Първо отваряме имейл клиент
       sendApprovalEmail();
-      
+
       // Дадем малко време преди да одобрим в базата данни
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
       // След това одобряваме заявката в базата данни
       await onApprove(request.id);
     } catch (error) {
@@ -315,23 +332,25 @@ function OrganizationRequestDetails({
     } finally {
       setIsProcessing(false);
     }
-  }
+  };
 
   const handleReject = async () => {
     const confirmMessage = `Сигурни ли сте, че искате да отхвърлите заявката от "${request.organization_name}"?`;
-    
+
     if (!window.confirm(confirmMessage)) {
       return; // Потребителят отмени
     }
 
-    const sendEmail = window.confirm('Желаете ли да изпратите имейл за отхвърляне?');
-    
+    const sendEmail = window.confirm(
+      "Желаете ли да изпратите имейл за отхвърляне?",
+    );
+
     setIsProcessing(true);
-    
+
     try {
       if (sendEmail) {
         sendRejectionEmail();
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, 500));
       }
       await onReject(request.id);
     } catch (error) {
@@ -339,43 +358,49 @@ function OrganizationRequestDetails({
     } finally {
       setIsProcessing(false);
     }
-  }
+  };
 
   const handleSendEmailOnly = () => {
-    const subject = encodeURIComponent(`Заявка за кошове от ${request.organization_name}`);
+    const subject = encodeURIComponent(
+      `Заявка за кошове от ${request.organization_name}`,
+    );
     const body = encodeURIComponent(
       `Уважаеми/а ${request.contact_name},
 
-      Относно Вашата заявка за получаване на ${request.intended_bin_count} кош${request.intended_bin_count > 1 ? 'а' : ''} за рециклиране.
+      Относно Вашата заявка за получаване на ${request.intended_bin_count} кош${request.intended_bin_count > 1 ? "а" : ""} за рециклиране.
 
       Детайли на заявката:
       - Организация: ${request.organization_name}
       - Тип организация: ${request.organization_type}
       - Контактно лице: ${request.contact_name}
       - Брой кошове: ${request.intended_bin_count}
-      ${request.city ? `- Град: ${request.city}` : ''}
-      ${request.country ? `- Държава: ${request.country}` : ''}
-      ${request.message ? `- Съобщение: ${request.message}` : ''}
+      ${request.city ? `- Град: ${request.city}` : ""}
+      ${request.country ? `- Държава: ${request.country}` : ""}
+      ${request.message ? `- Съобщение: ${request.message}` : ""}
 
       С уважение,
-      Екипът на Recyclix`
+      Екипът на Recyclix`,
     );
 
     // Създаване на линк и отваряне в нов прозорец
     const mailtoLink = `mailto:${request.contact_email}?subject=${subject}&body=${body}`;
-    
-    const emailWindow = window.open(mailtoLink, '_blank');
-    
-    if (!emailWindow || emailWindow.closed || typeof emailWindow.closed === 'undefined') {
-      const link = document.createElement('a');
+
+    const emailWindow = window.open(mailtoLink, "_blank");
+
+    if (
+      !emailWindow ||
+      emailWindow.closed ||
+      typeof emailWindow.closed === "undefined"
+    ) {
+      const link = document.createElement("a");
       link.href = mailtoLink;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     }
-  }
+  };
 
   return (
     <div className="border border-neutral-200 dark:border-neutral-700 rounded-lg p-4 bg-white dark:bg-neutral-800">
@@ -393,14 +418,20 @@ function OrganizationRequestDetails({
                 </span>
               </div>
             </div>
-            <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-              request.status === 'pending' 
-                ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
-                : request.status === 'approved'
-                  ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
-                  : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
-            }`}>
-              {request.status === 'pending' ? 'Чакаща' : request.status === 'approved' ? 'Одобрена' : 'Отхвърлена'}
+            <span
+              className={`px-3 py-1 rounded-full text-sm font-medium ${
+                request.status === "pending"
+                  ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300"
+                  : request.status === "approved"
+                    ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
+                    : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
+              }`}
+            >
+              {request.status === "pending"
+                ? "Чакаща"
+                : request.status === "approved"
+                  ? "Одобрена"
+                  : "Отхвърлена"}
             </span>
           </div>
 
@@ -409,17 +440,24 @@ function OrganizationRequestDetails({
               <div className="flex items-center gap-2">
                 <User className="w-4 h-4 text-neutral-400" />
                 <div>
-                  <span className="text-sm text-neutral-500 dark:text-neutral-400">Контактно лице:</span>
-                  <p className="text-neutral-700 dark:text-neutral-300 font-medium">{request.contact_name}</p>
+                  <span className="text-sm text-neutral-500 dark:text-neutral-400">
+                    Контактно лице:
+                  </span>
+                  <p className="text-neutral-700 dark:text-neutral-300 font-medium">
+                    {request.contact_name}
+                  </p>
                   <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                    <a 
+                    <a
                       href={`mailto:${request.contact_email}`}
                       className="text-blue-500 hover:underline"
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={(e) => {
                         e.preventDefault();
-                        window.open(`mailto:${request.contact_email}`, '_blank');
+                        window.open(
+                          `mailto:${request.contact_email}`,
+                          "_blank",
+                        );
                       }}
                     >
                       {request.contact_email}
@@ -431,8 +469,12 @@ function OrganizationRequestDetails({
               <div className="flex items-center gap-2">
                 <Package className="w-4 h-4 text-neutral-400" />
                 <div>
-                  <span className="text-sm text-neutral-500 dark:text-neutral-400">Брой кошове:</span>
-                  <p className="text-neutral-700 dark:text-neutral-300">{request.intended_bin_count}</p>
+                  <span className="text-sm text-neutral-500 dark:text-neutral-400">
+                    Брой кошове:
+                  </span>
+                  <p className="text-neutral-700 dark:text-neutral-300">
+                    {request.intended_bin_count}
+                  </p>
                 </div>
               </div>
             </div>
@@ -442,9 +484,13 @@ function OrganizationRequestDetails({
                 <div className="flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-neutral-400" />
                   <div>
-                    <span className="text-sm text-neutral-500 dark:text-neutral-400">Локация:</span>
+                    <span className="text-sm text-neutral-500 dark:text-neutral-400">
+                      Локация:
+                    </span>
                     <p className="text-neutral-700 dark:text-neutral-300">
-                      {[request.city, request.country].filter(Boolean).join(', ')}
+                      {[request.city, request.country]
+                        .filter(Boolean)
+                        .join(", ")}
                     </p>
                   </div>
                 </div>
@@ -453,9 +499,11 @@ function OrganizationRequestDetails({
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-neutral-400" />
                 <div>
-                  <span className="text-sm text-neutral-500 dark:text-neutral-400">Дата на заявка:</span>
+                  <span className="text-sm text-neutral-500 dark:text-neutral-400">
+                    Дата на заявка:
+                  </span>
                   <p className="text-neutral-700 dark:text-neutral-300">
-                    {new Date(request.created_at).toLocaleDateString('bg-BG')}
+                    {new Date(request.created_at).toLocaleDateString("bg-BG")}
                   </p>
                 </div>
               </div>
@@ -466,44 +514,66 @@ function OrganizationRequestDetails({
             <div className="mb-4">
               <div className="flex items-center gap-2 mb-2">
                 <MessageCircle className="w-4 h-4 text-neutral-400" />
-                <span className="font-medium text-neutral-700 dark:text-neutral-300">Съобщение:</span>
+                <span className="font-medium text-neutral-700 dark:text-neutral-300">
+                  Съобщение:
+                </span>
               </div>
               <div className="p-3 bg-neutral-50 dark:bg-neutral-800/50 rounded-lg border border-neutral-200 dark:border-neutral-700">
-                <p className="text-neutral-700 dark:text-neutral-300">{request.message}</p>
+                <p className="text-neutral-700 dark:text-neutral-300">
+                  {request.message}
+                </p>
               </div>
             </div>
           )}
         </div>
 
         <div className="flex lg:flex-col gap-2">
-          {request.status === 'pending' && (
+          {request.status === "pending" && (
             <>
               <button
                 onClick={handleSendEmailOnly}
                 disabled={isProcessing}
                 className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-neutral-400 text-white rounded-lg font-medium transition-colors"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                  />
                 </svg>
                 Изпрати имейл
               </button>
-              
+
               <button
                 onClick={handleApprove}
                 disabled={isProcessing}
                 className="flex items-center justify-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 disabled:bg-neutral-400 text-white rounded-lg font-medium transition-colors"
               >
-                {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+                {isProcessing ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <CheckCircle className="w-4 h-4" />
+                )}
                 Одобри
               </button>
-              
+
               <button
                 onClick={handleReject}
                 disabled={isProcessing}
                 className="flex items-center justify-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 disabled:bg-neutral-400 text-white rounded-lg font-medium transition-colors"
               >
-                {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
+                {isProcessing ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <XCircle className="w-4 h-4" />
+                )}
                 Откажи
               </button>
             </>
@@ -511,7 +581,7 @@ function OrganizationRequestDetails({
         </div>
       </div>
     </div>
-  )
+  );
 }
 export async function getPendingBins(): Promise<Bin[]> {
   try {
@@ -519,46 +589,51 @@ export async function getPendingBins(): Promise<Bin[]> {
       .from("pending_bins")
       .select("*")
       .eq("status", "pending")
-      .order("created_at", { ascending: false })
+      .order("created_at", { ascending: false });
 
-    if (error) throw error
+    if (error) throw error;
 
     const binsWithEmail = await Promise.all(
       (data || []).map(async (bin) => {
-        let userEmail = "Анонимен"
-        let userUsername = "Анонимен"
+        let userEmail = "Анонимен";
+        let userUsername = "Анонимен";
         if (bin.user_id) {
-          const { data: authUser, error: authError } = await supabase.auth.admin.getUserById(bin.user_id)
-          
+          const { data: authUser, error: authError } =
+            await supabase.auth.admin.getUserById(bin.user_id);
+
           if (!authError && authUser?.user) {
-            userEmail = authUser.user.email || "Анонимен"
-            userUsername = authUser.user.user_metadata?.username || authUser.user.email || "Анонимен"
+            userEmail = authUser.user.email || "Анонимен";
+            userUsername =
+              authUser.user.user_metadata?.username ||
+              authUser.user.email ||
+              "Анонимен";
           } else {
             const { data: profileData } = await supabase
               .from("profiles")
               .select("email, username")
               .eq("id", bin.user_id)
-              .single()
-            userEmail = profileData?.email || "Анонимен"
-            userUsername = profileData?.username || profileData?.email || "Анонимен"
+              .single();
+            userEmail = profileData?.email || "Анонимен";
+            userUsername =
+              profileData?.username || profileData?.email || "Анонимен";
           }
         }
 
-        const imageUrls = bin.image_url ? [bin.image_url] : []
+        const imageUrls = bin.image_url ? [bin.image_url] : [];
 
         return {
           ...bin,
           user_email: userEmail,
           user_username: userUsername,
-          image_urls: imageUrls
-        }
+          image_urls: imageUrls,
+        };
       }),
-    )
+    );
 
-    return binsWithEmail
+    return binsWithEmail;
   } catch (error) {
-    console.error("Грешка при зареждане:", error)
-    return []
+    console.error("Грешка при зареждане:", error);
+    return [];
   }
 }
 
@@ -569,39 +644,40 @@ export async function getEditSuggestions(): Promise<EditSuggestion[]> {
       .from("edit_suggestions")
       .select("*")
       .eq("status", "pending")
-      .order("created_at", { ascending: false })
+      .order("created_at", { ascending: false });
 
-    if (error) throw error
+    if (error) throw error;
 
     // Обогатяване на всяко предложение със детайли за потребителя
     const suggestionsWithDetails = await Promise.all(
       (data || []).map(async (suggestion) => {
-        let userEmail = "Анонимен"
+        let userEmail = "Анонимен";
         if (suggestion.user_id) {
           // Първо опитай да вземеш от auth.users
-          const { data: authUser, error: authError } = await supabase.auth.admin.getUserById(suggestion.user_id)
-          
+          const { data: authUser, error: authError } =
+            await supabase.auth.admin.getUserById(suggestion.user_id);
+
           if (!authError && authUser?.user) {
-            userEmail = authUser.user.email || "Анонимен"
+            userEmail = authUser.user.email || "Анонимен";
           } else {
             // Резервен вариант към profiles таблицата
             const { data: profileData } = await supabase
               .from("profiles")
               .select("email")
               .eq("id", suggestion.user_id)
-              .single()
-            userEmail = profileData?.email || "Анонимен"
+              .single();
+            userEmail = profileData?.email || "Анонимен";
           }
         }
 
         // Вземане на информация за коша
-        let binData: Bin | undefined = undefined
+        let binData: Bin | undefined = undefined;
         if (suggestion.bin_id) {
           const { data: binFromRecycling } = await supabase
             .from("recycling_bins")
             .select("*")
             .eq("code", suggestion.bin_id)
-            .single()
+            .single();
 
           if (binFromRecycling) {
             binData = {
@@ -611,7 +687,7 @@ export async function getEditSuggestions(): Promise<EditSuggestion[]> {
               lon: binFromRecycling.lon,
               tags: binFromRecycling.tags,
               created_at: binFromRecycling.created_at,
-            }
+            };
           }
         }
 
@@ -619,15 +695,15 @@ export async function getEditSuggestions(): Promise<EditSuggestion[]> {
           ...suggestion,
           user_email: userEmail,
           bin: binData,
-        }
+        };
       }),
-    )
+    );
 
-    return suggestionsWithDetails
+    return suggestionsWithDetails;
   } catch (error) {
     // Грешка при зареждане на предложения
-    console.error("Грешка при зареждане на предложения:", error)
-    return []
+    console.error("Грешка при зареждане на предложения:", error);
+    return [];
   }
 }
 
@@ -638,64 +714,74 @@ export async function getReports(): Promise<Report[]> {
     const { data: reportsData, error } = await supabase
       .from("reports")
       .select("*")
-      .order("created_at", { ascending: false })
+      .order("created_at", { ascending: false });
 
-    if (error) throw error
+    if (error) throw error;
 
     // Обогатяване на всяко предложение със детайли за потребителя и коша
     const reportsWithDetails = await Promise.all(
       (reportsData || []).map(async (report) => {
         // Детайли за потребителя
-        let userEmail = "Анонимен"
-        let userUsername = "Анонимен"
+        let userEmail = "Анонимен";
+        let userUsername = "Анонимен";
         if (report.user_id) {
           try {
             // Опитай да вземеш от auth.users
-            const { data: authUser, error: authError } = await supabase.auth.admin.getUserById(report.user_id)
-            
+            const { data: authUser, error: authError } =
+              await supabase.auth.admin.getUserById(report.user_id);
+
             if (!authError && authUser?.user) {
-              userEmail = authUser.user.email || "Анонимен"
-              userUsername = authUser.user.user_metadata?.username || authUser.user.email || "Анонимен"
+              userEmail = authUser.user.email || "Анонимен";
+              userUsername =
+                authUser.user.user_metadata?.username ||
+                authUser.user.email ||
+                "Анонимен";
             }
           } catch (authError) {
-            console.log("Неуспешно извличане на потребител от auth:", authError)
+            console.log(
+              "Неуспешно извличане на потребител от auth:",
+              authError,
+            );
           }
         }
 
         // Детайли за коша
-        let binData: Bin | undefined = undefined
-        let binCode = ""
-        let binLat = 0
-        let binLon = 0
+        let binData: Bin | undefined = undefined;
+        let binCode = "";
+        let binLat = 0;
+        let binLon = 0;
 
         if (report.bin_id) {
           const { data: binFromRecycling } = await supabase
             .from("recycling_bins")
             .select("code, lat, lon")
             .eq("id", report.bin_id)
-            .single()
+            .single();
 
           if (binFromRecycling) {
-            binCode = binFromRecycling.code
-            binLat = binFromRecycling.lat || 0
-            binLon = binFromRecycling.lon || 0
+            binCode = binFromRecycling.code;
+            binLat = binFromRecycling.lat || 0;
+            binLon = binFromRecycling.lon || 0;
           }
         }
 
         // Извличане на снимки от report_photos таблицата
-        let images: ReportImage[] = []
+        let images: ReportImage[] = [];
         try {
           const { data: imagesData, error: imagesError } = await supabase
             .from("report_photos")
             .select("*")
             .eq("report_id", report.id)
-            .order("created_at", { ascending: true })
-          
+            .order("created_at", { ascending: true });
+
           if (!imagesError && imagesData) {
-            images = imagesData
+            images = imagesData;
           }
         } catch (imgError) {
-          console.error("Грешка при извличане на снимки от report_photos:", imgError)
+          console.error(
+            "Грешка при извличане на снимки от report_photos:",
+            imgError,
+          );
         }
 
         return {
@@ -707,14 +793,14 @@ export async function getReports(): Promise<Report[]> {
           bin_lon: binLon,
           bin: binData,
           images: images,
-        }
+        };
       }),
-    )
+    );
 
-    return reportsWithDetails
+    return reportsWithDetails;
   } catch (error) {
-    console.error("Грешка при зареждане на отчети:", error)
-    return []
+    console.error("Грешка при зареждане на отчети:", error);
+    return [];
   }
 }
 
@@ -725,14 +811,28 @@ export async function getStats() {
       { count: approved },
       { count: suggestions },
       { count: reports },
-      { count: orgRequests }
+      { count: orgRequests },
     ] = await Promise.all([
-      supabase.from("pending_bins").select("*", { count: "exact", head: true }).eq("status", "pending"),
-      supabase.from("recycling_bins").select("*", { count: "exact", head: true }),
-      supabase.from("edit_suggestions").select("*", { count: "exact", head: true }).eq("status", "pending"),
-      supabase.from("reports").select("*", { count: "exact", head: true }).eq("resolved", false),
-      supabase.from("organization_requests").select("*", { count: "exact", head: true }).eq("status", "pending"),
-    ])
+      supabase
+        .from("pending_bins")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "pending"),
+      supabase
+        .from("recycling_bins")
+        .select("*", { count: "exact", head: true }),
+      supabase
+        .from("edit_suggestions")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "pending"),
+      supabase
+        .from("reports")
+        .select("*", { count: "exact", head: true })
+        .eq("resolved", false),
+      supabase
+        .from("organization_requests")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "pending"),
+    ]);
 
     return {
       pending: pending || 0,
@@ -741,23 +841,33 @@ export async function getStats() {
       suggestions: suggestions || 0,
       reports: reports || 0,
       orgRequests: orgRequests || 0,
-    }
+    };
   } catch (error) {
-    return { pending: 0, approved: 0, total: 0, suggestions: 0, reports: 0, orgRequests: 0 }
+    return {
+      pending: 0,
+      approved: 0,
+      total: 0,
+      suggestions: 0,
+      reports: 0,
+      orgRequests: 0,
+    };
   }
 }
 
 function getStorageImageUrl(filePath: string): string {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-  return `${supabaseUrl}/storage/v1/object/public/bins/${filePath}`
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  return `${supabaseUrl}/storage/v1/object/public/bins/${filePath}`;
 }
 
-export async function approveBin(binId: string, binData: Bin): Promise<boolean> {
+export async function approveBin(
+  binId: string,
+  binData: Bin,
+): Promise<boolean> {
   try {
-    console.log("одобряване на кош:", binId, binData)
+    console.log("одобряване на кош:", binId, binData);
 
     // Парсваме таговете за материали
-    const parsedTags = parseTagsObject(binData.tags)
+    const parsedTags = parseTagsObject(binData.tags);
 
     // 1. Обновяваме статуса на pending_bins
     const { error: updateError } = await supabase
@@ -766,15 +876,15 @@ export async function approveBin(binId: string, binData: Bin): Promise<boolean> 
         status: "approved",
         updated_at: new Date().toISOString(),
       })
-      .eq("id", binId)
+      .eq("id", binId);
 
     if (updateError) {
-      console.error("грешка при обновяване:", updateError)
-      return false
+      console.error("грешка при обновяване:", updateError);
+      return false;
     }
 
     // 2. Подготвяме данните за insert в recycling_bins
-    const nowISO = new Date().toISOString()
+    const nowISO = new Date().toISOString();
 
     const recyclingBinData: RecyclingBin = {
       code: binData.code || binId,
@@ -786,43 +896,50 @@ export async function approveBin(binId: string, binData: Bin): Promise<boolean> 
       updated_at: nowISO,
       last_emptied: undefined,
       osm_id: "",
-    }
+    };
 
-    console.log("данни за добавяне:", recyclingBinData)
+    console.log("данни за добавяне:", recyclingBinData);
 
     // 3. Insert в recycling_bins
-    const { error: insertError } = await supabase.from("recycling_bins").insert([recyclingBinData])
+    const { error: insertError } = await supabase
+      .from("recycling_bins")
+      .insert([recyclingBinData]);
 
     if (insertError) {
-      console.error("грешка при добавяне:", insertError)
-      return false
+      console.error("грешка при добавяне:", insertError);
+      return false;
     }
 
-    console.log("успешно одобрен!")
-    return true
+    console.log("успешно одобрен!");
+    return true;
   } catch (error) {
-    console.error("грешка:", error)
-    return false
+    console.error("грешка:", error);
+    return false;
   }
 }
 
 export async function rejectBin(binId: string): Promise<boolean> {
   try {
-    const { error } = await supabase.from("pending_bins").delete().eq("id", binId)
+    const { error } = await supabase
+      .from("pending_bins")
+      .delete()
+      .eq("id", binId);
 
     if (error) {
-      console.error("Грешка при изтриване на кош:", error)
-      return false
+      console.error("Грешка при изтриване на кош:", error);
+      return false;
     }
 
-    return true
+    return true;
   } catch (error) {
-    console.error("Грешка:", error)
-    return false
+    console.error("Грешка:", error);
+    return false;
   }
 }
 
-export async function approveOrganizationRequest(requestId: string): Promise<boolean> {
+export async function approveOrganizationRequest(
+  requestId: string,
+): Promise<boolean> {
   try {
     const { error } = await supabase
       .from("organization_requests")
@@ -830,17 +947,19 @@ export async function approveOrganizationRequest(requestId: string): Promise<boo
         status: "approved",
         updated_at: new Date().toISOString(),
       })
-      .eq("id", requestId)
+      .eq("id", requestId);
 
-    if (error) throw error
-    return true
+    if (error) throw error;
+    return true;
   } catch (error) {
-    console.error("Грешка при одобряване на заявка:", error)
-    return false
+    console.error("Грешка при одобряване на заявка:", error);
+    return false;
   }
 }
 
-export async function rejectOrganizationRequest(requestId: string): Promise<boolean> {
+export async function rejectOrganizationRequest(
+  requestId: string,
+): Promise<boolean> {
   try {
     const { error } = await supabase
       .from("organization_requests")
@@ -848,20 +967,20 @@ export async function rejectOrganizationRequest(requestId: string): Promise<bool
         status: "rejected",
         updated_at: new Date().toISOString(),
       })
-      .eq("id", requestId)
+      .eq("id", requestId);
 
-    if (error) throw error
-    return true
+    if (error) throw error;
+    return true;
   } catch (error) {
-    console.error("Грешка при отхвърляне на заявка:", error)
-    return false
+    console.error("Грешка при отхвърляне на заявка:", error);
+    return false;
   }
 }
 
 // Функция за разрешаване на отчет
 export async function resolveReport(reportId: string): Promise<boolean> {
   try {
-    console.log("Разрешаване на отчет:", reportId)
+    console.log("Разрешаване на отчет:", reportId);
 
     const { error } = await supabase
       .from("reports")
@@ -869,18 +988,18 @@ export async function resolveReport(reportId: string): Promise<boolean> {
         resolved: true,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", reportId)
+      .eq("id", reportId);
 
     if (error) {
-      console.error("Грешка при разрешаване на отчет:", error)
-      return false
+      console.error("Грешка при разрешаване на отчет:", error);
+      return false;
     }
 
-    console.log("Отчетът е разрешен успешно!")
-    return true
+    console.log("Отчетът е разрешен успешно!");
+    return true;
   } catch (error) {
-    console.error("Грешка:", error)
-    return false
+    console.error("Грешка:", error);
+    return false;
   }
 }
 
@@ -891,46 +1010,52 @@ export async function deleteReport(reportId: string): Promise<boolean> {
     const { data: images } = await supabase
       .from("report_photos")
       .select("id, photo_url")
-      .eq("report_id", reportId)
-    
+      .eq("report_id", reportId);
+
     if (images && images.length > 0) {
       // Изтриване на записите от report_photos
       const { error: deleteImagesError } = await supabase
         .from("report_photos")
         .delete()
-        .eq("report_id", reportId)
-      
+        .eq("report_id", reportId);
+
       if (deleteImagesError) {
-        console.error("Грешка при изтриване на снимки:", deleteImagesError)
+        console.error("Грешка при изтриване на снимки:", deleteImagesError);
       }
     }
 
     // След това изтрий отчета от reports
-    const { error } = await supabase.from("reports").delete().eq("id", reportId)
+    const { error } = await supabase
+      .from("reports")
+      .delete()
+      .eq("id", reportId);
 
     if (error) {
-      console.error("Грешка при изтриване на отчет:", error)
-      return false
+      console.error("Грешка при изтриване на отчет:", error);
+      return false;
     }
 
-    return true
+    return true;
   } catch (error) {
-    console.error("Грешка:", error)
-    return false
+    console.error("Грешка:", error);
+    return false;
   }
 }
 
-async function approveSuggestion(suggestionId: string, suggestionData: EditSuggestion): Promise<boolean> {
+async function approveSuggestion(
+  suggestionId: string,
+  suggestionData: EditSuggestion,
+): Promise<boolean> {
   try {
-    console.log("Одобряване на предложение:", suggestionId, suggestionData)
+    console.log("Одобряване на предложение:", suggestionId, suggestionData);
 
     // Вземане на текущия потребител
     const {
       data: { user },
-    } = await supabase.auth.getUser()
+    } = await supabase.auth.getUser();
     if (!user) {
-      console.error("Няма автентикиран потребител")
-      return false
+      console.error("Няма автентикиран потребител");
+      return false;
     }
 
     // Вземане на текущите данни на коша
@@ -938,56 +1063,59 @@ async function approveSuggestion(suggestionId: string, suggestionData: EditSugge
       .from("recycling_bins")
       .select("*")
       .eq("id", suggestionData.bin_id)
-      .single()
+      .single();
 
     if (binFetchError) {
       // Ако не намерим кош, проверяваме по код
-      console.log("Опитваме се да намерим кош по код:", suggestionData.bin_id)
+      console.log("Опитваме се да намерим кош по код:", suggestionData.bin_id);
 
       const { data: binByCode, error: codeError } = await supabase
         .from("recycling_bins")
         .select("*")
         .eq("code", suggestionData.bin_id)
-        .single()
+        .single();
 
       if (codeError || !binByCode) {
-        console.error("Грешка при четене на кош:", codeError || "Кошът не е намерен")
-        return false
+        console.error(
+          "Грешка при четене на кош:",
+          codeError || "Кошът не е намерен",
+        );
+        return false;
       }
       // Използваме намерения кош
-      binData = binByCode
+      binData = binByCode;
     }
 
     // Проверка дали имаме валидни данни за коша
     if (!binData) {
-      console.error("Няма намерен кош с ID:", suggestionData.bin_id)
-      return false
+      console.error("Няма намерен кош с ID:", suggestionData.bin_id);
+      return false;
     }
 
     // Променлива за данните на коша
-    const currentBinData = binData
+    const currentBinData = binData;
 
     // Подготовка на обновените тагове
-    const currentTags = currentBinData?.tags || {}
-    const updatedTags = { ...currentTags }
+    const currentTags = currentBinData?.tags || {};
+    const updatedTags = { ...currentTags };
 
     // Актуализация на таговете с предложените промени
     if (suggestionData.name) {
-      updatedTags.name = suggestionData.name
+      updatedTags.name = suggestionData.name;
     }
     if (suggestionData.opening_hours) {
-      updatedTags.opening_hours = suggestionData.opening_hours
+      updatedTags.opening_hours = suggestionData.opening_hours;
     }
     if (suggestionData.materials) {
-      updatedTags.recycling_type = suggestionData.materials
+      updatedTags.recycling_type = suggestionData.materials;
     }
 
     // Актуализирайте и останалите полета, ако съществуват
     if (suggestionData.field_name && suggestionData.new_value !== undefined) {
-      updatedTags[suggestionData.field_name] = suggestionData.new_value
+      updatedTags[suggestionData.field_name] = suggestionData.new_value;
     }
 
-    console.log("Обновени тагове:", updatedTags)
+    console.log("Обновени тагове:", updatedTags);
 
     // Обновяване на коша с новите данни
     const { error: binUpdateError } = await supabase
@@ -996,11 +1124,11 @@ async function approveSuggestion(suggestionId: string, suggestionData: EditSugge
         tags: updatedTags,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", currentBinData.id)
+      .eq("id", currentBinData.id);
 
     if (binUpdateError) {
-      console.error("Грешка при обновяване на кош:", binUpdateError)
-      return false
+      console.error("Грешка при обновяване на кош:", binUpdateError);
+      return false;
     }
 
     // Обновяване на статуса на предложението
@@ -1012,30 +1140,36 @@ async function approveSuggestion(suggestionId: string, suggestionData: EditSugge
         reviewed_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
-      .eq("id", suggestionId)
+      .eq("id", suggestionId);
 
     if (suggestionUpdateError) {
-      console.error("Грешка при обновяване на предложение:", suggestionUpdateError)
-      return false
+      console.error(
+        "Грешка при обновяване на предложение:",
+        suggestionUpdateError,
+      );
+      return false;
     }
 
-    console.log("Предложението е успешно одобрено")
-    return true
+    console.log("Предложението е успешно одобрено");
+    return true;
   } catch (error) {
-    console.error("Грешка при одобряване на предложение:", error)
-    return false
+    console.error("Грешка при одобряване на предложение:", error);
+    return false;
   }
 }
 
-async function rejectSuggestion(suggestionId: string, reviewNotes?: string): Promise<boolean> {
+async function rejectSuggestion(
+  suggestionId: string,
+  reviewNotes?: string,
+): Promise<boolean> {
   try {
-    console.log("Отхвърляне на предложение:", suggestionId)
+    console.log("Отхвърляне на предложение:", suggestionId);
 
     // Вземане на текущия потребител за проследяване
     const {
       data: { user },
-    } = await supabase.auth.getUser()
-    const reviewerId = user?.id || null
+    } = await supabase.auth.getUser();
+    const reviewerId = user?.id || null;
 
     // Обновяване на статуса на предложението
     const { error: updateError } = await supabase
@@ -1047,18 +1181,18 @@ async function rejectSuggestion(suggestionId: string, reviewNotes?: string): Pro
         updated_at: new Date().toISOString(),
         review_notes: reviewNotes || null,
       })
-      .eq("id", suggestionId)
+      .eq("id", suggestionId);
 
     if (updateError) {
-      console.error("Грешка при отхвърляне на предложение:", updateError)
-      return false
+      console.error("Грешка при отхвърляне на предложение:", updateError);
+      return false;
     }
 
-    console.log("Предложението е отхвърлено успешно")
-    return true
+    console.log("Предложението е отхвърлено успешно");
+    return true;
   } catch (error) {
-    console.error("Грешка:", error)
-    return false
+    console.error("Грешка:", error);
+    return false;
   }
 }
 
@@ -1067,41 +1201,41 @@ function BinDetails({
   onApprove,
   onReject,
 }: {
-  bin: Bin
-  onApprove: (binId: string, binData: Bin) => Promise<void>
-  onReject: (binId: string) => Promise<void>
+  bin: Bin;
+  onApprove: (binId: string, binData: Bin) => Promise<void>;
+  onReject: (binId: string) => Promise<void>;
 }) {
-  const [isProcessing, setIsProcessing] = useState(false)
-  const [showMapModal, setShowMapModal] = useState(false)
-  const [isMapMounted, setIsMapMounted] = useState(false)
-  const [selectedImage, setSelectedImage] = useState<string | null>(null)
-  const [imageError, setImageError] = useState<Record<string, boolean>>({})
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [showMapModal, setShowMapModal] = useState(false);
+  const [isMapMounted, setIsMapMounted] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [imageError, setImageError] = useState<Record<string, boolean>>({});
 
-  const formData = parseTagsObject(bin.tags)
+  const formData = parseTagsObject(bin.tags);
 
   // Зареждане на LeafletMap само когато модалът е отворен
   useEffect(() => {
     if (showMapModal) {
-      setIsMapMounted(true)
+      setIsMapMounted(true);
     } else {
-      setIsMapMounted(false)
+      setIsMapMounted(false);
     }
-  }, [showMapModal])
+  }, [showMapModal]);
 
   const handleApprove = async () => {
-    setIsProcessing(true)
-    await onApprove(bin.id, bin)
-    setIsProcessing(false)
-  }
+    setIsProcessing(true);
+    await onApprove(bin.id, bin);
+    setIsProcessing(false);
+  };
 
   const handleReject = async () => {
-    setIsProcessing(true)
-    await onReject(bin.id)
-    setIsProcessing(false)
-  }
+    setIsProcessing(true);
+    await onReject(bin.id);
+    setIsProcessing(false);
+  };
 
   const LeafletMapModal = () => {
-    if (!bin.lat || !bin.lon || !showMapModal || !isMapMounted) return null
+    if (!bin.lat || !bin.lon || !showMapModal || !isMapMounted) return null;
 
     return (
       <div
@@ -1113,7 +1247,9 @@ function BinDetails({
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex items-center justify-between p-4 border-b border-neutral-200 dark:border-neutral-700">
-            <h3 className="text-lg font-semibold text-neutral-900 dark:text-white">Интерактивна карта</h3>
+            <h3 className="text-lg font-semibold text-neutral-900 dark:text-white">
+              Интерактивна карта
+            </h3>
             <button
               onClick={() => setShowMapModal(false)}
               className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-lg"
@@ -1124,12 +1260,7 @@ function BinDetails({
 
           <div className="p-4">
             {/* Използвай твоя LeafletMap компонент */}
-            <LeafletMap 
-              lat={bin.lat} 
-              lon={bin.lon} 
-              zoom={16}
-              height={500}
-            />
+            <LeafletMap lat={bin.lat} lon={bin.lon} zoom={16} height={500} />
 
             <div className="mt-3 text-sm text-neutral-600 dark:text-neutral-400 flex items-center justify-center gap-2">
               <Navigation className="w-4 h-4" />
@@ -1140,11 +1271,11 @@ function BinDetails({
           </div>
         </div>
       </div>
-    )
-  }
+    );
+  };
 
   const ImageModal = () => {
-    if (!selectedImage) return null
+    if (!selectedImage) return null;
 
     return (
       <div
@@ -1164,39 +1295,47 @@ function BinDetails({
             className="max-w-full max-h-[90vh] rounded-lg"
             onClick={(e) => e.stopPropagation()}
             onError={(e) => {
-              e.currentTarget.src = "/placeholder.svg"
-              e.currentTarget.classList.add("opacity-50")
+              e.currentTarget.src = "/placeholder.svg";
+              e.currentTarget.classList.add("opacity-50");
             }}
           />
         </div>
       </div>
-    )
-  }
+    );
+  };
 
   const MapPreview = () => {
-    if (!bin.lat || !bin.lon) return null
+    if (!bin.lat || !bin.lon) return null;
 
     return (
       <div className="mt-4">
         <div className="flex items-center gap-2 mb-2">
           <MapPin className="w-4 h-4 text-blue-500 dark:text-neutral-300" />
-          <span className="font-medium text-neutral-700 dark:text-neutral-300">Местоположение:</span>
+          <span className="font-medium text-neutral-700 dark:text-neutral-300">
+            Местоположение:
+          </span>
         </div>
 
         <div className="p-3 bg-blue-50 dark:bg-neutral-700/50 rounded-lg mb-3 border border-blue-200 dark:border-neutral-600">
           <div className="flex items-start gap-3">
             <Navigation className="w-5 h-5 text-blue-600 dark:text-neutral-300 mt-0.5" />
             <div className="flex-1">
-              <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">GPS Координати:</p>
+              <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                GPS Координати:
+              </p>
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div>
-                  <span className="text-neutral-500 dark:text-neutral-400">Географска ширина:</span>
+                  <span className="text-neutral-500 dark:text-neutral-400">
+                    Географска ширина:
+                  </span>
                   <code className="block font-mono text-blue-700 dark:text-neutral-200 font-semibold mt-1">
                     {bin.lat.toFixed(6)}°
                   </code>
                 </div>
                 <div>
-                  <span className="text-neutral-500 dark:text-neutral-400">Географска дължина:</span>
+                  <span className="text-neutral-500 dark:text-neutral-400">
+                    Географска дължина:
+                  </span>
                   <code className="block font-mono text-blue-700 dark:text-neutral-200 font-semibold mt-1">
                     {bin.lon.toFixed(6)}°
                   </code>
@@ -1208,7 +1347,9 @@ function BinDetails({
 
         <div className="rounded-lg overflow-hidden border border-neutral-200 dark:border-neutral-700">
           <div className="p-3 bg-neutral-50 dark:bg-neutral-800 flex items-center justify-between">
-            <div className="text-sm text-neutral-600 dark:text-neutral-400">Интерактивна карта</div>
+            <div className="text-sm text-neutral-600 dark:text-neutral-400">
+              Интерактивна карта
+            </div>
             <button
               onClick={() => setShowMapModal(true)}
               className="flex items-center gap-1 px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-md text-sm font-medium"
@@ -1219,8 +1360,8 @@ function BinDetails({
           </div>
         </div>
       </div>
-    )
-  }
+    );
+  };
 
   return (
     <div className="border border-neutral-200 dark:border-neutral-700 rounded-lg p-4 bg-white dark:bg-neutral-800">
@@ -1229,13 +1370,17 @@ function BinDetails({
           <div className="flex items-start justify-between mb-3">
             <div>
               <h3 className="font-semibold text-lg text-neutral-900 dark:text-white">
-                {formData.amenity === "recycling" ? "Контейнер за рециклиране" : "Кошче за отпадъци"}
+                {formData.amenity === "recycling"
+                  ? "Контейнер за рециклиране"
+                  : "Кошче за отпадъци"}
                 {formData.operator && ` - ${formData.operator}`}
               </h3>
               <div className="flex items-center gap-2 mt-1">
                 <MapPin className="w-4 h-4 text-neutral-400" />
                 <span className="text-neutral-600 dark:text-neutral-400">
-                  {bin.lat != null && bin.lon != null ? `${bin.lat.toFixed(6)}, ${bin.lon.toFixed(6)}` : "—"}
+                  {bin.lat != null && bin.lon != null
+                    ? `${bin.lat.toFixed(6)}, ${bin.lon.toFixed(6)}`
+                    : "—"}
                 </span>
               </div>
             </div>
@@ -1255,10 +1400,16 @@ function BinDetails({
               <div className="flex items-center gap-2">
                 <User className="w-4 h-4 text-neutral-400" />
                 <div>
-                  <span className="text-sm text-neutral-500 dark:text-neutral-400">Добавен от:</span>
-                  <p className="text-neutral-700 dark:text-neutral-300 font-medium">{bin.user_username || "Анонимен"}</p>
+                  <span className="text-sm text-neutral-500 dark:text-neutral-400">
+                    Добавен от:
+                  </span>
+                  <p className="text-neutral-700 dark:text-neutral-300 font-medium">
+                    {bin.user_username || "Анонимен"}
+                  </p>
                   {bin.user_email && bin.user_email !== "Анонимен" && (
-                    <p className="text-xs text-neutral-500 dark:text-neutral-400">{bin.user_email}</p>
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                      {bin.user_email}
+                    </p>
                   )}
                 </div>
               </div>
@@ -1266,7 +1417,9 @@ function BinDetails({
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-neutral-400" />
                 <div>
-                  <span className="text-sm text-neutral-500 dark:text-neutral-400">Дата на добавяне:</span>
+                  <span className="text-sm text-neutral-500 dark:text-neutral-400">
+                    Дата на добавяне:
+                  </span>
                   <p className="text-neutral-700 dark:text-neutral-300">
                     {bin.created_at
                       ? new Date(bin.created_at).toLocaleDateString("bg-BG", {
@@ -1285,8 +1438,12 @@ function BinDetails({
                 <div className="flex items-center gap-2">
                   <Building className="w-4 h-4 text-neutral-400" />
                   <div>
-                    <span className="text-sm text-neutral-500 dark:text-neutral-400">Оператор:</span>
-                    <p className="text-neutral-700 dark:text-neutral-300">{formData.operator}</p>
+                    <span className="text-sm text-neutral-500 dark:text-neutral-400">
+                      Оператор:
+                    </span>
+                    <p className="text-neutral-700 dark:text-neutral-300">
+                      {formData.operator}
+                    </p>
                   </div>
                 </div>
               )}
@@ -1297,8 +1454,12 @@ function BinDetails({
                 <div className="flex items-center gap-2">
                   <Package className="w-4 h-4 text-neutral-400" />
                   <div>
-                    <span className="text-sm text-neutral-500 dark:text-neutral-400">Тип рециклиране:</span>
-                    <p className="text-neutral-700 dark:text-neutral-300">{formData.recycling_type}</p>
+                    <span className="text-sm text-neutral-500 dark:text-neutral-400">
+                      Тип рециклиране:
+                    </span>
+                    <p className="text-neutral-700 dark:text-neutral-300">
+                      {formData.recycling_type}
+                    </p>
                   </div>
                 </div>
               )}
@@ -1306,8 +1467,12 @@ function BinDetails({
               <div className="flex items-center gap-2">
                 <Hash className="w-4 h-4 text-neutral-400" />
                 <div>
-                  <span className="text-sm text-neutral-500 dark:text-neutral-400">Брой контейнери:</span>
-                  <p className="text-neutral-700 dark:text-neutral-300">{formData.count}</p>
+                  <span className="text-sm text-neutral-500 dark:text-neutral-400">
+                    Брой контейнери:
+                  </span>
+                  <p className="text-neutral-700 dark:text-neutral-300">
+                    {formData.count}
+                  </p>
                 </div>
               </div>
 
@@ -1315,19 +1480,27 @@ function BinDetails({
                 <div className="flex items-center gap-2">
                   <Shield className="w-4 h-4 text-green-500" />
                   <div>
-                    <span className="text-sm text-neutral-500 dark:text-neutral-400">Код:</span>
-                    <p className="text-neutral-700 dark:text-neutral-300 font-mono text-sm">{bin.code}</p>
+                    <span className="text-sm text-neutral-500 dark:text-neutral-400">
+                      Код:
+                    </span>
+                    <p className="text-neutral-700 dark:text-neutral-300 font-mono text-sm">
+                      {bin.code}
+                    </p>
                   </div>
                 </div>
               )}
             </div>
           </div>
 
-          {(formData.recycling_clothes || formData.recycling_shoes || formData.recycling_type) && (
+          {(formData.recycling_clothes ||
+            formData.recycling_shoes ||
+            formData.recycling_type) && (
             <div className="mb-4">
               <div className="flex items-center gap-2 mb-2">
                 <Trash2 className="w-4 h-4 text-green-500" />
-                <span className="font-medium text-neutral-700 dark:text-neutral-300">Приема:</span>
+                <span className="font-medium text-neutral-700 dark:text-neutral-300">
+                  Приема:
+                </span>
               </div>
               <div className="flex flex-wrap gap-2">
                 {formData.recycling_type && (
@@ -1353,7 +1526,12 @@ function BinDetails({
           {bin.image_urls && bin.image_urls.length > 0 ? (
             <div className="mb-4">
               <div className="flex items-center gap-2 mb-2">
-                <svg className="w-4 h-4 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className="w-4 h-4 text-neutral-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -1361,7 +1539,9 @@ function BinDetails({
                     d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                   />
                 </svg>
-                <span className="font-medium text-neutral-700 dark:text-neutral-300">Снимки на коша:</span>
+                <span className="font-medium text-neutral-700 dark:text-neutral-300">
+                  Снимки на коша:
+                </span>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                 {bin.image_urls.map((imageUrl, index) => (
@@ -1375,9 +1555,12 @@ function BinDetails({
                       alt={`Bin ${index + 1}`}
                       className="w-full h-32 object-cover group-hover:scale-110 transition-transform duration-200"
                       onError={(e) => {
-                        e.currentTarget.src = "/placeholder.svg"
-                        e.currentTarget.classList.add("opacity-50")
-                        setImageError(prev => ({ ...prev, [imageUrl]: true }))
+                        e.currentTarget.src = "/placeholder.svg";
+                        e.currentTarget.classList.add("opacity-50");
+                        setImageError((prev) => ({
+                          ...prev,
+                          [imageUrl]: true,
+                        }));
                       }}
                       loading="lazy"
                     />
@@ -1391,7 +1574,12 @@ function BinDetails({
           ) : (
             <div className="mb-4 p-4 bg-neutral-50 dark:bg-neutral-800/30 rounded-lg border border-neutral-200 dark:border-neutral-700">
               <div className="flex items-center gap-2 text-neutral-500 dark:text-neutral-400">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -1413,7 +1601,11 @@ function BinDetails({
             disabled={isProcessing}
             className="flex items-center justify-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 disabled:bg-neutral-400 text-white rounded-lg font-medium transition-colors"
           >
-            {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+            {isProcessing ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <CheckCircle className="w-4 h-4" />
+            )}
             Одобри
           </button>
           <button
@@ -1421,7 +1613,11 @@ function BinDetails({
             disabled={isProcessing}
             className="flex items-center justify-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 disabled:bg-neutral-400 text-white rounded-lg font-medium transition-colors"
           >
-            {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
+            {isProcessing ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <XCircle className="w-4 h-4" />
+            )}
             Откажи
           </button>
         </div>
@@ -1431,7 +1627,7 @@ function BinDetails({
       <LeafletMapModal />
       <ImageModal />
     </div>
-  )
+  );
 }
 
 function SuggestionDetails({
@@ -1439,39 +1635,45 @@ function SuggestionDetails({
   onApprove,
   onReject,
 }: {
-  suggestion: EditSuggestion
-  onApprove: (id: string, data: EditSuggestion) => Promise<void>
-  onReject: (id: string) => Promise<void>
+  suggestion: EditSuggestion;
+  onApprove: (id: string, data: EditSuggestion) => Promise<void>;
+  onReject: (id: string) => Promise<void>;
 }) {
-  const [isProcessing, setIsProcessing] = useState(false)
-  const [isExpanded, setIsExpanded] = useState(false)
-  const [reviewNotes, setReviewNotes] = useState("")
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [reviewNotes, setReviewNotes] = useState("");
 
   const handleApprove = async () => {
-    setIsProcessing(true)
-    await onApprove(suggestion.id, suggestion)
-    setIsProcessing(false)
-  }
+    setIsProcessing(true);
+    await onApprove(suggestion.id, suggestion);
+    setIsProcessing(false);
+  };
 
   const handleReject = async () => {
-    setIsProcessing(true)
-    await onReject(suggestion.id)
-    setIsProcessing(false)
-  }
+    setIsProcessing(true);
+    await onReject(suggestion.id);
+    setIsProcessing(false);
+  };
 
   return (
     <div className="border border-neutral-200 dark:border-neutral-700 rounded-lg p-4 bg-white dark:bg-neutral-900">
       <div className="flex flex-col lg:flex-row gap-4">
         <div className="flex-1">
           {/* Заглавие на предложението за промяна */}
-          <h3 className="font-semibold text-neutral-900 dark:text-neutral-50 mb-2">Предложение за промяна</h3>
+          <h3 className="font-semibold text-neutral-900 dark:text-neutral-50 mb-2">
+            Предложение за промяна
+          </h3>
 
           {/* Информационен панел с идентификатор на коша */}
           <div className="mb-4 p-3 bg-neutral-50 dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-neutral-600 dark:text-neutral-400">Идентификатор на кош:</p>
-                <p className="text-2xl font-bold text-neutral-900 dark:text-white">{suggestion.bin_id}</p>
+                <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                  Идентификатор на кош:
+                </p>
+                <p className="text-2xl font-bold text-neutral-900 dark:text-white">
+                  {suggestion.bin_id}
+                </p>
               </div>
               <Shield className="w-8 h-8 text-neutral-500 dark:text-neutral-400" />
             </div>
@@ -1484,14 +1686,20 @@ function SuggestionDetails({
                 <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-1">
                   Поле
                 </p>
-                <p className="text-sm font-medium text-neutral-900 dark:text-neutral-50">{suggestion.field_name}</p>
+                <p className="text-sm font-medium text-neutral-900 dark:text-neutral-50">
+                  {suggestion.field_name}
+                </p>
               </div>
             )}
 
             {suggestion.name && (
               <div className="p-3 bg-neutral-50 dark:bg-neutral-800 rounded border border-neutral-200 dark:border-neutral-700">
-                <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-1">Име</p>
-                <p className="text-sm font-medium text-neutral-900 dark:text-neutral-50">{suggestion.name}</p>
+                <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-1">
+                  Име
+                </p>
+                <p className="text-sm font-medium text-neutral-900 dark:text-neutral-50">
+                  {suggestion.name}
+                </p>
               </div>
             )}
 
@@ -1500,7 +1708,9 @@ function SuggestionDetails({
                 <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-1">
                   Работно време
                 </p>
-                <p className="text-sm font-medium text-neutral-900 dark:text-neutral-50">{suggestion.opening_hours}</p>
+                <p className="text-sm font-medium text-neutral-900 dark:text-neutral-50">
+                  {suggestion.opening_hours}
+                </p>
               </div>
             )}
 
@@ -1509,7 +1719,9 @@ function SuggestionDetails({
                 <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-1">
                   Материали
                 </p>
-                <p className="text-sm font-medium text-neutral-900 dark:text-neutral-50">{suggestion.materials}</p>
+                <p className="text-sm font-medium text-neutral-900 dark:text-neutral-50">
+                  {suggestion.materials}
+                </p>
               </div>
             )}
 
@@ -1518,27 +1730,38 @@ function SuggestionDetails({
                 <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-1">
                   Бележки
                 </p>
-                <p className="text-sm text-neutral-700 dark:text-neutral-300">{suggestion.notes}</p>
+                <p className="text-sm text-neutral-700 dark:text-neutral-300">
+                  {suggestion.notes}
+                </p>
               </div>
             )}
           </div>
 
-          {(suggestion.old_value !== undefined || suggestion.new_value !== undefined) && (
+          {(suggestion.old_value !== undefined ||
+            suggestion.new_value !== undefined) && (
             <div className="mt-4 p-3 bg-neutral-50 dark:bg-neutral-800 rounded border border-neutral-200 dark:border-neutral-700">
               <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-2">
                 Сравнение на стойности
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                 <div>
-                  <p className="text-neutral-500 dark:text-neutral-400 mb-1">Стара стойност</p>
+                  <p className="text-neutral-500 dark:text-neutral-400 mb-1">
+                    Стара стойност
+                  </p>
                   <p className="text-neutral-900 dark:text-neutral-50 font-mono">
-                    {suggestion.old_value !== undefined ? String(suggestion.old_value) : "—"}
+                    {suggestion.old_value !== undefined
+                      ? String(suggestion.old_value)
+                      : "—"}
                   </p>
                 </div>
                 <div>
-                  <p className="text-neutral-500 dark:text-neutral-400 mb-1">Нова стойност</p>
+                  <p className="text-neutral-500 dark:text-neutral-400 mb-1">
+                    Нова стойност
+                  </p>
                   <p className="text-neutral-900 dark:text-neutral-50 font-mono">
-                    {suggestion.new_value !== undefined ? String(suggestion.new_value) : "—"}
+                    {suggestion.new_value !== undefined
+                      ? String(suggestion.new_value)
+                      : "—"}
                   </p>
                 </div>
               </div>
@@ -1553,7 +1776,9 @@ function SuggestionDetails({
             </div>
             <div className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400 mt-2">
               <Calendar className="w-4 h-4" />
-              <span>{new Date(suggestion.created_at).toLocaleString("bg-BG")}</span>
+              <span>
+                {new Date(suggestion.created_at).toLocaleString("bg-BG")}
+              </span>
             </div>
             <div className="flex items-center gap-2 mt-2">
               <span
@@ -1582,8 +1807,15 @@ function SuggestionDetails({
               </p>
               <div className="space-y-1 text-sm text-neutral-700 dark:text-neutral-300">
                 <p>Прегледано от: {suggestion.reviewed_by}</p>
-                {suggestion.reviewed_at && <p>Дата: {new Date(suggestion.reviewed_at).toLocaleString("bg-BG")}</p>}
-                {suggestion.review_notes && <p>Бележки: {suggestion.review_notes}</p>}
+                {suggestion.reviewed_at && (
+                  <p>
+                    Дата:{" "}
+                    {new Date(suggestion.reviewed_at).toLocaleString("bg-BG")}
+                  </p>
+                )}
+                {suggestion.review_notes && (
+                  <p>Бележки: {suggestion.review_notes}</p>
+                )}
               </div>
             </div>
           )}
@@ -1597,7 +1829,11 @@ function SuggestionDetails({
               disabled={isProcessing}
               className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-neutral-400 text-white rounded-lg transition-colors"
             >
-              {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+              {isProcessing ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <CheckCircle className="w-4 h-4" />
+              )}
               <span>Одобри</span>
             </button>
             <div className="flex flex-col gap-2">
@@ -1613,7 +1849,11 @@ function SuggestionDetails({
                 disabled={isProcessing}
                 className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-neutral-400 text-white rounded-lg transition-colors"
               >
-                {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
+                {isProcessing ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <XCircle className="w-4 h-4" />
+                )}
                 <span>Отхвърли</span>
               </button>
             </div>
@@ -1621,7 +1861,7 @@ function SuggestionDetails({
         )}
       </div>
     </div>
-  )
+  );
 }
 
 // Компонент за показване на детайли за отчет
@@ -1630,26 +1870,26 @@ function ReportDetails({
   onResolve,
   onDelete,
 }: {
-  report: Report
-  onResolve: (reportId: string) => Promise<void>
-  onDelete: (reportId: string) => Promise<void>
+  report: Report;
+  onResolve: (reportId: string) => Promise<void>;
+  onDelete: (reportId: string) => Promise<void>;
 }) {
-  const [isProcessing, setIsProcessing] = useState(false)
-  const [showDetails, setShowDetails] = useState(false)
-  const [showMapModal, setShowMapModal] = useState(false)
-  const [selectedImage, setSelectedImage] = useState<string | null>(null)
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
+  const [showMapModal, setShowMapModal] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const handleResolve = async () => {
-    setIsProcessing(true)
-    await onResolve(report.id)
-    setIsProcessing(false)
-  }
+    setIsProcessing(true);
+    await onResolve(report.id);
+    setIsProcessing(false);
+  };
 
   const handleDelete = async () => {
-    setIsProcessing(true)
-    await onDelete(report.id)
-    setIsProcessing(false)
-  }
+    setIsProcessing(true);
+    await onDelete(report.id);
+    setIsProcessing(false);
+  };
 
   const getReportTypeLabel = (type: string): string => {
     const typeMap: Record<string, string> = {
@@ -1660,62 +1900,62 @@ function ReportDetails({
       overflowing: "Препълнен",
       duplicate: "Дубликат",
       other: "Друг проблем",
-    }
-    return typeMap[type] || type
-  }
+    };
+    return typeMap[type] || type;
+  };
 
   // Функция за получаване на URL на снимка - ОПРАВЕНА
   const getImageUrl = (photoUrl: string | undefined): string => {
     if (!photoUrl) return "/placeholder.svg";
-    
+
     console.log("Обработване на photo_url:", photoUrl);
-    
+
     // Ако вече е пълен URL
-    if (photoUrl.startsWith('http')) {
+    if (photoUrl.startsWith("http")) {
       console.log("Вече е пълен URL, връщам:", photoUrl);
       return photoUrl;
     }
-    
+
     // Ако е име на файл (без път)
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    
+
     // Проверка за обикновено име на файл
-    if (photoUrl.includes('.') && !photoUrl.includes('/')) {
+    if (photoUrl.includes(".") && !photoUrl.includes("/")) {
       const url = `${supabaseUrl}/storage/v1/object/public/report-photos/${photoUrl}`;
       return url;
     }
-    
+
     // Ако е път, изчисти го
-    if (photoUrl.includes('/')) {
+    if (photoUrl.includes("/")) {
       // Извличане само на името на файла
-      const fileName = photoUrl.split('/').pop() || photoUrl;
+      const fileName = photoUrl.split("/").pop() || photoUrl;
       const url = `${supabaseUrl}/storage/v1/object/public/report-photos/${fileName}`;
       return url;
     }
-    
+
     console.log("Неразпознат формат, връщам placeholder");
     return "/placeholder.svg";
   };
 
   // Събираме всички снимки
   const allImages: string[] = [];
-  
+
   // Добавяме директната снимка от reports таблицата
   if (report.photo_url) {
     const url = getImageUrl(report.photo_url);
     allImages.push(url);
   }
-  
+
   // Добавяме снимките от report_photos таблицата
   if (report.images && report.images.length > 0) {
-    report.images.forEach(img => {
+    report.images.forEach((img) => {
       const url = getImageUrl(img.photo_url);
       allImages.push(url);
     });
   }
 
   const LeafletMapModal = () => {
-    if (!report.bin_lat || !report.bin_lon || !showMapModal) return null
+    if (!report.bin_lat || !report.bin_lon || !showMapModal) return null;
 
     return (
       <div
@@ -1727,7 +1967,9 @@ function ReportDetails({
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex items-center justify-between p-4 border-b border-neutral-200 dark:border-neutral-700">
-            <h3 className="text-lg font-semibold text-neutral-900 dark:text-white">Местоположение на коша</h3>
+            <h3 className="text-lg font-semibold text-neutral-900 dark:text-white">
+              Местоположение на коша
+            </h3>
             <button
               onClick={() => setShowMapModal(false)}
               className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-lg"
@@ -1742,17 +1984,18 @@ function ReportDetails({
             <div className="mt-3 text-sm text-neutral-600 dark:text-neutral-400 flex items-center justify-center gap-2">
               <Navigation className="w-4 h-4" />
               <span>
-                Координати: {report.bin_lat?.toFixed(6)}, {report.bin_lon?.toFixed(6)}
+                Координати: {report.bin_lat?.toFixed(6)},{" "}
+                {report.bin_lon?.toFixed(6)}
               </span>
             </div>
           </div>
         </div>
       </div>
-    )
-  }
+    );
+  };
 
   const ImageModal = () => {
-    if (!selectedImage) return null
+    if (!selectedImage) return null;
 
     return (
       <div
@@ -1774,8 +2017,8 @@ function ReportDetails({
           />
         </div>
       </div>
-    )
-  }
+    );
+  };
 
   return (
     <div className="border border-neutral-200 dark:border-neutral-700 rounded-lg p-4 bg-white dark:bg-neutral-800">
@@ -1783,10 +2026,14 @@ function ReportDetails({
         <div className="flex-1">
           <div className="flex items-start justify-between mb-3">
             <div>
-              <h3 className="font-semibold text-3xl mb-3 text-neutral-900 dark:text-white">{report.title}</h3>
+              <h3 className="font-semibold text-3xl mb-3 text-neutral-900 dark:text-white">
+                {report.title}
+              </h3>
               <div className="flex items-center justify-items-center gap-2 mt-1">
                 <Flag className="w-4 h-4 text-red-500 translate-y-[1px]" />
-                <span className="text-red-600 dark:text-red-500">{getReportTypeLabel(report.type)}</span>
+                <span className="text-red-600 dark:text-red-500">
+                  {getReportTypeLabel(report.type)}
+                </span>
               </div>
             </div>
             <span
@@ -1805,10 +2052,16 @@ function ReportDetails({
               <div className="flex items-center gap-2">
                 <User className="w-4 h-4 text-neutral-400" />
                 <div>
-                  <span className="text-sm text-neutral-500 dark:text-neutral-400">Докладван от:</span>
-                  <p className="text-blue-600 dark:text-blue-400 font-medium">{report.user_username || "Анонимен"}</p>
+                  <span className="text-sm text-neutral-500 dark:text-neutral-400">
+                    Докладван от:
+                  </span>
+                  <p className="text-blue-600 dark:text-blue-400 font-medium">
+                    {report.user_username || "Анонимен"}
+                  </p>
                   {report.user_email && report.user_email !== "Анонимен" && (
-                    <p className="text-xs text-blue-600 dark:text-blue-400">{report.user_email}</p>
+                    <p className="text-xs text-blue-600 dark:text-blue-400">
+                      {report.user_email}
+                    </p>
                   )}
                 </div>
               </div>
@@ -1816,16 +2069,21 @@ function ReportDetails({
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-neutral-400" />
                 <div>
-                  <span className="text-sm text-neutral-500 dark:text-neutral-400">Дата на докладване:</span>
+                  <span className="text-sm text-neutral-500 dark:text-neutral-400">
+                    Дата на докладване:
+                  </span>
                   <p className="text-blue-600 dark:text-blue-400">
                     {report.created_at
-                      ? new Date(report.created_at).toLocaleDateString("bg-BG", {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })
+                      ? new Date(report.created_at).toLocaleDateString(
+                          "bg-BG",
+                          {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          },
+                        )
                       : "—"}
                   </p>
                 </div>
@@ -1837,8 +2095,12 @@ function ReportDetails({
                 <div className="flex items-center gap-2">
                   <Hash className="w-4 h-4 text-neutral-400" />
                   <div>
-                    <span className="text-sm text-neutral-500 dark:text-neutral-400">Код на кош:</span>
-                    <p className="text-blue-600 dark:text-blue-400 font-mono text-sm">{report.bin_code}</p>
+                    <span className="text-sm text-neutral-500 dark:text-neutral-400">
+                      Код на кош:
+                    </span>
+                    <p className="text-blue-600 dark:text-blue-400 font-mono text-sm">
+                      {report.bin_code}
+                    </p>
                   </div>
                 </div>
               )}
@@ -1847,7 +2109,9 @@ function ReportDetails({
                 <div className="flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-neutral-400" />
                   <div>
-                    <span className="text-sm text-neutral-500 dark:text-neutral-400">Локация:</span>
+                    <span className="text-sm text-neutral-500 dark:text-neutral-400">
+                      Локация:
+                    </span>
                     <div>
                       <button
                         onClick={() => setShowMapModal(true)}
@@ -1866,10 +2130,14 @@ function ReportDetails({
             <div className="mb-4">
               <div className="flex items-center gap-2 mb-2">
                 <MessageCircle className="w-4 h-4 text-neutral-400" />
-                <span className="font-medium text-neutral-700 dark:text-neutral-300">Описание на проблема:</span>
+                <span className="font-medium text-neutral-700 dark:text-neutral-300">
+                  Описание на проблема:
+                </span>
               </div>
               <div className="px- bg-neutral-50 dark:bg-neutral-800/50 rounded-lg">
-                <p className="text-neutral-700 dark:text-neutral-300">{report.description}</p>
+                <p className="text-neutral-700 dark:text-neutral-300">
+                  {report.description}
+                </p>
               </div>
             </div>
           )}
@@ -1877,7 +2145,12 @@ function ReportDetails({
           {allImages.length > 0 ? (
             <div className="mb-4">
               <div className="flex items-center gap-2 mb-2">
-                <svg className="w-4 h-4 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className="w-4 h-4 text-neutral-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -1886,7 +2159,7 @@ function ReportDetails({
                   />
                 </svg>
                 <span className="font-medium text-neutral-700 dark:text-neutral-300">
-                  Прикачена снимка: 
+                  Прикачена снимка:
                 </span>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
@@ -1903,10 +2176,12 @@ function ReportDetails({
                       onError={(e) => {
                         e.currentTarget.src = "/placeholder.svg";
                         e.currentTarget.classList.add("opacity-50");
-                        
-                        fetch(imageUrl, { method: 'HEAD' })
-                          .then(res => console.log("HTTP статус:", res.status))
-                          .catch(err => console.log("Fetch грешка:", err));
+
+                        fetch(imageUrl, { method: "HEAD" })
+                          .then((res) =>
+                            console.log("HTTP статус:", res.status),
+                          )
+                          .catch((err) => console.log("Fetch грешка:", err));
                       }}
                     />
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-200 flex items-center justify-center">
@@ -1919,7 +2194,12 @@ function ReportDetails({
           ) : (
             <div className="mb-4 p-4 bg-neutral-50 dark:bg-neutral-800/30 rounded-lg border border-neutral-200 dark:border-neutral-700">
               <div className="flex items-center gap-2 text-neutral-500 dark:text-neutral-400">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -1940,7 +2220,11 @@ function ReportDetails({
               disabled={isProcessing}
               className="flex items-center justify-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 disabled:bg-neutral-400 text-white rounded-lg font-medium transition-colors"
             >
-              {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+              {isProcessing ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <CheckCircle className="w-4 h-4" />
+              )}
               Разреши
             </button>
           )}
@@ -1949,7 +2233,11 @@ function ReportDetails({
             disabled={isProcessing}
             className="flex items-center justify-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 disabled:bg-neutral-400 text-white rounded-lg font-medium transition-colors"
           >
-            {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
+            {isProcessing ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <XCircle className="w-4 h-4" />
+            )}
             Изтрий
           </button>
         </div>
@@ -1958,125 +2246,144 @@ function ReportDetails({
       {showMapModal && <LeafletMapModal />}
       {selectedImage && <ImageModal />}
     </div>
-  )
+  );
 }
 
 export function AdminPanel() {
-  const [bins, setBins] = useState<Bin[]>([])
-  const [suggestions, setSuggestions] = useState<EditSuggestion[]>([])
-  const [reports, setReports] = useState<Report[]>([])
-  const [orgRequests, setOrgRequests] = useState<OrganizationRequest[]>([])
-  const [stats, setStats] = useState({ pending: 0, approved: 0, total: 0, suggestions: 0, reports: 0, orgRequests: 0 })
-  const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<"bins" | "suggestions" | "reports" | "orgRequests">("bins")
-  const [searchQuery, setSearchQuery] = useState("")
-  const [darkMode, setDarkMode] = useState(false)
+  const [bins, setBins] = useState<Bin[]>([]);
+  const [suggestions, setSuggestions] = useState<EditSuggestion[]>([]);
+  const [reports, setReports] = useState<Report[]>([]);
+  const [orgRequests, setOrgRequests] = useState<OrganizationRequest[]>([]);
+  const [stats, setStats] = useState({
+    pending: 0,
+    approved: 0,
+    total: 0,
+    suggestions: 0,
+    reports: 0,
+    orgRequests: 0,
+  });
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<
+    "bins" | "suggestions" | "reports" | "orgRequests"
+  >("bins");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
-    loadData()
+    loadData();
     const isDark =
-      localStorage.getItem("darkMode") === "true" || window.matchMedia("(prefers-color-scheme: dark)").matches
-    setDarkMode(isDark)
-    if (isDark) document.documentElement.classList.add("dark")
-  }, [])
+      localStorage.getItem("darkMode") === "true" ||
+      window.matchMedia("(prefers-color-scheme: dark)").matches;
+    setDarkMode(isDark);
+    if (isDark) document.documentElement.classList.add("dark");
+  }, []);
 
   const toggleDarkMode = () => {
-    const newDarkMode = !darkMode
-    setDarkMode(newDarkMode)
-    localStorage.setItem("darkMode", newDarkMode.toString())
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    localStorage.setItem("darkMode", newDarkMode.toString());
     if (newDarkMode) {
-      document.documentElement.classList.add("dark")
+      document.documentElement.classList.add("dark");
     } else {
-      document.documentElement.classList.remove("dark")
+      document.documentElement.classList.remove("dark");
     }
-  }
+  };
 
   const loadData = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const [binsData, suggestionsData, reportsData, orgRequestsData, statsData] = await Promise.all([
+      const [
+        binsData,
+        suggestionsData,
+        reportsData,
+        orgRequestsData,
+        statsData,
+      ] = await Promise.all([
         getPendingBins(),
         getEditSuggestions(),
         getReports(),
         getOrganizationRequests(),
         getStats(),
-      ])
-      setBins(binsData)
-      setSuggestions(suggestionsData)
-      setReports(reportsData)
-      setOrgRequests(orgRequestsData)
-      setStats(statsData)
+      ]);
+      setBins(binsData);
+      setSuggestions(suggestionsData);
+      setReports(reportsData);
+      setOrgRequests(orgRequestsData);
+      setStats(statsData);
     } catch (error) {
-      console.error("Грешка при зареждане:", error)
+      console.error("Грешка при зареждане:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleApproveBin = async (binId: string, binData: Bin) => {
-    const success = await approveBin(binId, binData)
-    if (success) loadData()
-  }
+    const success = await approveBin(binId, binData);
+    if (success) loadData();
+  };
 
   const handleRejectBin = async (binId: string) => {
-    const success = await rejectBin(binId)
-    if (success) loadData()
-  }
+    const success = await rejectBin(binId);
+    if (success) loadData();
+  };
 
-  const handleApproveSuggestion = async (suggestionId: string, suggestionData: EditSuggestion) => {
-    const success = await approveSuggestion(suggestionId, suggestionData)
-    if (success) loadData()
-  }
+  const handleApproveSuggestion = async (
+    suggestionId: string,
+    suggestionData: EditSuggestion,
+  ) => {
+    const success = await approveSuggestion(suggestionId, suggestionData);
+    if (success) loadData();
+  };
 
   const handleRejectSuggestion = async (suggestionId: string) => {
-    const success = await rejectSuggestion(suggestionId)
-    if (success) loadData()
-  }
+    const success = await rejectSuggestion(suggestionId);
+    if (success) loadData();
+  };
 
   const handleResolveReport = async (reportId: string) => {
-    const success = await resolveReport(reportId)
-    if (success) loadData()
-  }
+    const success = await resolveReport(reportId);
+    if (success) loadData();
+  };
 
   const handleDeleteReport = async (reportId: string) => {
-    const success = await deleteReport(reportId)
-    if (success) loadData()
-  }
+    const success = await deleteReport(reportId);
+    if (success) loadData();
+  };
 
   const handleApproveOrgRequest = async (requestId: string) => {
-    const success = await approveOrganizationRequest(requestId)
-    if (success) loadData()
-  }
+    const success = await approveOrganizationRequest(requestId);
+    if (success) loadData();
+  };
 
   const handleRejectOrgRequest = async (requestId: string) => {
-    const success = await rejectOrganizationRequest(requestId)
-    if (success) loadData()
-  }
+    const success = await rejectOrganizationRequest(requestId);
+    if (success) loadData();
+  };
 
   const filteredBins = bins.filter((bin) => {
-    const searchLower = searchQuery.toLowerCase()
+    const searchLower = searchQuery.toLowerCase();
     const fields = [
       bin.user_username ?? "",
       bin.user_email ?? "",
       bin.code ?? "",
       ...Object.values(parseTagsObject(bin.tags ?? {})).map(String),
-    ]
-    return fields.some((field) => field.toLowerCase().includes(searchLower))
-  })
+    ];
+    return fields.some((field) => field.toLowerCase().includes(searchLower));
+  });
 
   const filteredSuggestions = suggestions.filter((suggestion) => {
-    const searchLower = searchQuery.toLowerCase()
+    const searchLower = searchQuery.toLowerCase();
     const fields = [
       suggestion.user_email ?? "",
       suggestion.bin_id ?? "",
       suggestion.name ?? "",
       suggestion.materials ?? "",
-    ]
-    return fields.some((field) => field.toLowerCase().includes(searchLower))
-  })
+    ];
+    return fields.some((field) => field.toLowerCase().includes(searchLower));
+  });
 
   const filteredReports = reports.filter((report) => {
-    const searchLower = searchQuery.toLowerCase()
+    const searchLower = searchQuery.toLowerCase();
     const fields = [
       report.user_email ?? "",
       report.user_username ?? "",
@@ -2084,21 +2391,21 @@ export function AdminPanel() {
       report.type ?? "",
       report.description ?? "",
       report.bin_code ?? "",
-    ]
-    return fields.some((field) => field.toLowerCase().includes(searchLower))
-  })
+    ];
+    return fields.some((field) => field.toLowerCase().includes(searchLower));
+  });
 
   const filteredOrgRequests = orgRequests.filter((request) => {
-    const searchLower = searchQuery.toLowerCase()
+    const searchLower = searchQuery.toLowerCase();
     const fields = [
       request.organization_name ?? "",
       request.contact_name ?? "",
       request.contact_email ?? "",
       request.city ?? "",
       request.country ?? "",
-    ]
-    return fields.some((field) => field.toLowerCase().includes(searchLower))
-  })
+    ];
+    return fields.some((field) => field.toLowerCase().includes(searchLower));
+  });
 
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900">
@@ -2110,15 +2417,29 @@ export function AdminPanel() {
                 <Shield className="w-6 h-6 text-neutral-600 dark:text-neutral-300" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-neutral-900 dark:text-white">Администраторско табло</h1>
-                <p className="text-sm text-neutral-600 dark:text-neutral-400">Управление</p>
+                <h1 className="text-xl font-bold text-neutral-900 dark:text-white">
+                  Администраторско табло
+                </h1>
+                <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                  Управление
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <button onClick={toggleDarkMode} className="p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-700">
-                {darkMode ? <Sun className="w-5 h-5 text-yellow-500" /> : <Moon className="w-5 h-5 text-neutral-600" />}
+              <button
+                onClick={toggleDarkMode}
+                className="p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-700"
+              >
+                {darkMode ? (
+                  <Sun className="w-5 h-5 text-yellow-500" />
+                ) : (
+                  <Moon className="w-5 h-5 text-neutral-600" />
+                )}
               </button>
-              <button onClick={loadData} className="p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-700">
+              <button
+                onClick={loadData}
+                className="p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-700"
+              >
                 <RefreshCw className="w-5 h-5 text-neutral-600 dark:text-neutral-400" />
               </button>
               <LogoutButtonAlt />
@@ -2133,8 +2454,12 @@ export function AdminPanel() {
             <div className="bg-white dark:bg-neutral-800 rounded-lg p-4 border border-neutral-200 dark:border-neutral-700 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-neutral-600 dark:text-neutral-400">Общо кошове</p>
-                  <p className="text-2xl font-bold text-neutral-900 dark:text-white">{stats.total}</p>
+                  <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                    Общо кошове
+                  </p>
+                  <p className="text-2xl font-bold text-neutral-900 dark:text-white">
+                    {stats.total}
+                  </p>
                 </div>
                 <Recycle className="w-8 h-8 text-green-500" />
               </div>
@@ -2142,8 +2467,12 @@ export function AdminPanel() {
             <div className="bg-white dark:bg-neutral-800 rounded-lg p-4 border border-neutral-200 dark:border-neutral-700 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-neutral-600 dark:text-neutral-400">Одобрени</p>
-                  <p className="text-2xl font-bold text-neutral-900 dark:text-white">{stats.approved}</p>
+                  <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                    Одобрени
+                  </p>
+                  <p className="text-2xl font-bold text-neutral-900 dark:text-white">
+                    {stats.approved}
+                  </p>
                 </div>
                 <CircleCheck className="w-8 h-8 text-green-500" />
               </div>
@@ -2151,8 +2480,12 @@ export function AdminPanel() {
             <div className="bg-white dark:bg-neutral-800 rounded-lg p-4 border border-neutral-200 dark:border-neutral-700 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-neutral-600 dark:text-neutral-400">Чакащи одобрение</p>
-                  <p className="text-2xl font-bold text-neutral-900 dark:text-white">{stats.pending}</p>
+                  <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                    Чакащи одобрение
+                  </p>
+                  <p className="text-2xl font-bold text-neutral-900 dark:text-white">
+                    {stats.pending}
+                  </p>
                 </div>
                 <List className="w-8 h-8 text-orange-500" />
               </div>
@@ -2160,8 +2493,12 @@ export function AdminPanel() {
             <div className="bg-white dark:bg-neutral-800 rounded-lg p-4 border border-neutral-200 dark:border-neutral-700 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-neutral-600 dark:text-neutral-400">Предложения</p>
-                  <p className="text-2xl font-bold text-neutral-900 dark:text-white">{stats.suggestions}</p>
+                  <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                    Предложения
+                  </p>
+                  <p className="text-2xl font-bold text-neutral-900 dark:text-white">
+                    {stats.suggestions}
+                  </p>
                 </div>
                 <PenLine className="w-8 h-8 text-blue-500" />
               </div>
@@ -2169,8 +2506,12 @@ export function AdminPanel() {
             <div className="bg-white dark:bg-neutral-800 rounded-lg p-4 border border-neutral-200 dark:border-neutral-700 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-neutral-600 dark:text-neutral-400">Активни отчети</p>
-                  <p className="text-2xl font-bold text-neutral-900 dark:text-white">{stats.reports}</p>
+                  <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                    Активни отчети
+                  </p>
+                  <p className="text-2xl font-bold text-neutral-900 dark:text-white">
+                    {stats.reports}
+                  </p>
                 </div>
                 <Flag className="w-8 h-8 text-red-500" />
               </div>
@@ -2178,8 +2519,12 @@ export function AdminPanel() {
             <div className="bg-white dark:bg-neutral-800 rounded-lg p-4 border border-neutral-200 dark:border-neutral-700 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-neutral-600 dark:text-neutral-400">Заявки</p>
-                  <p className="text-2xl font-bold text-neutral-900 dark:text-white">{stats.orgRequests}</p>
+                  <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                    Заявки
+                  </p>
+                  <p className="text-2xl font-bold text-neutral-900 dark:text-white">
+                    {stats.orgRequests}
+                  </p>
                 </div>
                 <Building className="w-8 h-8 text-purple-500" />
               </div>
@@ -2257,13 +2602,20 @@ export function AdminPanel() {
                 <div className="text-center py-12">
                   <Trash className="w-12 h-12 text-neutral-400 mx-auto mb-4" />
                   <p className="text-neutral-500 dark:text-neutral-400">
-                    {searchQuery ? "Няма намерени резултати" : "Няма чакащи кошове"}
+                    {searchQuery
+                      ? "Няма намерени резултати"
+                      : "Няма чакащи кошове"}
                   </p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {filteredBins.map((bin) => (
-                    <BinDetails key={bin.id} bin={bin} onApprove={handleApproveBin} onReject={handleRejectBin} />
+                    <BinDetails
+                      key={bin.id}
+                      bin={bin}
+                      onApprove={handleApproveBin}
+                      onReject={handleRejectBin}
+                    />
                   ))}
                 </div>
               )
@@ -2272,7 +2624,9 @@ export function AdminPanel() {
                 <div className="text-center py-12">
                   <PenLine className="w-12 h-12 text-neutral-400 mx-auto mb-4" />
                   <p className="text-neutral-500 dark:text-neutral-400">
-                    {searchQuery ? "Няма намерени резултати" : "Няма чакащи предложения"}
+                    {searchQuery
+                      ? "Няма намерени резултати"
+                      : "Няма чакащи предложения"}
                   </p>
                 </div>
               ) : (
@@ -2292,7 +2646,9 @@ export function AdminPanel() {
                 <div className="text-center py-12">
                   <Flag className="w-12 h-12 text-neutral-400 mx-auto mb-4" />
                   <p className="text-neutral-500 dark:text-neutral-400">
-                    {searchQuery ? "Няма намерени резултати" : "Няма активни отчети"}
+                    {searchQuery
+                      ? "Няма намерени резултати"
+                      : "Няма активни отчети"}
                   </p>
                 </div>
               ) : (
@@ -2312,7 +2668,9 @@ export function AdminPanel() {
                 <div className="text-center py-12">
                   <Building className="w-12 h-12 text-neutral-400 mx-auto mb-4" />
                   <p className="text-neutral-500 dark:text-neutral-400">
-                    {searchQuery ? "Няма намерени резултати" : "Няма чакащи заявки"}
+                    {searchQuery
+                      ? "Няма намерени резултати"
+                      : "Няма чакащи заявки"}
                   </p>
                 </div>
               ) : (
@@ -2332,47 +2690,47 @@ export function AdminPanel() {
         </div>
       </main>
     </div>
-  )
+  );
 }
 
 export function AdminRoute({ children }: { children: ReactNode }) {
-  const [isAdmin, setIsAdmin] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function verifyAdmin() {
       try {
         const {
           data: { user },
-        } = await supabase.auth.getUser()
+        } = await supabase.auth.getUser();
         if (!user) {
-          window.location.href = "/auth/login"
-          return
+          window.location.href = "/auth/login";
+          return;
         }
 
-        const adminStatus = await checkAdminStatus(user.id)
+        const adminStatus = await checkAdminStatus(user.id);
         if (!adminStatus) {
-          window.location.href = "/"
-          return
+          window.location.href = "/";
+          return;
         }
 
-        setIsAdmin(true)
+        setIsAdmin(true);
       } catch (error) {
-        window.location.href = "/login"
+        window.location.href = "/login";
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     }
 
-    verifyAdmin()
-  }, [])
+    verifyAdmin();
+  }, []);
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-neutral-500" />
       </div>
-    )
+    );
   }
 
   if (!isAdmin) {
@@ -2387,10 +2745,10 @@ export function AdminRoute({ children }: { children: ReactNode }) {
           </a>
         </div>
       </div>
-    )
+    );
   }
 
-  return <>{children}</>
+  return <>{children}</>;
 }
 
 export default function AdminPage() {
@@ -2398,5 +2756,5 @@ export default function AdminPage() {
     <AdminRoute>
       <AdminPanel />
     </AdminRoute>
-  )
+  );
 }

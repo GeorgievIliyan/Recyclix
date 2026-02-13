@@ -5,7 +5,7 @@ import { z } from "zod";
 // Supabase клиент с ключ
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
 );
 
 // Схема за валидация
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
           message: issue.message,
         })),
       },
-      { status: 401 }
+      { status: 401 },
     );
   }
 
@@ -48,28 +48,19 @@ export async function GET(request: NextRequest) {
     console.error("Error fetching users:", err);
     return NextResponse.json(
       { error: err.message || "Unknown error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function PUT(req: NextRequest) {
-  return NextResponse.json(
-    {error: "Method not allowed"},
-    {status: 405}
-  )
+  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
 }
 
 export async function DELETE(req: NextRequest) {
-  return NextResponse.json(
-    {error: "Method not allowed"},
-    {status: 405}
-  )
+  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
 }
 
 export async function PATCH(req: NextRequest) {
-  return NextResponse.json(
-    {error: "Method not allowed"},
-    {status: 405}
-  )
+  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
 }

@@ -18,7 +18,7 @@ export interface GeminiResponse {
 
 export default async function fetchClassify(
   { binId, image, target, userDailyTaskId }: GeminiRequest,
-  endpoint: string = "/api/gemini-classify"
+  endpoint: string = "/api/gemini-classify",
 ): Promise<GeminiResponse> {
   const token = process.env.SECURE_API_KEY;
 
@@ -28,8 +28,8 @@ export default async function fetchClassify(
 
   // Determine which endpoint to use based on target
   const finalEndpoint = target ? "/api/gemini-confirm" : "/api/gemini-classify";
-  
-  const requestBody = target 
+
+  const requestBody = target
     ? { image, userDailyTaskId: binId } // For confirm endpoint
     : { binId, image, target }; // For classify endpoint
 

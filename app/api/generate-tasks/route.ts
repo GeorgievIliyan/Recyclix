@@ -5,7 +5,7 @@ import { z } from "zod";
 // Supabase клиент
 export const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_KEY!
+  process.env.SUPABASE_SERVICE_KEY!,
 );
 
 export const runtime = "edge";
@@ -30,13 +30,13 @@ export const GET = async (req: NextRequest) => {
           ...(parsed.success
             ? undefined
             : {
-                details: parsed.error.issues.map(i => ({
+                details: parsed.error.issues.map((i) => ({
                   field: i.path.join("."),
                   message: i.message,
                 })),
               }),
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
   }
@@ -72,7 +72,11 @@ export const GET = async (req: NextRequest) => {
     }
 
     // Назначаване на задачи
-    const assignmentResults: Array<{ userId: string; success: boolean; error?: string }> = [];
+    const assignmentResults: Array<{
+      userId: string;
+      success: boolean;
+      error?: string;
+    }> = [];
 
     for (const user of users) {
       const rows = tasks.map((task) => ({
@@ -89,7 +93,11 @@ export const GET = async (req: NextRequest) => {
         });
 
       if (insertError) {
-        assignmentResults.push({ userId: user.id, success: false, error: insertError.message });
+        assignmentResults.push({
+          userId: user.id,
+          success: false,
+          error: insertError.message,
+        });
       } else {
         assignmentResults.push({ userId: user.id, success: true });
       }
@@ -103,41 +111,34 @@ export const GET = async (req: NextRequest) => {
     return NextResponse.json({
       ok: true,
       message: `Assigned ${tasks.length} tasks to ${users.length} users`,
-      failedAssignments: failedAssignments.length > 0 ? failedAssignments : undefined,
+      failedAssignments:
+        failedAssignments.length > 0 ? failedAssignments : undefined,
     });
   } catch (err: any) {
     console.error("Error assigning daily tasks:", err);
     return NextResponse.json(
-      { ok: false, message: "Internal server error", error: err.message || "Unknown error" },
-      { status: 500 }
+      {
+        ok: false,
+        message: "Internal server error",
+        error: err.message || "Unknown error",
+      },
+      { status: 500 },
     );
   }
 };
 
 export async function POST(req: NextRequest) {
-  return NextResponse.json(
-    {error: "Method not allowed"},
-    {status: 405}
-  )
+  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
 }
 
 export async function PUT(req: NextRequest) {
-  return NextResponse.json(
-    {error: "Method not allowed"},
-    {status: 405}
-  )
+  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
 }
 
 export async function DELETE(req: NextRequest) {
-  return NextResponse.json(
-    {error: "Method not allowed"},
-    {status: 405}
-  )
+  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
 }
 
 export async function PATCH(req: NextRequest) {
-  return NextResponse.json(
-    {error: "Method not allowed"},
-    {status: 405}
-  )
+  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
 }

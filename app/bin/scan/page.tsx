@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import BinCamera from "@/app/components/BinCamera"
-import { useState, useEffect } from "react"
-import { supabase } from "@/lib/supabase-browser"
+import BinCamera from "@/app/components/BinCamera";
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase-browser";
 import {
   InspectionPanel,
   Spool,
@@ -17,137 +17,185 @@ import {
   Check,
   OctagonAlert,
   Eraser,
-  Settings
-} from "lucide-react"
-import Logo36 from "@/app/components/Logo36"
+  Settings,
+} from "lucide-react";
+import Logo36 from "@/app/components/Logo36";
 
 type Material = {
-  id: string
-  label: string
-  color: string
-  icon: any
-}
+  id: string;
+  label: string;
+  color: string;
+  icon: any;
+};
 
 const materials: Material[] = [
-  { id: "plastic", label: "Пластмаса", color: "bg-gradient-to-br from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700", icon: ShoppingBag },
-  { id: "glass", label: "Стъкло", color: "bg-gradient-to-br from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700", icon: BottleWine },
-  { id: "paper", label: "Хартия", color: "bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700", icon: Newspaper },
-  { id: "metal", label: "Метал", color: "bg-gradient-to-br from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700", icon: InspectionPanel },
-  { id: "textile", label: "Текстил", color: "bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700", icon: Spool },
-  { id: "general waste", label: "Битов", color: "bg-gradient-to-br from-neutral-500 to-neutral-600 hover:from-neutral-600 hover:to-neutral-700", icon: Trash2 },
-  { id: "batteries", label: "Батерии", color: "bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700", icon: Battery },
-  { id: "ewaste", label: "Техника", color: "bg-gradient-to-br from-amber-700 to-amber-800 hover:from-amber-800 hover:to-amber-900", icon: PcCase },
-]
+  {
+    id: "plastic",
+    label: "Пластмаса",
+    color:
+      "bg-gradient-to-br from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700",
+    icon: ShoppingBag,
+  },
+  {
+    id: "glass",
+    label: "Стъкло",
+    color:
+      "bg-gradient-to-br from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700",
+    icon: BottleWine,
+  },
+  {
+    id: "paper",
+    label: "Хартия",
+    color:
+      "bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700",
+    icon: Newspaper,
+  },
+  {
+    id: "metal",
+    label: "Метал",
+    color:
+      "bg-gradient-to-br from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700",
+    icon: InspectionPanel,
+  },
+  {
+    id: "textile",
+    label: "Текстил",
+    color:
+      "bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700",
+    icon: Spool,
+  },
+  {
+    id: "general waste",
+    label: "Битов",
+    color:
+      "bg-gradient-to-br from-neutral-500 to-neutral-600 hover:from-neutral-600 hover:to-neutral-700",
+    icon: Trash2,
+  },
+  {
+    id: "batteries",
+    label: "Батерии",
+    color:
+      "bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700",
+    icon: Battery,
+  },
+  {
+    id: "ewaste",
+    label: "Техника",
+    color:
+      "bg-gradient-to-br from-amber-700 to-amber-800 hover:from-amber-800 hover:to-amber-900",
+    icon: PcCase,
+  },
+];
 
-const STORAGE_KEY = "recycling_bin_code"
+const STORAGE_KEY = "recycling_bin_code";
 
 export default function Page() {
-  const [targetMaterial, setTargetMaterial] = useState<string>("")
-  const [mode, setMode] = useState<"auto" | "manual">("auto")
-  const [code, setCode] = useState<string>("")
-  const [opened, setOpened] = useState<boolean>(false)
-  const [codeError, setCodeError] = useState<string | null>(null)
-  const [qr, setQr] = useState<string | null>(null)
-  const [qrExpiresAt, setQrExpiresAt] = useState<number | null>(null)
-  const [showChangeCode, setShowChangeCode] = useState<boolean>(false)
+  const [targetMaterial, setTargetMaterial] = useState<string>("");
+  const [mode, setMode] = useState<"auto" | "manual">("auto");
+  const [code, setCode] = useState<string>("");
+  const [opened, setOpened] = useState<boolean>(false);
+  const [codeError, setCodeError] = useState<string | null>(null);
+  const [qr, setQr] = useState<string | null>(null);
+  const [qrExpiresAt, setQrExpiresAt] = useState<number | null>(null);
+  const [showChangeCode, setShowChangeCode] = useState<boolean>(false);
 
   useEffect(() => {
-    const savedCode = localStorage.getItem(STORAGE_KEY)
+    const savedCode = localStorage.getItem(STORAGE_KEY);
     if (savedCode) {
-      setCode(savedCode)
-      checkSavedCode(savedCode)
+      setCode(savedCode);
+      checkSavedCode(savedCode);
     }
-  }, [])
+  }, []);
 
   const checkSavedCode = async (savedCode: string) => {
     try {
       const { data, error } = await supabase
-        .from('recycling_bins')
-        .select('id, code')
-        .eq('code', savedCode.trim())
-        .maybeSingle()
+        .from("recycling_bins")
+        .select("id, code")
+        .eq("code", savedCode.trim())
+        .maybeSingle();
 
       if (!error && data) {
-        setOpened(true)
+        setOpened(true);
       } else {
-        localStorage.removeItem(STORAGE_KEY)
+        localStorage.removeItem(STORAGE_KEY);
       }
     } catch (err) {
-      console.error("Error checking saved code:", err)
-      localStorage.removeItem(STORAGE_KEY)
+      console.error("Error checking saved code:", err);
+      localStorage.removeItem(STORAGE_KEY);
     }
-  }
+  };
 
   const handleModeChange = (newMode: "auto" | "manual") => {
-    setMode(newMode)
-    if (newMode === "auto") setTargetMaterial("")
-  }
+    setMode(newMode);
+    if (newMode === "auto") setTargetMaterial("");
+  };
 
   const handleCodeSubmit = async (inputCode: string) => {
-    setCodeError(null)
+    setCodeError(null);
 
     if (!inputCode) {
-      setCodeError("Моля, въведете код!")
-      return
+      setCodeError("Моля, въведете код!");
+      return;
     }
 
-    const trimmedCode = inputCode.trim()
+    const trimmedCode = inputCode.trim();
 
     try {
       const { data, error } = await supabase
-        .from('recycling_bins')
-        .select('id, code')
-        .eq('code', trimmedCode)
-        .maybeSingle()
+        .from("recycling_bins")
+        .select("id, code")
+        .eq("code", trimmedCode)
+        .maybeSingle();
 
       if (error) {
-        console.error("Supabase error:", error.message)
-        setCodeError("Грешка при връзка с базата данни.")
-        return
+        console.error("Supabase error:", error.message);
+        setCodeError("Грешка при връзка с базата данни.");
+        return;
       }
 
       if (data) {
-        setCode(trimmedCode)
-        setOpened(true)
-        localStorage.setItem(STORAGE_KEY, trimmedCode)
-        console.log("Connected to bin ID:", data.id)
+        setCode(trimmedCode);
+        setOpened(true);
+        localStorage.setItem(STORAGE_KEY, trimmedCode);
+        console.log("Connected to bin ID:", data.id);
       } else {
-        setCodeError("Кодът не бе намерен!")
-        localStorage.removeItem(STORAGE_KEY)
+        setCodeError("Кодът не бе намерен!");
+        localStorage.removeItem(STORAGE_KEY);
       }
     } catch (err) {
-      console.error("Unexpected error:", err)
-      setCodeError("Възникна неочаквана грешка.")
+      console.error("Unexpected error:", err);
+      setCodeError("Възникна неочаквана грешка.");
     }
-  }
+  };
 
   const handleClearCode = () => {
-    setOpened(false)
-    setCode("")
-    localStorage.removeItem(STORAGE_KEY)
-    setCodeError(null)
-    setShowChangeCode(false)
-  }
+    setOpened(false);
+    setCode("");
+    localStorage.removeItem(STORAGE_KEY);
+    setCodeError(null);
+    setShowChangeCode(false);
+  };
 
   const closeDropdown = () => {
-    setShowChangeCode(false)
-  }
+    setShowChangeCode(false);
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (showChangeCode) {
-        setShowChangeCode(false)
+        setShowChangeCode(false);
       }
-    }
+    };
 
     if (showChangeCode) {
-      document.addEventListener('click', handleClickOutside)
+      document.addEventListener("click", handleClickOutside);
     }
 
     return () => {
-      document.removeEventListener('click', handleClickOutside)
-    }
-  }, [showChangeCode])
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, [showChangeCode]);
 
   return (
     <>
@@ -191,8 +239,8 @@ export default function Page() {
               <div className="relative">
                 <button
                   onClick={(e) => {
-                    e.stopPropagation()
-                    setShowChangeCode(!showChangeCode)
+                    e.stopPropagation();
+                    setShowChangeCode(!showChangeCode);
                   }}
                   className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
                   title="Настройки"
@@ -201,7 +249,7 @@ export default function Page() {
                 </button>
 
                 {showChangeCode && (
-                  <div 
+                  <div
                     className="absolute right-0 top-12 bg-card border border-border rounded-lg shadow-lg p-2 min-w-[160px] z-50"
                     onClick={(e) => e.stopPropagation()}
                   >
@@ -219,7 +267,9 @@ export default function Page() {
 
           <div className="flex-1 flex flex-col md:flex-row min-h-0 overflow-hidden">
             <div className="flex-1 min-h-0 p-2 sm:p-3 md:p-4">
-              {opened && <BinCamera target={targetMaterial} binId={code.trim()} />}
+              {opened && (
+                <BinCamera target={targetMaterial} binId={code.trim()} />
+              )}
             </div>
 
             {mode === "manual" && (
@@ -239,7 +289,7 @@ export default function Page() {
             <h1 className="text-3xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-50">
               Въведете код на кош
             </h1>
-            
+
             <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-6">
               Моля, въведете 6-цифрения код, за да продължите напред
             </p>
@@ -257,26 +307,26 @@ export default function Page() {
                 value={code}
                 className="flex h-12 w-full rounded-md border border-neutral-200 bg-transparent px-3 py-2 text-center text-lg ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-800 dark:ring-offset-neutral-950 dark:placeholder:text-neutral-400 dark:focus-visible:ring-neutral-300"
                 onChange={(e) => setCode(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleCodeSubmit(code)}
+                onKeyDown={(e) => e.key === "Enter" && handleCodeSubmit(code)}
               />
-              <button 
+              <button
                 className="inline-flex gap-1 h-10 w-full items-center justify-center rounded-md bg-[#00CD56] px-4 py-2 text-sm font-medium text-neutral-50 transition-colors hover:bg-[#00CD56]/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 disabled:pointer-events-none disabled:opacity-50"
                 onClick={() => handleCodeSubmit(code)}
               >
-                Потвърди <Check className="w-4 h-4"/>
+                Потвърди <Check className="w-4 h-4" />
               </button>
             </div>
           </div>
         </div>
       )}
     </>
-  )
+  );
 }
 
 interface MaterialButtonsProps {
-  materials: Material[]
-  targetMaterial: string
-  setTargetMaterial: (id: string) => void
+  materials: Material[];
+  targetMaterial: string;
+  setTargetMaterial: (id: string) => void;
 }
 
 function MaterialButtons({
@@ -290,7 +340,7 @@ function MaterialButtons({
 
       <div className="grid grid-cols-1 gap-2 md:grid-cols-1 md:h-full">
         {materials.map((material) => {
-          const IconComponent = material.icon
+          const IconComponent = material.icon;
 
           return (
             <button
@@ -305,11 +355,13 @@ function MaterialButtons({
               `}
             >
               <IconComponent className="w-6 h-6 md:h-7 md:w-7 lg:w-8 lg:h-8" />
-              <span className="flex-1 text-left lg:text-[18px]">{material.label}</span>
+              <span className="flex-1 text-left lg:text-[18px]">
+                {material.label}
+              </span>
 
               {targetMaterial === material.id && <Check className="w-5 h-5" />}
             </button>
-          )
+          );
         })}
       </div>
 
@@ -322,5 +374,5 @@ function MaterialButtons({
         </button>
       )}
     </div>
-  )
+  );
 }

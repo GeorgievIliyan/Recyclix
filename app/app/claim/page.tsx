@@ -76,7 +76,7 @@ function ClaimContent() {
           </p>
           <div className="flex gap-2">
             <button
-              onClick={() => router.push('/app/dashboard')}
+              onClick={() => router.push("/app/dashboard")}
               className="bg-primary text-primary-foreground px-6 py-3 hover:bg-neutral-400 transition duration-250 rounded-lg font-medium w-full"
             >
               Начално табло
@@ -106,7 +106,7 @@ function ClaimContent() {
           </p>
           <div className="flex gap-2">
             <button
-              onClick={() => router.push('/app/dashboard')}
+              onClick={() => router.push("/app/dashboard")}
               className="bg-primary text-primary-foreground px-6 py-3 hover:bg-neutral-400 transition duration-250 rounded-lg font-medium w-full"
             >
               Начално табло
@@ -136,7 +136,7 @@ function ClaimContent() {
           </p>
           <div className="flex gap-2">
             <button
-              onClick={() => router.push('/app/dashboard')}
+              onClick={() => router.push("/app/dashboard")}
               className="bg-primary text-primary-foreground px-6 py-3 hover:bg-neutral-400 transition duration-250 rounded-lg font-medium w-full"
             >
               Начално табло
@@ -160,20 +160,14 @@ function ClaimContent() {
           <CheckCircle2 className="w-12 h-12 text-green-500" />
         </div>
 
-        <h1 className="text-2xl font-semibold mb-4">
-          Успешно сканиран код!
-        </h1>
+        <h1 className="text-2xl font-semibold mb-4">Успешно сканиран код!</h1>
 
-        <div className="text-4xl font-bold text-green-500 mb-2">
-          {points}
-        </div>
-        <p className="text-muted-foreground mb-6">
-          точки получени
-        </p>
+        <div className="text-4xl font-bold text-green-500 mb-2">{points}</div>
+        <p className="text-muted-foreground mb-6">точки получени</p>
 
         <div className="flex gap-2">
           <button
-            onClick={() => router.push('/app/dashboard')}
+            onClick={() => router.push("/app/dashboard")}
             className="bg-primary text-primary-foreground px-6 py-3 hover:bg-neutral-400 transition duration-250 rounded-lg font-medium w-full"
           >
             Начално табло
@@ -192,16 +186,18 @@ function ClaimContent() {
 
 export default function ClaimPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center p-4 bg-background">
-        <div className="max-w-md w-full text-center bg-card border rounded-xl shadow-lg p-8">
-          <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-6">
-            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center p-4 bg-background">
+          <div className="max-w-md w-full text-center bg-card border rounded-xl shadow-lg p-8">
+            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-6">
+              <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            </div>
+            <h1 className="text-2xl font-bold mb-2">Зареждане...</h1>
           </div>
-          <h1 className="text-2xl font-bold mb-2">Зареждане...</h1>
         </div>
-      </div>
-    }>
+      }
+    >
       <ClaimContent />
     </Suspense>
   );

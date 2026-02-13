@@ -1,13 +1,13 @@
-import { Clock, Sparkles } from 'lucide-react'
+import { Clock, Sparkles } from "lucide-react";
 
 interface Activity {
-  material: string
-  points: number
-  date: string
+  material: string;
+  points: number;
+  date: string;
 }
 
 interface RecentActivityProps {
-  activities: Activity[]
+  activities: Activity[];
 }
 
 const MATERIAL_TRANSLATIONS: Record<string, string> = {
@@ -22,18 +22,19 @@ const MATERIAL_TRANSLATIONS: Record<string, string> = {
 };
 
 export function RecentActivity({ activities }: RecentActivityProps) {
-  const hasActivities = activities && activities.length > 0
+  const hasActivities = activities && activities.length > 0;
 
   const formatMaterial = (material: string) => {
-    const translated = MATERIAL_TRANSLATIONS[material.toLowerCase()] || material;
+    const translated =
+      MATERIAL_TRANSLATIONS[material.toLowerCase()] || material;
     return translated.charAt(0).toUpperCase() + translated.slice(1);
   };
-  
+
   return (
     <div className="group relative bg-gradient-to-br from-white/90 via-white/80 to-zinc-50/90 dark:from-neutral-900/70 dark:via-neutral-900/60 dark:to-neutral-800/70 rounded-xl shadow-md hover:shadow-lg hover:border-green-500/30 dark:hover:border-green-500/30 transition-all duration-300 overflow-hidden">
       {/* Деликатен градиентен акцент */}
       <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-blue-500/10 to-transparent rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-      
+
       <div className="relative z-10 p-4 sm:p-6 border-b border-border dark:border-neutral-700">
         <h3 className="text-lg sm:text-xl font-semibold flex items-center gap-2 text-foreground dark:text-white">
           <div className="p-2 bg-gradient-to-br from-blue-500/20 to-blue-600/20 rounded-lg group-hover:scale-110 transition-transform duration-300">
@@ -44,14 +45,14 @@ export function RecentActivity({ activities }: RecentActivityProps) {
       </div>
       <div className="relative z-10 p-4 sm:p-6">
         {hasActivities ? (
-          <div 
+          <div
             className={`
-              ${activities.length > 3 ? 'max-h-64 overflow-y-auto pr-2' : ''}
+              ${activities.length > 3 ? "max-h-64 overflow-y-auto pr-2" : ""}
               space-y-3 sm:space-y-4
             `}
           >
             {activities.map((activity, index) => (
-              <div 
+              <div
                 key={index}
                 className="group/item flex items-start justify-between gap-3 p-3 rounded-lg bg-gradient-to-r from-muted/50 to-muted/30 dark:from-neutral-800/50 dark:to-neutral-800/30 hover:from-green-500/10 hover:to-emerald-400/10 dark:hover:from-green-500/10 dark:hover:to-emerald-400/10 border border-transparent hover:border-green-500/20 transition-all duration-300"
               >
@@ -74,10 +75,12 @@ export function RecentActivity({ activities }: RecentActivityProps) {
           </div>
         ) : (
           <div className="py-8 text-center">
-            <p className="text-muted-foreground dark:text-gray-400 text-sm">Няма скорошна активност</p>
+            <p className="text-muted-foreground dark:text-gray-400 text-sm">
+              Няма скорошна активност
+            </p>
           </div>
         )}
       </div>
     </div>
-  )
+  );
 }

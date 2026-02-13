@@ -6,10 +6,9 @@ import { Bin } from "@/app/components/MapComponent";
 import { supabase } from "@/lib/supabase-browser";
 import { Navigation } from "@/app/components/Navigation";
 
-const MapComponent = dynamic(
-  () => import("@/app/components/MapComponent"),
-  { ssr: false }
-);
+const MapComponent = dynamic(() => import("@/app/components/MapComponent"), {
+  ssr: false,
+});
 
 export async function getBins(): Promise<Bin[]> {
   const pageSize = 1000;
@@ -25,12 +24,12 @@ export async function getBins(): Promise<Bin[]> {
 
     if (error) throw error;
 
-    const mapped: Bin[] = (data ?? []).map(d => ({
+    const mapped: Bin[] = (data ?? []).map((d) => ({
       id: d.id,
       lat: d.lat,
       lon: d.lon,
       tags: d.tags,
-      osm_type: "node"
+      osm_type: "node",
     }));
 
     allBins.push(...mapped);
@@ -52,7 +51,7 @@ export default function MapPage() {
   useEffect(() => {
     getBins()
       .then(setBins)
-      .catch(err => setError(err.message));
+      .catch((err) => setError(err.message));
   }, []);
 
   if (error) return <p className="p-4 text-red-500">{error}</p>;
@@ -60,7 +59,10 @@ export default function MapPage() {
   return (
     <main className="dark:bg-neutral-900 relative h-screen">
       <div className="h-screen w-full border">
-        <MapComponent bins={bins} jawgApiKey={process.env.NEXT_PUBLIC_JAWG_KEY} />
+        <MapComponent
+          bins={bins}
+          jawgApiKey={process.env.NEXT_PUBLIC_JAWG_KEY}
+        />
       </div>
       <div className="absolute top-0 left-0 right-0 z-999">
         <Navigation />

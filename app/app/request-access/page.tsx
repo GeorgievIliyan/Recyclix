@@ -353,20 +353,20 @@ export default function RequestAccessPage() {
       <div className="max-w-2xl mx-auto">
         {/* Секция за заглавие */}
         <div className="text-center mb-6 sm:mb-8 space-y-3">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-green-500/10 ring-4 ring-green-500/5 mb-1">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-green-500/10 mb-3">
             <Building2 className="w-8 h-8 text-green-500" />
           </div>
-          <h1 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight text-balance">
-            Поискайте достъп до <span className="text-green-500">Recyclix</span>
+          <h1 className="text-3xl sm:text-4xl font-meduim text-foreground tracking-tight text-balance">
+            Поръчка на <span className='font-semibold text-green-400 to text-emerald-600'>Smart</span> кошове
           </h1>
           <p className="text-base text-muted-foreground max-w-xl mx-auto text-balance">
-            Попълнете формуляра по-долу и нашият екип ще се <span className="text-green-500 font-medium">свърже с вас скоро</span>
+            Попълнете формуляра по-долу и нашият екип ще се свърже с вас скоро
           </p>
         </div>
 
         {/* Карта с форма */}
         <Card className="shadow-lg border-border border-t-4 border-t-green-500">
-          <CardContent className="p-5 sm:p-7">
+          <CardContent className="p-5 sm:p-7 pt-2 sm:pt-3">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               {/* Име на организацията */}
               <div className="space-y-2">

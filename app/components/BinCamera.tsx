@@ -1,21 +1,40 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
-import { Scan, CameraIcon, CheckCircle2, X, CircleX, Hash, Sparkles, Leaf } from "lucide-react";
+import {
+  Scan,
+  CameraIcon,
+  CheckCircle2,
+  X,
+  CircleX,
+  Hash,
+  Sparkles,
+  Leaf,
+} from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
-import { RecyclingLoader, SimpleSpinningRecycling, SpinningRecyclingLoader } from "./RecyclingLoader";
+import {
+  RecyclingLoader,
+  SimpleSpinningRecycling,
+  SpinningRecyclingLoader,
+} from "./RecyclingLoader";
 import { isDev } from "@/lib/isDev";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
 import { env } from "process";
 
 // типове
-type MaterialType = "plastic" | "textile" | "metal" | "paper" | "glass" | "unknown";
+type MaterialType =
+  | "plastic"
+  | "textile"
+  | "metal"
+  | "paper"
+  | "glass"
+  | "unknown";
 type VerifyResult = "YES" | "NO" | null;
 
 interface Props {
   target: string; // Целеви материал за проверка
-  binId: string;  // ID на контейнера/бина
+  binId: string; // ID на контейнера/бина
 }
 
 export default function BinCamera({ target, binId }: Props) {
@@ -27,15 +46,23 @@ export default function BinCamera({ target, binId }: Props) {
   const [loading, setLoading] = useState(false);
   const [itemCount, setItemCount] = useState<number>(0);
   const [co2Saved, setCo2Saved] = useState<number>(0);
-  const [qrData, setQrData] = useState<{ qrUrl: string; expiresAt: string; points: number } | null>(null);
+  const [qrData, setQrData] = useState<{
+    qrUrl: string;
+    expiresAt: string;
+    points: number;
+  } | null>(null);
 
-  const showSuccessModal = (target && verifyResult === "YES") || (!target && prediction && prediction !== "unknown");
+  const showSuccessModal =
+    (target && verifyResult === "YES") ||
+    (!target && prediction && prediction !== "unknown");
 
   useEffect(() => {
     startCamera();
     return () => {
       if (videoRef.current?.srcObject) {
-        (videoRef.current.srcObject as MediaStream).getTracks().forEach((t) => t.stop());
+        (videoRef.current.srcObject as MediaStream)
+          .getTracks()
+          .forEach((t) => t.stop());
       }
     };
   }, []);
@@ -48,7 +75,8 @@ export default function BinCamera({ target, binId }: Props) {
       });
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        videoRef.current.onloadedmetadata = () => videoRef.current?.play().catch(console.error);
+        videoRef.current.onloadedmetadata = () =>
+          videoRef.current?.play().catch(console.error);
       }
       setCameraOn(true);
     } catch (err) {
@@ -75,16 +103,18 @@ export default function BinCamera({ target, binId }: Props) {
     material: string,
     points: number,
     count: number,
-    co2: number
+    co2: number,
   ) => {
     try {
       const calculatedCo2 = Number(co2.toFixed(3));
       setCo2Saved(calculatedCo2);
 
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
-          console.error("No user found");
-          return;
+        console.error("No user found");
+        return;
       }
 
       const res = await fetch("/api/recycling/log", {
@@ -144,7 +174,7 @@ export default function BinCamera({ target, binId }: Props) {
 
       const detectedCount = data.count || 1;
       const detectedPoints = data.points || 10;
-      const co2 = data.co2 || 0.1
+      const co2 = data.co2 || 0.1;
       setItemCount(detectedCount);
 
       if (target) {
@@ -177,9 +207,9 @@ export default function BinCamera({ target, binId }: Props) {
     try {
       const qrRes = await fetch("/api/temporary-qr", {
         method: "POST",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
-          "x-api-token": process.env.NEXT_PUBLIC_SECURE_API_KEY!
+          "x-api-token": process.env.NEXT_PUBLIC_SECURE_API_KEY!,
         },
         body: JSON.stringify({
           points: points,
@@ -188,7 +218,7 @@ export default function BinCamera({ target, binId }: Props) {
       });
 
       const responseData = await qrRes.json();
-      
+
       if (qrRes.ok && responseData.qrUrl) {
         setQrData({
           qrUrl: responseData.qrUrl,
@@ -250,7 +280,9 @@ export default function BinCamera({ target, binId }: Props) {
                 <div className="space-y-2">
                   <h3 className="text-2xl font-semibold">Анализиране...</h3>
                   <p className="text-sm text-muted-foreground">
-                    {target ? "Проверяваме материала..." : "Разпознаваме материала..."}
+                    {target
+                      ? "Проверяваме материала..."
+                      : "Разпознаваме материала..."}
                   </p>
                 </div>
               </div>
@@ -277,7 +309,9 @@ export default function BinCamera({ target, binId }: Props) {
                 <div className="flex flex-col items-center gap-2">
                   <CheckCircle2 className="w-12 h-12 text-green-500" />
                   <h3 className="text-4xl font-bold">
-                    {target ? "Правилен контейнер" : materialLabels[prediction!]}
+                    {target
+                      ? "Правилен контейнер"
+                      : materialLabels[prediction!]}
                   </h3>
                 </div>
 
@@ -285,16 +319,22 @@ export default function BinCamera({ target, binId }: Props) {
                 <div className="flex flex-wrap gap-2 w-full justify-center">
                   <div className="bg-primary/10 px-3 py-2 rounded-lg flex items-center gap-2 border border-primary/20">
                     <Hash className="w-4 h-4 text-primary" />
-                    <span className="text-sm font-semibold text-primary">{itemCount} бр.</span>
+                    <span className="text-sm font-semibold text-primary">
+                      {itemCount} бр.
+                    </span>
                   </div>
                   <div className="bg-amber-500/10 px-3 py-2 rounded-lg flex items-center gap-2 border border-amber-500/20">
                     <Sparkles className="w-4 h-4 text-amber-500" />
-                    <span className="text-sm font-semibold text-amber-600">+{qrData?.points || 0} т.</span>
+                    <span className="text-sm font-semibold text-amber-600">
+                      +{qrData?.points || 0} т.
+                    </span>
                   </div>
-                   {/* CO2 индикатор */}
+                  {/* CO2 индикатор */}
                   <div className="bg-emerald-500/10 px-3 py-2 rounded-lg flex items-center gap-2 border border-emerald-500/20">
                     <Leaf className="w-4 h-4 text-emerald-500" />
-                    <span className="text-sm font-semibold text-emerald-600">{co2Saved} кг. CO₂</span>
+                    <span className="text-sm font-semibold text-emerald-600">
+                      {co2Saved} кг. CO₂
+                    </span>
                   </div>
                 </div>
 
@@ -312,7 +352,11 @@ export default function BinCamera({ target, binId }: Props) {
                       Сканирай за точки
                     </p>
                     <p className="text-xs text-muted-foreground/60">
-                      Валиден до: {new Date(qrData.expiresAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      Валиден до:{" "}
+                      {new Date(qrData.expiresAt).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
                     </p>
                   </div>
                 ) : (
@@ -320,7 +364,9 @@ export default function BinCamera({ target, binId }: Props) {
                     <div className="p-5 bg-background/50 dark:bg-[#1D1D1D] rounded-lg">
                       <SpinningRecyclingLoader />
                     </div>
-                    <p className="text-base text-muted-foreground">Генериране на награда...</p>
+                    <p className="text-base text-muted-foreground">
+                      Генериране на награда...
+                    </p>
                   </div>
                 )}
               </div>
@@ -341,7 +387,9 @@ export default function BinCamera({ target, binId }: Props) {
               <div className="flex flex-col items-center text-center gap-3">
                 <div className="flex items-center gap-3">
                   <CircleX className="w-9 h-9 text-red-500" />
-                  <h3 className="text-3xl font-semibold text-red-500">Грешен контейнер</h3>
+                  <h3 className="text-3xl font-semibold text-red-500">
+                    Грешен контейнер
+                  </h3>
                 </div>
                 <p className="text-sm text-muted-foreground">
                   Този обект не принадлежи към категорията!

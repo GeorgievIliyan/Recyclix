@@ -1,113 +1,113 @@
-"use client"
+"use client";
 
-import { supabase } from "@/lib/supabase-browser"
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { Eye, EyeOff, CircleCheck, OctagonAlert, X } from "lucide-react"
+import { supabase } from "@/lib/supabase-browser";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Eye, EyeOff, CircleCheck, OctagonAlert, X } from "lucide-react";
 
 const translateMessage = (message: string) => {
   if (message.toLowerCase() == "invalid login credentials") {
-    return "Грешна парола или имейл"
+    return "Грешна парола или имейл";
   }
   if (message.toLowerCase() == "invalid input") {
-    return "Грешни данни или потребителят несъществува"
+    return "Грешни данни или потребителят несъществува";
   }
-}
+};
 
 export default function LoginPage() {
-  const router = useRouter()
+  const router = useRouter();
 
   // Състояния за имейл, парола, съобщения и зареждане
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [passwordShown, setPasswordShown] = useState(false)
-  const [message, setMessage] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [passwordShown, setPasswordShown] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   // Check if user is already logged in and redirect immediately
   useEffect(() => {
     const checkUser = async () => {
-      const { data } = await supabase.auth.getSession()
+      const { data } = await supabase.auth.getSession();
       if (data.session) {
         // User is already logged in, redirect back
         if (window.history.length > 1) {
-          router.back()
+          router.back();
         } else {
-          router.push("/app/dashboard")
+          router.push("/app/dashboard");
         }
       }
-    }
+    };
 
-    checkUser()
-  }, [router])
+    checkUser();
+  }, [router]);
 
   // Проверка за съобщение след регистрация
   useEffect(() => {
-    const msg = sessionStorage.getItem("registrationMessage")
+    const msg = sessionStorage.getItem("registrationMessage");
     if (msg) {
-      setMessage(msg)
-      sessionStorage.removeItem("registrationMessage")
+      setMessage(msg);
+      sessionStorage.removeItem("registrationMessage");
     }
-  }, [])
+  }, []);
 
   const handleTogglePassword = () => {
-    setPasswordShown(!passwordShown)
-  }
+    setPasswordShown(!passwordShown);
+  };
 
   const handleCloseMessage = () => {
-    setMessage(null)
-  }
+    setMessage(null);
+  };
 
   const handleEmailLogin = async () => {
-    const cleanEmail = email.trim()
-    const cleanPassword = password.trim()
+    const cleanEmail = email.trim();
+    const cleanPassword = password.trim();
 
     // Проста валидация
     if (!cleanEmail || !cleanPassword) {
-      setMessage("Имейл и парола са задължителни.")
-      return
+      setMessage("Имейл и парола са задължителни.");
+      return;
     }
     if (!/^\S+@\S+\.\S+$/.test(cleanEmail)) {
-      setMessage("Невалиден имейл адрес.")
-      return
+      setMessage("Невалиден имейл адрес.");
+      return;
     }
 
-    setPasswordShown(false)
-    setLoading(true)
-    setMessage(null)
+    setPasswordShown(false);
+    setLoading(true);
+    setMessage(null);
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email: cleanEmail,
         password: cleanPassword,
-      })
+      });
 
-      if (error) setMessage(error.message)
+      if (error) setMessage(error.message);
       else {
-        router.push("/app/dashboard")
-        router.refresh()
+        router.push("/app/dashboard");
+        router.refresh();
       }
     } catch {
-      setMessage("Възникна неочаквана грешка.")
+      setMessage("Възникна неочаквана грешка.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   // Вход чрез Google OAuth
   const handleGoogleLogin = async () => {
     try {
-      setPasswordShown(false)
+      setPasswordShown(false);
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: { redirectTo: `${window.location.origin}/app/map` },
-      })
+      });
 
-      if (error) setMessage(error.message)
+      if (error) setMessage(error.message);
     } catch (err: any) {
-      setMessage("Неуспешен Google вход.")
+      setMessage("Неуспешен Google вход.");
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-neutral-50 via-neutral-100 to-neutral-200 dark:from-neutral-950 dark:via-neutral-900 dark:to-black p-4">
@@ -129,40 +129,50 @@ export default function LoginPage() {
             </div>
 
             {/* Съобщение за грешка или информация */}
-            {message && (() => {
-              const isSuccess = message.includes("успеш") || message.includes("Пренасочване");
+            {message &&
+              (() => {
+                const isSuccess =
+                  message.includes("успеш") || message.includes("Пренасочване");
 
-              return (
-                <div className={`mb-6 p-4 rounded-xl border flex items-center justify-between ${
-                  isSuccess 
-                    ? "bg-[#00CD56]/10 border-[#00CD56]/30 dark:bg-[#00CD56]/20 dark:border-[#00CD56]/40"
-                    : "bg-red-50/80 border-red-200/50 dark:bg-red-900/20 dark:border-red-800/50"
-                }`}>
-                  <div className={`text-sm font-medium flex flex-row gap-3 items-center ${
-                    isSuccess ? "text-[#00CD56]" : "text-red-600 dark:text-red-400"
-                  }`}>
-                    {isSuccess ? (
-                      <CircleCheck className="w-5 h-5 flex-shrink-0" />
-                    ) : (
-                      <OctagonAlert className="w-5 h-5 flex-shrink-0" />
-                    )}
-                    <span>{translateMessage(message) || message}</span>
+                return (
+                  <div
+                    className={`mb-6 p-4 rounded-xl border flex items-center justify-between ${
+                      isSuccess
+                        ? "bg-[#00CD56]/10 border-[#00CD56]/30 dark:bg-[#00CD56]/20 dark:border-[#00CD56]/40"
+                        : "bg-red-50/80 border-red-200/50 dark:bg-red-900/20 dark:border-red-800/50"
+                    }`}
+                  >
+                    <div
+                      className={`text-sm font-medium flex flex-row gap-3 items-center ${
+                        isSuccess
+                          ? "text-[#00CD56]"
+                          : "text-red-600 dark:text-red-400"
+                      }`}
+                    >
+                      {isSuccess ? (
+                        <CircleCheck className="w-5 h-5 flex-shrink-0" />
+                      ) : (
+                        <OctagonAlert className="w-5 h-5 flex-shrink-0" />
+                      )}
+                      <span>{translateMessage(message) || message}</span>
+                    </div>
+                    <X
+                      className={`h-5 w-5 cursor-pointer transition-opacity hover:opacity-70 ${
+                        isSuccess ? "text-[#00CD56]" : "text-red-500"
+                      }`}
+                      onClick={() => setMessage("")}
+                    />
                   </div>
-                  <X 
-                    className={`h-5 w-5 cursor-pointer transition-opacity hover:opacity-70 ${
-                      isSuccess ? "text-[#00CD56]" : "text-red-500"
-                    }`} 
-                    onClick={() => setMessage("")}
-                  />
-                </div>
-              );
-            })()}
+                );
+              })()}
 
             {/* Форма за вход */}
             <div className="space-y-5 mb-6">
               {/* Имейл */}
               <div>
-                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">Емайл</label>
+                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                  Емайл
+                </label>
                 <input
                   type="email"
                   placeholder="example@mail.com"
@@ -180,7 +190,7 @@ export default function LoginPage() {
 
                 <div className="relative">
                   <input
-                    type={passwordShown? "text": "password"}
+                    type={passwordShown ? "text" : "password"}
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -190,11 +200,14 @@ export default function LoginPage() {
                     type="button"
                     className="absolute inset-y-0 right-3 flex items-center text-neutral-400 hover:text-neutral-600 transition duration-150 dark:hover:text-neutral-300"
                   >
-                    {passwordShown? 
-                      <EyeOff className="w-5 h-5" onClick={handleTogglePassword}/>
-                      :
-                      <Eye className="w-5 h-5" onClick={handleTogglePassword}/>
-                    }
+                    {passwordShown ? (
+                      <EyeOff
+                        className="w-5 h-5"
+                        onClick={handleTogglePassword}
+                      />
+                    ) : (
+                      <Eye className="w-5 h-5" onClick={handleTogglePassword} />
+                    )}
                   </button>
                 </div>
               </div>
@@ -263,5 +276,5 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -14,18 +14,18 @@ const COOLDOWN_MS = 5000;
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_KEY!
+  process.env.SUPABASE_SERVICE_KEY!,
 );
 
 const materialLabels: Record<string, string> = {
   plastic: "пластмаса",
-  glass: "стъкло", 
+  glass: "стъкло",
   paper: "хартия",
   metal: "метал",
   textile: "текстил",
   "general waste": "битов отпадък",
   batteries: "батерии",
-  ewaste: "електроника"
+  ewaste: "електроника",
 };
 
 export async function OPTIONS() {
@@ -44,14 +44,14 @@ export async function POST(req: NextRequest) {
     if (!image) {
       return NextResponse.json(
         { result: "NO", error: "Missing image" },
-        { status: 400, headers: corsHeaders }
+        { status: 400, headers: corsHeaders },
       );
     }
 
     if (!target) {
       return NextResponse.json(
         { result: "NO", error: "Missing target material" },
-        { status: 400, headers: corsHeaders }
+        { status: 400, headers: corsHeaders },
       );
     }
 
@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
     if (now - last < COOLDOWN_MS) {
       return NextResponse.json(
         { result: "NO", error: "Cooldown active" },
-        { status: 429, headers: corsHeaders }
+        { status: 429, headers: corsHeaders },
       );
     }
     ipLastCalls.set(ip, now);
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
       const { data: binData } = await supabase
         .from("recycling_bins")
         .select("id")
-        .eq("code", binId) 
+        .eq("code", binId)
         .maybeSingle();
 
       if (binData) {
@@ -80,7 +80,10 @@ export async function POST(req: NextRequest) {
     }
 
     const base64Image = image.includes(",") ? image.split(",")[1] : image;
-    const shaHash = crypto.createHash("sha256").update(base64Image, "base64").digest("hex");
+    const shaHash = crypto
+      .createHash("sha256")
+      .update(base64Image, "base64")
+      .digest("hex");
 
     const imgBuffer = Buffer.from(base64Image, "base64");
     const { data: pixelData } = await sharp(imgBuffer)
@@ -90,8 +93,11 @@ export async function POST(req: NextRequest) {
       .toBuffer({ resolveWithObject: true });
 
     const pixels = new Uint8Array(pixelData);
-    const avg = Array.from(pixels).reduce((sum, px) => sum + px, 0) / pixels.length;
-    const pHash = Array.from(pixels).map((px) => (px >= avg ? "1" : "0")).join("");
+    const avg =
+      Array.from(pixels).reduce((sum, px) => sum + px, 0) / pixels.length;
+    const pHash = Array.from(pixels)
+      .map((px) => (px >= avg ? "1" : "0"))
+      .join("");
 
     if (actualBinUuid) {
       await supabase
@@ -127,12 +133,19 @@ export async function POST(req: NextRequest) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        contents: [{
-          parts: [
-            { text: prompt },
-            { inlineData: { mimeType: "image/jpeg", data: base64Image.replace(/\s/g, "") } },
-          ],
-        }],
+        contents: [
+          {
+            parts: [
+              { text: prompt },
+              {
+                inlineData: {
+                  mimeType: "image/jpeg",
+                  data: base64Image.replace(/\s/g, ""),
+                },
+              },
+            ],
+          },
+        ],
       }),
     });
 
@@ -144,7 +157,7 @@ export async function POST(req: NextRequest) {
 
     const geminiData = await geminiRes.json();
     const rawText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-    
+
     const result = rawText.toUpperCase().includes("RESULT: YES") ? "YES" : "NO";
     const countMatch = rawText.match(/COUNT:\s*(\d+)/i);
     const count = countMatch ? parseInt(countMatch[1], 10) : 1;
@@ -158,18 +171,20 @@ export async function POST(req: NextRequest) {
       console.log(`Parsed: ${result}, Count: ${count}, Points: ${points}`);
     }
 
-    return NextResponse.json({ 
-      result, 
-      count, 
-      points,
-      co2 
-    }, { headers: corsHeaders });
-
+    return NextResponse.json(
+      {
+        result,
+        count,
+        points,
+        co2,
+      },
+      { headers: corsHeaders },
+    );
   } catch (err: any) {
     console.error("Error in gemini-verify-material:", err);
     return NextResponse.json(
-      { result: "NO", error: err.message, points: 0 }, 
-      { status: 500, headers: corsHeaders }
+      { result: "NO", error: err.message, points: 0 },
+      { status: 500, headers: corsHeaders },
     );
   }
 }

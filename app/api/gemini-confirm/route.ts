@@ -17,14 +17,11 @@ const COOLDOWN_MS = 5000;
 // Supabase клиент с service key (RLS заобикаляне)
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_KEY!
+  process.env.SUPABASE_SERVICE_KEY!,
 );
 
 export async function GET(req: NextRequest) {
-  return NextResponse.json(
-    { error: 'Method not allowed' },
-    { status: 405 }
-  )
+  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
 }
 
 export async function OPTIONS() {
@@ -33,13 +30,10 @@ export async function OPTIONS() {
 
 export async function POST(req: NextRequest) {
   // против нежелани заявки
-  const token = req.headers.get('x-api-token')
-  
+  const token = req.headers.get("x-api-token");
+
   if (!token || token !== process.env.SECURE_API_KEY) {
-    return NextResponse.json(
-      { error: 'Unauthorized' },
-      { status: 401 }
-    )
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
@@ -54,7 +48,7 @@ export async function POST(req: NextRequest) {
     if (!image || !userDailyTaskId) {
       return NextResponse.json(
         { result: "NO", error: "Missing image or userDailyTaskId" },
-        { status: 400, headers: corsHeaders }
+        { status: 400, headers: corsHeaders },
       );
     }
 
@@ -65,7 +59,7 @@ export async function POST(req: NextRequest) {
     if (now - last < COOLDOWN_MS) {
       return NextResponse.json(
         { result: "NO", error: "Cooldown active" },
-        { status: 429, headers: corsHeaders }
+        { status: 429, headers: corsHeaders },
       );
     }
     ipLastCalls.set(ip, now);
@@ -80,8 +74,11 @@ export async function POST(req: NextRequest) {
     if (userTaskError) throw userTaskError;
     if (!userTask) {
       return NextResponse.json(
-        { result: "NO", error: `User daily task not found. ID: ${userDailyTaskId}` },
-        { status: 404, headers: corsHeaders }
+        {
+          result: "NO",
+          error: `User daily task not found. ID: ${userDailyTaskId}`,
+        },
+        { status: 404, headers: corsHeaders },
       );
     }
 
@@ -97,8 +94,11 @@ export async function POST(req: NextRequest) {
     if (taskError) throw taskError;
     if (!taskData?.description) {
       return NextResponse.json(
-        { result: "NO", error: `Task description not found for task_id: ${taskId}` },
-        { status: 404, headers: corsHeaders }
+        {
+          result: "NO",
+          error: `Task description not found for task_id: ${taskId}`,
+        },
+        { status: 404, headers: corsHeaders },
       );
     }
 
@@ -106,7 +106,10 @@ export async function POST(req: NextRequest) {
 
     // Подготовка на изображението: извличане на base64 и изчисляване на хешове
     const base64Image = image.includes(",") ? image.split(",")[1] : image;
-    const shaHash = crypto.createHash("sha256").update(base64Image, "base64").digest("hex");
+    const shaHash = crypto
+      .createHash("sha256")
+      .update(base64Image, "base64")
+      .digest("hex");
 
     const imgBuffer = Buffer.from(base64Image, "base64");
     const { data: pixelData } = await sharp(imgBuffer)
@@ -116,8 +119,11 @@ export async function POST(req: NextRequest) {
       .toBuffer({ resolveWithObject: true });
 
     const pixels = new Uint8Array(pixelData);
-    const avg = Array.from(pixels).reduce((sum, px) => sum + px, 0) / pixels.length;
-    const pHash = Array.from(pixels).map((px) => (px >= avg ? "1" : "0")).join("");
+    const avg =
+      Array.from(pixels).reduce((sum, px) => sum + px, 0) / pixels.length;
+    const pHash = Array.from(pixels)
+      .map((px) => (px >= avg ? "1" : "0"))
+      .join("");
 
     // Записване на хешовете в таблицата images
     const { error: dbError } = await supabase
@@ -145,7 +151,12 @@ export async function POST(req: NextRequest) {
           {
             parts: [
               { text: prompt },
-              { inlineData: { mimeType: "image/jpeg", data: base64Image.replace(/\s/g, "") } },
+              {
+                inlineData: {
+                  mimeType: "image/jpeg",
+                  data: base64Image.replace(/\s/g, ""),
+                },
+              },
             ],
           },
         ],
@@ -154,7 +165,9 @@ export async function POST(req: NextRequest) {
 
     if (!geminiRes.ok) {
       const errorText = await geminiRes.text();
-      throw new Error(`Gemini API error: ${geminiRes.statusText} - ${errorText}`);
+      throw new Error(
+        `Gemini API error: ${geminiRes.statusText} - ${errorText}`,
+      );
     }
 
     const geminiData = await geminiRes.json();
@@ -164,27 +177,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ result }, { headers: corsHeaders });
   } catch (err: any) {
     console.error("Error in POST /gemini-confirm:", err);
-    return NextResponse.json({ result: "NO", error: err.message }, { status: 500, headers: corsHeaders });
+    return NextResponse.json(
+      { result: "NO", error: err.message },
+      { status: 500, headers: corsHeaders },
+    );
   }
 }
 
 export async function PUT(req: NextRequest) {
-  return NextResponse.json(
-    {error: "Method not allowed"},
-    {status: 405}
-  )
+  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
 }
 
 export async function DELETE(req: NextRequest) {
-  return NextResponse.json(
-    {error: "Method not allowed"},
-    {status: 405}
-  )
+  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
 }
 
 export async function PATCH(req: NextRequest) {
-  return NextResponse.json(
-    {error: "Method not allowed"},
-    {status: 405}
-  )
+  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
 }

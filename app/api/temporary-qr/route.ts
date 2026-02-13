@@ -44,11 +44,15 @@ export async function POST(req: NextRequest) {
             message: i.message,
           })),
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    const { points: rawPoints, binCode: codeFromBinCode, binId: codeFromBinId } = parsed.data;
+    const {
+      points: rawPoints,
+      binCode: codeFromBinCode,
+      binId: codeFromBinId,
+    } = parsed.data;
     const points = rawPoints ?? 10; // Стандартни 10 точки
     const binCode = codeFromBinCode || codeFromBinId;
 
@@ -75,7 +79,10 @@ export async function POST(req: NextRequest) {
           .from("temporary_qrs")
           .insert({ token: qrToken, points, expires_at: expiresAt });
         if (retryError) {
-          return NextResponse.json({ error: retryError.message }, { status: 500 });
+          return NextResponse.json(
+            { error: retryError.message },
+            { status: 500 },
+          );
         }
       } else {
         return NextResponse.json({ error: error.message }, { status: 500 });
@@ -86,7 +93,12 @@ export async function POST(req: NextRequest) {
     const qrUrl = `${baseUrl}/app/claim?token=${qrToken}`;
 
     if (isDev) {
-      console.log("QR API Request:", { points, binCode, fullBody: body, qrUrl });
+      console.log("QR API Request:", {
+        points,
+        binCode,
+        fullBody: body,
+        qrUrl,
+      });
     }
 
     return NextResponse.json({
@@ -99,45 +111,36 @@ export async function POST(req: NextRequest) {
     console.error("Temporary QR route error:", err);
     return NextResponse.json(
       { error: err.message || "Unknown error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function OPTIONS() {
-  return NextResponse.json({}, {
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, x-api-token",
-    }
-  });
+  return NextResponse.json(
+    {},
+    {
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, x-api-token",
+      },
+    },
+  );
 }
 
 export async function GET(req: NextRequest) {
-  return NextResponse.json(
-    { error: "Method not allowed" },
-    { status: 405 }
-  );
+  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
 }
 
 export async function PUT(req: NextRequest) {
-  return NextResponse.json(
-    { error: "Method not allowed" },
-    { status: 405 }
-  );
+  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
 }
 
 export async function DELETE(req: NextRequest) {
-  return NextResponse.json(
-    { error: "Method not allowed" },
-    { status: 405 }
-  );
+  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
 }
 
 export async function PATCH(req: NextRequest) {
-  return NextResponse.json(
-    { error: "Method not allowed" },
-    { status: 405 }
-  );
+  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
 }

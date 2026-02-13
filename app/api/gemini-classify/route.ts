@@ -26,15 +26,26 @@ export async function POST(req: Request) {
     const target = body.target;
 
     // Проверка на задължителни полета
-    if (!binId) return NextResponse.json({ result: "NO", error: "Missing binId" }, { status: 400, headers: corsHeaders });
-    if (!image) return NextResponse.json({ result: "NO", error: "No image provided" }, { status: 400, headers: corsHeaders });
+    if (!binId)
+      return NextResponse.json(
+        { result: "NO", error: "Missing binId" },
+        { status: 400, headers: corsHeaders },
+      );
+    if (!image)
+      return NextResponse.json(
+        { result: "NO", error: "No image provided" },
+        { status: 400, headers: corsHeaders },
+      );
 
     // Rate limiting
     const ip = req.headers.get("x-forwarded-for") || "unknown";
     const now = Date.now();
     const last = ipLastCalls.get(ip) || 0;
     if (now - last < COOLDOWN_MS) {
-      return NextResponse.json({ result: "NO", error: "Cooldown active" }, { status: 429, headers: corsHeaders });
+      return NextResponse.json(
+        { result: "NO", error: "Cooldown active" },
+        { status: 429, headers: corsHeaders },
+      );
     }
     ipLastCalls.set(ip, now);
 
@@ -46,16 +57,27 @@ export async function POST(req: Request) {
     const base64Image = image.includes(",") ? image.split(",")[1] : image;
 
     // SHA256 хеш за уникална идентификация
-    const shaHash = crypto.createHash("sha256").update(base64Image, "base64").digest("hex");
+    const shaHash = crypto
+      .createHash("sha256")
+      .update(base64Image, "base64")
+      .digest("hex");
 
     // pHash за сравняване на изображения (resize + grayscale)
     const imgBuffer = Buffer.from(base64Image, "base64");
-    const { data: pixels } = await sharp(imgBuffer).resize(8, 8).grayscale().raw().toBuffer({ resolveWithObject: true });
+    const { data: pixels } = await sharp(imgBuffer)
+      .resize(8, 8)
+      .grayscale()
+      .raw()
+      .toBuffer({ resolveWithObject: true });
     const avg = pixels.reduce((sum, px) => sum + px, 0) / pixels.length;
-    const pHash = Array.from(pixels).map(px => (px >= avg ? "1" : "0")).join("");
+    const pHash = Array.from(pixels)
+      .map((px) => (px >= avg ? "1" : "0"))
+      .join("");
 
     // Запис в Supabase таблица images
-    const { error: dbError } = await supabase.from("images").insert({ bin_id: binId, sha_hash: shaHash, p_hash: pHash });
+    const { error: dbError } = await supabase
+      .from("images")
+      .insert({ bin_id: binId, sha_hash: shaHash, p_hash: pHash });
     if (dbError) console.error("Supabase error:", dbError);
 
     // Подготовка на prompt за Gemini API с броене на обекти
@@ -70,7 +92,7 @@ export async function POST(req: Request) {
           COUNT: [number]
           CO2: [float]
           `
-        : `Classify the recycling objects in the image. 
+      : `Classify the recycling objects in the image. 
           Categories: plastic, paper, glass, metal, textile, organic, wood.
           Give a rough estimate of save CO2.
           Respond exactly in this format:
@@ -90,7 +112,12 @@ export async function POST(req: Request) {
           {
             parts: [
               { text: prompt },
-              { inlineData: { mimeType: "image/jpeg", data: base64Image.replace(/\s/g, "") } },
+              {
+                inlineData: {
+                  mimeType: "image/jpeg",
+                  data: base64Image.replace(/\s/g, ""),
+                },
+              },
             ],
           },
         ],
@@ -115,27 +142,51 @@ export async function POST(req: Request) {
     const co2Match = rawText.match(/CO2:\s*([\d.]+)/i);
     const co2 = co2Match ? parseFloat(co2Match[1]) : 0;
 
-    const allowedMaterials = ["plastic", "paper", "glass", "metal", "textile", "organic", "wood"];
+    const allowedMaterials = [
+      "plastic",
+      "paper",
+      "glass",
+      "metal",
+      "textile",
+      "organic",
+      "wood",
+    ];
 
     if (target) {
-      const result = rawText.toUpperCase().includes("RESULT: YES") ? "YES" : "NO";
+      const result = rawText.toUpperCase().includes("RESULT: YES")
+        ? "YES"
+        : "NO";
       const points = result === "YES" ? count * 10 : 0;
-      
-      return NextResponse.json({ result, count, points, co2 }, { headers: corsHeaders });
+
+      return NextResponse.json(
+        { result, count, points, co2 },
+        { headers: corsHeaders },
+      );
     } else {
       const matMatch = rawText.match(/MATERIAL:\s*(\w+)/i);
-      const normalized = matMatch ? matMatch[1].toLowerCase().trim() : "unknown";
-      const found = allowedMaterials.find(m => normalized.includes(m));
+      const normalized = matMatch
+        ? matMatch[1].toLowerCase().trim()
+        : "unknown";
+      const found = allowedMaterials.find((m) => normalized.includes(m));
       const material = found || "unknown";
       const points = material !== "unknown" ? count * 10 : 0;
 
-      return NextResponse.json({ material, count, points }, { headers: corsHeaders });
+      return NextResponse.json(
+        { material, count, points },
+        { headers: corsHeaders },
+      );
     }
   } catch (err: any) {
     console.error("POST error:", err);
     return NextResponse.json(
-      { result: "NO", error: err.message, material: "unknown", count: 0, points: 0 }, 
-      { status: 500, headers: corsHeaders }
+      {
+        result: "NO",
+        error: err.message,
+        material: "unknown",
+        count: 0,
+        points: 0,
+      },
+      { status: 500, headers: corsHeaders },
     );
   }
 }

@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST() {
   try {
-    const supabase = supabaseServer()
+    const supabase = supabaseServer();
     const response = NextResponse.redirect("/login");
 
     response.cookies.set("sb-access-token", "", { path: "/", maxAge: 0 });
@@ -14,34 +14,25 @@ export async function POST() {
     return response;
   } catch (err: any) {
     console.error("Logout error:", err);
-    return NextResponse.json({ error: err.message || "Unknown error" }, { status: 500 });
+    return NextResponse.json(
+      { error: err.message || "Unknown error" },
+      { status: 500 },
+    );
   }
 }
 
 export async function GET(req: NextRequest) {
-  return NextResponse.json(
-    {error: "Method not allowed"},
-    {status: 405}
-  )
+  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
 }
 
 export async function PUT(req: NextRequest) {
-  return NextResponse.json(
-    {error: "Method not allowed"},
-    {status: 405}
-  )
+  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
 }
 
 export async function DELETE(req: NextRequest) {
-  return NextResponse.json(
-    {error: "Method not allowed"},
-    {status: 405}
-  )
+  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
 }
 
 export async function PATCH(req: NextRequest) {
-  return NextResponse.json(
-    {error: "Method not allowed"},
-    {status: 405}
-  )
+  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
 }

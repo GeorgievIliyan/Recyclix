@@ -5,44 +5,46 @@ import { z } from "zod";
 
 export const supabaseServer = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_KEY!
+  process.env.SUPABASE_SERVICE_KEY!,
 );
 
 const ApiTokenSchema = z.object({
   token: z.string().min(1, "API token is required"),
 });
 
-const OverpassElementSchema = z.object({
-  id: z.number().int().positive("Invalid OSM ID"),
-  lat: z
-    .number()
-    .min(41.235, "Latitude must be >= 41.235")
-    .max(44.217, "Latitude must be <= 44.217")
-    .optional(),
-  lon: z
-    .number()
-    .min(22.357, "Longitude must be >= 22.357")
-    .max(28.609, "Longitude must be <= 28.609")
-    .optional(),
-  center: z
-    .object({
-      lat: z
-        .number()
-        .min(41.235, "Center latitude must be >= 41.235")
-        .max(44.217, "Center latitude must be <= 44.217"),
-      lon: z
-        .number()
-        .min(22.357, "Center longitude must be >= 22.357")
-        .max(28.609, "Center longitude must be <= 28.609"),
-    })
-    .optional(),
-  tags: z.record(z.string(), z.any()).optional(),
-}).refine(
-  (data) => {
-    return (data.lat && data.lon) || (data.center?.lat && data.center?.lon);
-  },
-  { message: "Element must have valid coordinates" }
-);
+const OverpassElementSchema = z
+  .object({
+    id: z.number().int().positive("Invalid OSM ID"),
+    lat: z
+      .number()
+      .min(41.235, "Latitude must be >= 41.235")
+      .max(44.217, "Latitude must be <= 44.217")
+      .optional(),
+    lon: z
+      .number()
+      .min(22.357, "Longitude must be >= 22.357")
+      .max(28.609, "Longitude must be <= 28.609")
+      .optional(),
+    center: z
+      .object({
+        lat: z
+          .number()
+          .min(41.235, "Center latitude must be >= 41.235")
+          .max(44.217, "Center latitude must be <= 44.217"),
+        lon: z
+          .number()
+          .min(22.357, "Center longitude must be >= 22.357")
+          .max(28.609, "Center longitude must be <= 28.609"),
+      })
+      .optional(),
+    tags: z.record(z.string(), z.any()).optional(),
+  })
+  .refine(
+    (data) => {
+      return (data.lat && data.lon) || (data.center?.lat && data.center?.lon);
+    },
+    { message: "Element must have valid coordinates" },
+  );
 
 const OverpassResponseSchema = z.object({
   elements: z
@@ -85,7 +87,9 @@ const sanitize = {
           .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "")
           .substring(0, 255);
 
-        const sanitizedKey = key.replace(/[^a-zA-Z0-9_:]/g, "").substring(0, 50);
+        const sanitizedKey = key
+          .replace(/[^a-zA-Z0-9_:]/g, "")
+          .substring(0, 50);
 
         if (sanitizedKey && sanitizedValue) {
           sanitized[sanitizedKey] = sanitizedValue;
@@ -117,9 +121,9 @@ export async function GET(req: Request) {
     const token = req.headers.get("x-api-token");
     const tokenValidation = ApiTokenSchema.safeParse({ token });
 
-    const isDev = process.env.NODE_ENV === "development"
+    const isDev = process.env.NODE_ENV === "development";
 
-    if (!isDev){
+    if (!isDev) {
       if (!tokenValidation.success) {
         return NextResponse.json(
           {
@@ -129,12 +133,15 @@ export async function GET(req: Request) {
               message: issue.message,
             })),
           },
-          { status: 401 }
+          { status: 401 },
         );
       }
     }
 
-    if (process.env.NODE_ENV !== "development" && token !== process.env.SECURE_API_KEY) {
+    if (
+      process.env.NODE_ENV !== "development" &&
+      token !== process.env.SECURE_API_KEY
+    ) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -160,7 +167,7 @@ export async function GET(req: Request) {
       if (res.status === 429) {
         return NextResponse.json(
           { error: "Rate limit exceeded. Please try again later." },
-          { status: 429 }
+          { status: 429 },
         );
       }
 
@@ -172,21 +179,36 @@ export async function GET(req: Request) {
       const contentType = res.headers.get("content-type");
 
       if (!contentType?.includes("application/json")) {
-        console.error("Overpass returned non-JSON response:", text.substring(0, 500));
-        return NextResponse.json({ error: "Overpass did not return valid JSON" }, { status: 500 });
+        console.error(
+          "Overpass returned non-JSON response:",
+          text.substring(0, 500),
+        );
+        return NextResponse.json(
+          { error: "Overpass did not return valid JSON" },
+          { status: 500 },
+        );
       }
 
       let parsedData: unknown;
       try {
         parsedData = JSON.parse(text);
       } catch {
-        console.error("Overpass returned invalid JSON:", text.substring(0, 500));
-        return NextResponse.json({ error: "Overpass did not return valid JSON" }, { status: 500 });
+        console.error(
+          "Overpass returned invalid JSON:",
+          text.substring(0, 500),
+        );
+        return NextResponse.json(
+          { error: "Overpass did not return valid JSON" },
+          { status: 500 },
+        );
       }
 
       const validationResult = OverpassResponseSchema.safeParse(parsedData);
       if (!validationResult.success) {
-        console.error("Overpass response validation failed:", validationResult.error.issues);
+        console.error(
+          "Overpass response validation failed:",
+          validationResult.error.issues,
+        );
         return NextResponse.json(
           {
             error: "Invalid Overpass response format",
@@ -195,7 +217,7 @@ export async function GET(req: Request) {
               message: issue.message,
             })),
           },
-          { status: 500 }
+          { status: 500 },
         );
       }
 
@@ -227,24 +249,27 @@ export async function GET(req: Request) {
         } catch (error) {
           if (error instanceof z.ZodError) {
             errors.push(
-              `Element ${element.id}: ${error.issues.map((e) => e.message).join(", ")}`
+              `Element ${element.id}: ${error.issues.map((e) => e.message).join(", ")}`,
             );
           } else {
             errors.push(
-              `Element ${element.id}: ${error instanceof Error ? error.message : "Unknown error"}`
+              `Element ${element.id}: ${error instanceof Error ? error.message : "Unknown error"}`,
             );
           }
         }
       }
 
       if (errors.length > 0) {
-        console.warn("Validation errors for some elements:", errors.slice(0, 10));
+        console.warn(
+          "Validation errors for some elements:",
+          errors.slice(0, 10),
+        );
       }
 
       if (bins.length === 0) {
         return NextResponse.json(
           { error: "No valid recycling bins found", details: errors },
-          { status: 404 }
+          { status: 404 },
         );
       }
 
@@ -254,7 +279,11 @@ export async function GET(req: Request) {
         chunks.push(bins.slice(i, i + CHUNK_SIZE));
       }
 
-      const results: Array<{ success: boolean; error?: string; count?: number }> = [];
+      const results: Array<{
+        success: boolean;
+        error?: string;
+        count?: number;
+      }> = [];
       for (const chunk of chunks) {
         try {
           const { error } = await supabaseServer
@@ -269,7 +298,8 @@ export async function GET(req: Request) {
         } catch (error) {
           results.push({
             success: false,
-            error: error instanceof Error ? error.message : "Unknown database error",
+            error:
+              error instanceof Error ? error.message : "Unknown database error",
           });
         }
       }
@@ -294,19 +324,27 @@ export async function GET(req: Request) {
           successful_chunks: results.filter((r) => r.success).length,
           failed_chunks: failedInserts.length,
         },
-        ...(failedInserts.length > 0 && { warnings: failedInserts.map((f) => f.error) }),
+        ...(failedInserts.length > 0 && {
+          warnings: failedInserts.map((f) => f.error),
+        }),
       });
     } catch (err: unknown) {
       console.error("Error during Overpass API call:", err);
       if (err instanceof Error && err.message.includes("Rate limit")) {
-        return NextResponse.json({ error: "Rate limit exceeded. Please try again later." }, { status: 429 });
+        return NextResponse.json(
+          { error: "Rate limit exceeded. Please try again later." },
+          { status: 429 },
+        );
       }
       if (err instanceof Error && err.message.includes("Query must")) {
         return NextResponse.json({ error: err.message }, { status: 400 });
       }
       return NextResponse.json(
-        { error: "Error during Overpass API request", details: err instanceof Error ? err.message : "Unknown error" },
-        { status: 500 }
+        {
+          error: "Error during Overpass API request",
+          details: err instanceof Error ? err.message : "Unknown error",
+        },
+        { status: 500 },
       );
     }
   } catch (err: unknown) {
@@ -314,37 +352,27 @@ export async function GET(req: Request) {
     return NextResponse.json(
       {
         error: "Internal server error",
-        ...(process.env.NODE_ENV === "development" && { details: err instanceof Error ? err.message : "Unknown error" }),
+        ...(process.env.NODE_ENV === "development" && {
+          details: err instanceof Error ? err.message : "Unknown error",
+        }),
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function POST(req: NextRequest) {
-  return NextResponse.json(
-    {error: "Method not allowed"},
-    {status: 405}
-  )
+  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
 }
 
 export async function PUT(req: NextRequest) {
-  return NextResponse.json(
-    {error: "Method not allowed"},
-    {status: 405}
-  )
+  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
 }
 
 export async function DELETE(req: NextRequest) {
-  return NextResponse.json(
-    {error: "Method not allowed"},
-    {status: 405}
-  )
+  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
 }
 
 export async function PATCH(req: NextRequest) {
-  return NextResponse.json(
-    {error: "Method not allowed"},
-    {status: 405}
-  )
+  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
 }

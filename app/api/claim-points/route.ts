@@ -9,7 +9,7 @@ const corsHeaders = {
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_KEY!
+  process.env.SUPABASE_SERVICE_KEY!,
 );
 
 export async function OPTIONS() {
@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     if (!authHeader?.startsWith("Bearer ")) {
       return NextResponse.json(
         { error: "Missing or invalid authorization" },
-        { status: 401, headers: corsHeaders }
+        { status: 401, headers: corsHeaders },
       );
     }
 
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
     if (authError || !user) {
       return NextResponse.json(
         { error: "Invalid or expired user session" },
-        { status: 401, headers: corsHeaders }
+        { status: 401, headers: corsHeaders },
       );
     }
 
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
     if (!qrToken) {
       return NextResponse.json(
         { error: "Missing QR token" },
-        { status: 400, headers: corsHeaders }
+        { status: 400, headers: corsHeaders },
       );
     }
 
@@ -59,14 +59,14 @@ export async function POST(req: NextRequest) {
     if (qrError || !qrRecord) {
       return NextResponse.json(
         { error: "Invalid QR token" },
-        { status: 400, headers: corsHeaders }
+        { status: 400, headers: corsHeaders },
       );
     }
 
     if (new Date() > new Date(qrRecord.expires_at)) {
       return NextResponse.json(
         { error: "QR token has expired" },
-        { status: 400, headers: corsHeaders }
+        { status: 400, headers: corsHeaders },
       );
     }
 
@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
     if (profileError || !profile) {
       return NextResponse.json(
         { error: "User profile not found" },
-        { status: 404, headers: corsHeaders }
+        { status: 404, headers: corsHeaders },
       );
     }
 
@@ -93,14 +93,11 @@ export async function POST(req: NextRequest) {
     if (updateError) {
       return NextResponse.json(
         { error: "Failed to update points" },
-        { status: 500, headers: corsHeaders }
+        { status: 500, headers: corsHeaders },
       );
     }
 
-    await supabaseAdmin
-      .from("temporary_qrs")
-      .delete()
-      .eq("id", qrRecord.id);
+    await supabaseAdmin.from("temporary_qrs").delete().eq("id", qrRecord.id);
 
     return NextResponse.json(
       {
@@ -109,12 +106,12 @@ export async function POST(req: NextRequest) {
         newTotal,
         message: `Успешно получихте ${qrRecord.points} точки!`,
       },
-      { headers: corsHeaders }
+      { headers: corsHeaders },
     );
   } catch (err: any) {
     return NextResponse.json(
       { error: "Internal server error", details: err.message },
-      { status: 500, headers: corsHeaders }
+      { status: 500, headers: corsHeaders },
     );
   }
 }
@@ -125,6 +122,6 @@ export async function GET() {
       message: "Use POST to claim points",
       body: { qrToken: "string" },
     },
-    { headers: corsHeaders }
+    { headers: corsHeaders },
   );
 }

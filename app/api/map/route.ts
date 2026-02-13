@@ -1,6 +1,6 @@
-import { supabase } from '@/lib/supabase-browser';
-import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
+import { supabase } from "@/lib/supabase-browser";
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 
 const BinSchema = z.object({
   id: z.number().int().positive(),
@@ -61,26 +61,28 @@ async function storeBins(bins: unknown[]) {
   for (const bin of bins) {
     const parsed = BinSchema.safeParse(bin);
     if (parsed.success) validBins.push(parsed.data);
-    else errors.push(`Bin ${JSON.stringify(bin)} failed validation: ${parsed.error.issues.map(i => i.message).join(', ')}`);
+    else
+      errors.push(
+        `Bin ${JSON.stringify(bin)} failed validation: ${parsed.error.issues.map((i) => i.message).join(", ")}`,
+      );
   }
 
-  if (errors.length > 0) console.warn("Some bins failed validation:", errors.slice(0, 10));
+  if (errors.length > 0)
+    console.warn("Some bins failed validation:", errors.slice(0, 10));
 
   if (validBins.length === 0) throw new Error("No valid bins to insert");
 
-  const { error } = await supabase
-    .from('bins')
-    .upsert(
-      validBins.map(b => ({
-        id: b.id,
-        osm_type: b.osm_type,
-        lat: b.lat,
-        lon: b.lon,
-        tags: b.tags,
-        updated_at: new Date().toISOString(),
-      })),
-      { onConflict: 'id,osm_type' }
-    );
+  const { error } = await supabase.from("bins").upsert(
+    validBins.map((b) => ({
+      id: b.id,
+      osm_type: b.osm_type,
+      lat: b.lat,
+      lon: b.lon,
+      tags: b.tags,
+      updated_at: new Date().toISOString(),
+    })),
+    { onConflict: "id,osm_type" },
+  );
 
   if (error) console.error("Supabase upsert error:", error);
   else console.log(`Upserted ${validBins.length} bins`);
@@ -89,18 +91,26 @@ async function storeBins(bins: unknown[]) {
 }
 
 export async function GET(req: NextRequest) {
-  const tokenHeader = req.headers.get('x-api-token');
+  const tokenHeader = req.headers.get("x-api-token");
   const parsedToken = ApiTokenSchema.safeParse({ token: tokenHeader });
 
-  if (!parsedToken.success || parsedToken.data.token !== process.env.SECURE_API_KEY) {
+  if (
+    !parsedToken.success ||
+    parsedToken.data.token !== process.env.SECURE_API_KEY
+  ) {
     return NextResponse.json(
       {
         error: "Unauthorized",
         ...(parsedToken.success
           ? undefined
-          : { details: parsedToken.error.issues.map(i => ({ field: i.path.join('.'), message: i.message })) }),
+          : {
+              details: parsedToken.error.issues.map((i) => ({
+                field: i.path.join("."),
+                message: i.message,
+              })),
+            }),
       },
-      { status: 401 }
+      { status: 401 },
     );
   }
 
@@ -117,35 +127,23 @@ export async function GET(req: NextRequest) {
     console.error("Error in GET /bins:", err);
     return NextResponse.json(
       { error: err.message || "Unknown error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function POST(req: NextRequest) {
-  return NextResponse.json(
-    {error: "Method not allowed"},
-    {status: 405}
-  )
+  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
 }
 
 export async function PUT(req: NextRequest) {
-  return NextResponse.json(
-    {error: "Method not allowed"},
-    {status: 405}
-  )
+  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
 }
 
 export async function DELETE(req: NextRequest) {
-  return NextResponse.json(
-    {error: "Method not allowed"},
-    {status: 405}
-  )
+  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
 }
 
 export async function PATCH(req: NextRequest) {
-  return NextResponse.json(
-    {error: "Method not allowed"},
-    {status: 405}
-  )
+  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
 }

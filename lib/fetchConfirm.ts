@@ -13,9 +13,11 @@ export interface GeminiResponse {
 
 const isDev = process.env.NODE_ENV === "development";
 
-export default async function fetchConfirm(
-  { binId, image, target }: GeminiRequest
-): Promise<GeminiResponse> {
+export default async function fetchConfirm({
+  binId,
+  image,
+  target,
+}: GeminiRequest): Promise<GeminiResponse> {
   let res: Response;
 
   if (isDev) {
@@ -31,7 +33,7 @@ export default async function fetchConfirm(
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-token": process.env.SECURE_API_KEY!
+        "x-api-token": process.env.SECURE_API_KEY!,
       },
       body: JSON.stringify({ binId, image, target }),
     });

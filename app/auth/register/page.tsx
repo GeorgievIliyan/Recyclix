@@ -1,191 +1,197 @@
-"use client"
+"use client";
 
-import { supabase } from "@/lib/supabase-browser"
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Eye, EyeOff, OctagonAlert, CircleCheck, X } from "lucide-react"
+import { supabase } from "@/lib/supabase-browser";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Eye, EyeOff, OctagonAlert, CircleCheck, X } from "lucide-react";
 
 const translateMessage = (message: string) => {
-  if (message.toLowerCase() == "invalid login credentials"){
-    return "Грешна парола или имейл"
+  if (message.toLowerCase() == "invalid login credentials") {
+    return "Грешна парола или имейл";
   }
-  if (message.toLowerCase() == "invalid input"){
-    return "Грешни данни или потребителят несъществува"
+  if (message.toLowerCase() == "invalid input") {
+    return "Грешни данни или потребителят несъществува";
   }
-}
+};
 
 // Дезинфекция на данните
 const sanitize = {
   string: (input: string): string => {
-    if (!input) return ""
-    
+    if (!input) return "";
+
     return input
       .trim()
       .replace(/[<>]/g, "")
       .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "")
-      .substring(0, 255)
+      .substring(0, 255);
   },
 
   // валидация на имейл
   email: (email: string): string | null => {
-    if (!email) return null
-    
-    const sanitized = email.trim().toLowerCase().substring(0, 254)
-    
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    
+    if (!email) return null;
+
+    const sanitized = email.trim().toLowerCase().substring(0, 254);
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
     if (!emailRegex.test(sanitized)) {
-      return null
+      return null;
     }
-    
-    return sanitized
+
+    return sanitized;
   },
 
   // Валидация на парола
   password: (password: string): { isValid: boolean; message?: string } => {
     if (!password || password.length < 6) {
-      return { isValid: false, message: "Паролата трябва да е най-малко 6 знака." }
+      return {
+        isValid: false,
+        message: "Паролата трябва да е най-малко 6 знака.",
+      };
     }
-    
+
     if (password.length > 100) {
-      return { isValid: false, message: "Паролата е твърде дълга." }
+      return { isValid: false, message: "Паролата е твърде дълга." };
     }
-    
-    return { isValid: true }
+
+    return { isValid: true };
   },
 
   fullName: (name: string): string => {
-    if (!name) return ""
-    
+    if (!name) return "";
+
     return name
       .trim()
       .replace(/[<>]/g, "")
       .replace(/[^a-zA-Zа-яА-Я\s\-'\.]/g, "")
-      .replace(/\s+/g, ' ')
-      .substring(0, 100)
-  }
-}
+      .replace(/\s+/g, " ")
+      .substring(0, 100);
+  },
+};
 
 function RegisterPage() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [fullName, setFullName] = useState("")
-  const [passwordShown, setPasswordShown] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState<string | null>(null)
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [passwordShown, setPasswordShown] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
 
-  const router = useRouter()
+  const router = useRouter();
 
   const handleTogglePassword = () => {
-    setPasswordShown(!passwordShown)
-  }
+    setPasswordShown(!passwordShown);
+  };
 
   const handleRegister = async () => {
-    setPasswordShown(false)
-    setLoading(true)
-    setMessage(null)
+    setPasswordShown(false);
+    setLoading(true);
+    setMessage(null);
 
     // Валидации
     if (!email || !password) {
-      setMessage("Имейл и парола са задължителни.")
-      setLoading(false)
-      return
+      setMessage("Имейл и парола са задължителни.");
+      setLoading(false);
+      return;
     }
 
-    const sanitizedEmail = sanitize.email(email)
+    const sanitizedEmail = sanitize.email(email);
     if (!sanitizedEmail) {
-      setMessage("Моля, въведете валиден имейл адрес.")
-      setLoading(false)
-      return
+      setMessage("Моля, въведете валиден имейл адрес.");
+      setLoading(false);
+      return;
     }
 
-    const passwordValidation = sanitize.password(password)
+    const passwordValidation = sanitize.password(password);
     if (!passwordValidation.isValid) {
-      setMessage(passwordValidation.message || "Невалидна парола.")
-      setLoading(false)
-      return
+      setMessage(passwordValidation.message || "Невалидна парола.");
+      setLoading(false);
+      return;
     }
 
-    const sanitizedFullName = sanitize.fullName(fullName)
+    const sanitizedFullName = sanitize.fullName(fullName);
 
     try {
       const res = await fetch("/api/auth/register", {
         method: "POST",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
-          "X-Requested-With": "XMLHttpRequest" // Против AJAX заявки
+          "X-Requested-With": "XMLHttpRequest", // Против AJAX заявки
         },
-        body: JSON.stringify({ 
-          email: sanitizedEmail, 
-          password, 
-          fullName: sanitizedFullName 
+        body: JSON.stringify({
+          email: sanitizedEmail,
+          password,
+          fullName: sanitizedFullName,
         }),
-      })
+      });
 
-      const contentType = res.headers.get("content-type")
+      const contentType = res.headers.get("content-type");
       if (!contentType || !contentType.includes("application/json")) {
-        throw new Error("Неочакван отговор от сървъра.")
+        throw new Error("Неочакван отговор от сървъра.");
       }
 
-      const data = await res.json()
+      const data = await res.json();
 
       if (res.ok) {
-        setEmail("")
-        setPassword("")
-        setFullName("")
+        setEmail("");
+        setPassword("");
+        setFullName("");
         sessionStorage.setItem(
           "registrationMessage",
-          "Регистрацията е успешна! Моля, проверете имейла си, за да потвърдите акаунта си преди влизане."
-        )
-        router.push("/auth/login")
+          "Регистрацията е успешна! Моля, проверете имейла си, за да потвърдите акаунта си преди влизане.",
+        );
+        router.push("/auth/login");
       } else {
-        setMessage(data.error || "Регистрацията неуспешна.")
+        setMessage(data.error || "Регистрацията неуспешна.");
       }
     } catch (err: any) {
-      console.error("Registration error:", err)
-      setMessage("Възникна неочаквана грешка. Моля, опитайте отново.")
+      console.error("Registration error:", err);
+      setMessage("Възникна неочаквана грешка. Моля, опитайте отново.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleGoogleRegister = async () => {
     try {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: { 
+        options: {
           redirectTo: window.location.origin + "/dashboard",
           queryParams: {
-            prompt: "select_account"
-          }
+            prompt: "select_account",
+          },
         },
-      })
+      });
 
       if (error) {
-        console.error("Google OAuth error:", error)
-        setMessage(error.message)
+        console.error("Google OAuth error:", error);
+        setMessage(error.message);
       } else {
-        setMessage("Пренасочване към Google...")
+        setMessage("Пренасочване към Google...");
       }
     } catch (err: any) {
-      console.error("Google registration error:", err)
-      setMessage("Неуспешна регистрация с Google.")
+      console.error("Google registration error:", err);
+      setMessage("Неуспешна регистрация с Google.");
     }
-  }
+  };
 
-  const handleInputChange = (type: 'email' | 'password' | 'fullName', value: string) => {
+  const handleInputChange = (
+    type: "email" | "password" | "fullName",
+    value: string,
+  ) => {
     switch (type) {
-      case 'email':
-        setEmail(value)
-        break
-      case 'password':
-        setPassword(value)
-        break
-      case 'fullName':
-        setFullName(sanitize.fullName(value))
-        break
+      case "email":
+        setEmail(value);
+        break;
+      case "password":
+        setPassword(value);
+        break;
+      case "fullName":
+        setFullName(sanitize.fullName(value));
+        break;
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-neutral-50 via-neutral-100 to-neutral-200 dark:from-neutral-950 dark:via-neutral-900 dark:to-black p-4">
@@ -205,34 +211,42 @@ function RegisterPage() {
             </div>
 
             {/* Съобщение за грешка или информация */}
-            {message && (() => {
-              const isSuccess = message.includes("успеш") || message.includes("Пренасочване");
+            {message &&
+              (() => {
+                const isSuccess =
+                  message.includes("успеш") || message.includes("Пренасочване");
 
-              return (
-                <div className={`mb-6 p-4 rounded-xl border flex items-center justify-between ${
-                  isSuccess 
-                    ? "bg-[#00CD56]/10 border-[#00CD56]/30 dark:bg-[#00CD56]/20 dark:border-[#00CD56]/40"
-                    : "bg-red-50/80 border-red-200/50 dark:bg-red-900/20 dark:border-red-800/50"
-                }`}>
-                  <div className={`text-sm font-medium flex flex-row gap-3 items-center ${
-                    isSuccess ? "text-[#00CD56]" : "text-red-600 dark:text-red-400"
-                  }`}>
-                    {isSuccess ? (
-                      <CircleCheck className="w-5 h-5 flex-shrink-0" />
-                    ) : (
-                      <OctagonAlert className="w-5 h-5 flex-shrink-0" />
-                    )}
-                    <span>{translateMessage(message) || message}</span>
+                return (
+                  <div
+                    className={`mb-6 p-4 rounded-xl border flex items-center justify-between ${
+                      isSuccess
+                        ? "bg-[#00CD56]/10 border-[#00CD56]/30 dark:bg-[#00CD56]/20 dark:border-[#00CD56]/40"
+                        : "bg-red-50/80 border-red-200/50 dark:bg-red-900/20 dark:border-red-800/50"
+                    }`}
+                  >
+                    <div
+                      className={`text-sm font-medium flex flex-row gap-3 items-center ${
+                        isSuccess
+                          ? "text-[#00CD56]"
+                          : "text-red-600 dark:text-red-400"
+                      }`}
+                    >
+                      {isSuccess ? (
+                        <CircleCheck className="w-5 h-5 flex-shrink-0" />
+                      ) : (
+                        <OctagonAlert className="w-5 h-5 flex-shrink-0" />
+                      )}
+                      <span>{translateMessage(message) || message}</span>
+                    </div>
+                    <X
+                      className={`h-5 w-5 cursor-pointer transition-opacity hover:opacity-70 ${
+                        isSuccess ? "text-[#00CD56]" : "text-red-500"
+                      }`}
+                      onClick={() => setMessage("")}
+                    />
                   </div>
-                  <X 
-                    className={`h-5 w-5 cursor-pointer transition-opacity hover:opacity-70 ${
-                      isSuccess ? "text-[#00CD56]" : "text-red-500"
-                    }`} 
-                    onClick={() => setMessage("")}
-                  />
-                </div>
-              );
-            })()}
+                );
+              })()}
 
             <div className="space-y-5 mb-6">
               <div>
@@ -243,7 +257,9 @@ function RegisterPage() {
                   type="text"
                   placeholder="Иван Иванов"
                   value={fullName}
-                  onChange={(e) => handleInputChange('fullName', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("fullName", e.target.value)
+                  }
                   maxLength={100}
                   className="w-full px-4 py-3.5 rounded-xl bg-neutral-50/50 dark:bg-neutral-800/50 border border-neutral-300/50 dark:border-neutral-700/50 text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-[#00CD56]/50 dark:focus:ring-[#00CD56]/40 focus:border-[#00CD56] dark:focus:border-[#00CD56] transition-all duration-200 backdrop-blur-sm"
                 />
@@ -257,7 +273,7 @@ function RegisterPage() {
                   type="email"
                   placeholder="vashe.ime@example.com"
                   value={email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  onChange={(e) => handleInputChange("email", e.target.value)}
                   maxLength={254}
                   required
                   className="w-full px-4 py-3.5 rounded-xl bg-neutral-50/50 dark:bg-neutral-800/50 border border-neutral-300/50 dark:border-neutral-700/50 text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-[#00CD56]/50 dark:focus:ring-[#00CD56]/40 focus:border-[#00CD56] dark:focus:border-[#00CD56] transition-all duration-200 backdrop-blur-sm"
@@ -265,24 +281,27 @@ function RegisterPage() {
               </div>
 
               <div className="relative">
-                  <input
-                    type={passwordShown? "text": "password"}
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-4 py-3.5 pr-12 rounded-xl bg-neutral-50/50 dark:bg-neutral-800/50 border border-neutral-300/50 dark:border-neutral-700/50 text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-[#00CD56]/50 dark:focus:ring-[#00CD56]/40 focus:border-[#00CD56] dark:focus:border-[#00CD56] transition-all duration-200 backdrop-blur-sm"
-                  />
-                  <button
-                    type="button"
-                    className="absolute inset-y-0 right-3 flex items-center text-neutral-400 hover:text-neutral-600 transition duration-150 dark:hover:text-neutral-300"
-                  >
-                    {passwordShown? 
-                      <EyeOff className="w-5 h-5" onClick={handleTogglePassword}/>
-                      :
-                      <Eye className="w-5 h-5" onClick={handleTogglePassword}/>
-                    }
-                  </button>
-                </div>
+                <input
+                  type={passwordShown ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-4 py-3.5 pr-12 rounded-xl bg-neutral-50/50 dark:bg-neutral-800/50 border border-neutral-300/50 dark:border-neutral-700/50 text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-[#00CD56]/50 dark:focus:ring-[#00CD56]/40 focus:border-[#00CD56] dark:focus:border-[#00CD56] transition-all duration-200 backdrop-blur-sm"
+                />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-3 flex items-center text-neutral-400 hover:text-neutral-600 transition duration-150 dark:hover:text-neutral-300"
+                >
+                  {passwordShown ? (
+                    <EyeOff
+                      className="w-5 h-5"
+                      onClick={handleTogglePassword}
+                    />
+                  ) : (
+                    <Eye className="w-5 h-5" onClick={handleTogglePassword} />
+                  )}
+                </button>
+              </div>
             </div>
 
             <button
@@ -364,7 +383,7 @@ function RegisterPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default RegisterPage
+export default RegisterPage;
