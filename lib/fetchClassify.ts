@@ -1,9 +1,7 @@
-// lib/fetchClassify.ts
-
 interface Props {
   target: string;
   binId: string;
-  userDailyTaskId?: string; // Add this for gemini-confirm
+  userDailyTaskId?: string;
 }
 
 export interface GeminiRequest extends Props {
@@ -11,8 +9,8 @@ export interface GeminiRequest extends Props {
 }
 
 export interface GeminiResponse {
-  result?: string; // For gemini-confirm (YES/NO)
-  material?: string; // For gemini-classify
+  result?: string;
+  material?: string;
   error?: string;
 }
 

@@ -1,3 +1,5 @@
+import { ArrowRight } from "lucide-react";
+
 const CallToAction = () => {
   return (
     <div className="relative py-20 px-4">
@@ -14,9 +16,9 @@ const CallToAction = () => {
         </p>
         <a
           href="/auth/register"
-          className="group relative inline-block px-12 py-5 bg-gradient-to-br from-[#00CD56] via-emerald-500 to-[#00b849] hover:from-[#00b849] hover:via-[#00a341] hover:to-emerald-600 text-white text-xl font-semibold rounded-2xl shadow-2xl shadow-[#00CD56]/30 dark:shadow-[#00CD56]/20 transition-all duration-300 hover:scale-105 active:scale-95 hover:shadow-[#00CD56]/50"
+          className="group relative inline-block pl-12 pr-11 py-5 bg-gradient-to-br from-[#00CD56] via-emerald-500 to-[#00b849] hover:from-[#00b849] hover:via-[#00a341] hover:to-emerald-600 text-white text-xl font-semibold rounded-2xl shadow-2xl shadow-[#00CD56]/30 dark:shadow-[#00CD56]/20 transition-all duration-300 hover:scale-105 active:scale-95 hover:shadow-[#00CD56]/50"
         >
-          <span className="relative z-10">Започнете безплатно</span>
+          <span className="relative z-10 flex gap-3 items-center justify-items-center">Започнете безплатно <ArrowRight /></span>
           <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         </a>
       </div>

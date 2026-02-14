@@ -15,7 +15,6 @@ import { Navigation } from "@/app/components/Navigation";
 import { BadgesGallery } from "@/app/components/BadgesGallery";
 import { supabase } from "@/lib/supabase-browser";
 
-// 1. Dynamic Chart Imports
 const RecyclingActivityChart = dynamicImport(
   () =>
     import("@/app/components/RecyclingActivityChart").then(
@@ -42,7 +41,6 @@ const MaterialsBreakdownChart = dynamicImport(
   },
 );
 
-// --- Types ---
 type RecyclingEvent = {
   material: string;
   points: number;
@@ -121,7 +119,7 @@ export default function DashboardPage() {
 
         const typedEvents = events as RecyclingEvent[];
 
-        // Streak Calculation
+        // изчисляване на рекорд за поредни дни
         const calculateStreak = () => {
           if (!typedEvents.length) return 0;
           const sortedDates = [
@@ -238,17 +236,10 @@ export default function DashboardPage() {
   return (
     <>
       <Navigation />
-
-      {/* FIXED BACKGROUND: 
-          1. Removed opacity stops (via-zinc-50/50) to prevent banding.
-          2. Added 'bg-fixed' so the gradient doesn't stretch too thin.
-          3. Added a noise overlay div to smooth transitions.
-      */}
       <div className="relative min-h-screen bg-fixed bg-gradient-to-br from-neutral-50 via-neutral-100 to-zinc-200 dark:from-neutral-900 dark:via-neutral-950 dark:to-black md:pt-16 lg:pt-18 overflow-hidden">
-        {/* Grain Overlay (Dithering) */}
         <div className="absolute inset-0 opacity-[0.03] pointer-events-none z-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
 
-        {/* Decorative Blur Elements */}
+        {/* Декоративни елементи */}
         <div className="absolute top-20 -left-32 w-96 h-96 bg-[#00CD56]/10 rounded-full blur-[120px] pointer-events-none" />
         <div className="absolute bottom-40 -right-32 w-96 h-96 bg-emerald-400/10 rounded-full blur-[120px] pointer-events-none" />
 
@@ -271,7 +262,7 @@ export default function DashboardPage() {
             </div>
           </header>
 
-          {/* Stats Grid */}
+          {/* статистики */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <StatCard
               title="Общи рециклирани"
@@ -296,14 +287,14 @@ export default function DashboardPage() {
             />
             <StatCard
               title="Рекорд"
-              value={`${userData.currentStreak} дни`}
+              value={`${userData.currentStreak === 1 ? '1 ден' : `${userData.currentStreak} дни`}`}
               icon={<Calendar className="h-6 w-6" />}
               iconColor="text-sky-500"
               iconBg="bg-sky-500/10"
             />
           </div>
 
-          {/* Charts Section */}
+          {/* графика */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             <div className="backdrop-blur-md bg-white/70 dark:bg-zinc-900/70 rounded-3xl border border-white/20 dark:border-zinc-800/50 shadow-2xl p-4">
               <RecyclingActivityChart data={activityData} />
@@ -314,7 +305,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Progress & Recent Section */}
+          {/* прогрес */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
             <div className="lg:col-span-2 backdrop-blur-md bg-white/70 dark:bg-zinc-900/70 rounded-3xl border border-white/20 dark:border-zinc-800/50 shadow-2xl overflow-hidden">
               <GamificationProgress totalXp={userData.totalPoints} />
@@ -324,7 +315,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Badges Section */}
+          {/* значки */}
           <div className="backdrop-blur-md bg-white/70 dark:bg-zinc-900/70 rounded-3xl border border-white/20 dark:border-zinc-800/50 shadow-2xl overflow-hidden">
             <BadgesGallery userId={user?.id} />
           </div>
