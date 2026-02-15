@@ -20,8 +20,8 @@ const Pricing = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {/* Начален план */}
           <div className="relative backdrop-blur-xl bg-gradient-to-br from-white/90 via-white/80 to-zinc-50/90 dark:from-zinc-900/70 dark:via-zinc-900/60 dark:to-zinc-800/70 rounded-3xl p-8 border border-zinc-200/50 dark:border-zinc-800/50 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 flex flex-col">
-            <div className="mb-6">
-              <h3 className="text-2xl font-bold text-zinc-900 dark:text-white mb-2">
+            <div className="mb-4">
+              <h3 className="text-3xl font-bold text-zinc-900 dark:text-white mb-1">
                 Начален
               </h3>
               <p className="text-zinc-600 dark:text-zinc-400">
@@ -30,11 +30,6 @@ const Pricing = () => {
             </div>
 
             <div className="mb-6">
-              <div className="flex items-baseline gap-2">
-                <span className="text-lg text-zinc-500 dark:text-zinc-500 line-through">
-                  29.99 €
-                </span>
-              </div>
               <div className="flex items-baseline gap-1">
                 <span className="text-4xl font-bold text-zinc-900 dark:text-white">
                   19.99 €
@@ -67,14 +62,14 @@ const Pricing = () => {
           </div>
 
           {/* Популярен план */}
-          <div className="relative backdrop-blur-xl bg-gradient-to-br from-[#00CD56] via-emerald-500 to-[#00b849] rounded-3xl p-8 shadow-2xl shadow-[#00CD56]/30 dark:shadow-[#00CD56]/20 hover:shadow-[#00CD56]/50 transition-all duration-300 scale-105 hover:scale-110 border-2 border-[#00CD56]/50 flex flex-col">
+          <div className="relative backdrop-blur-xl bg-gradient-to-br from-[#00CD56] via-emerald-500 to-[#00b849] rounded-3xl p-8 shadow-2xl shadow-[#00CD56]/30 dark:shadow-[#00CD56]/20 hover:shadow-[#00CD56]/50 transition-all duration-300 scale-100 md:scale-105 hover:scale-105 md:hover:scale-110 border-2 border-[#00CD56]/50 flex flex-col">
             <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-6 py-2 bg-gradient-to-r from-yellow-400 to-orange-400 text-white text-sm font-bold rounded-full shadow-lg flex items-center gap-2">
               <Sparkles className="w-4 h-4" />
               Популярен
             </div>
 
-            <div className="mb-6">
-              <h3 className="text-2xl font-bold text-white mb-2">Про</h3>
+            <div className="mb-4">
+              <h3 className="text-2xl font-bold text-white mb-1">Про</h3>
               <p className="text-white/90">За средния бизнес и институции</p>
             </div>
 
@@ -115,7 +110,7 @@ const Pricing = () => {
           {/* Бизнес план */}
           <div className="relative backdrop-blur-xl bg-gradient-to-br from-white/90 via-white/80 to-zinc-50/90 dark:from-zinc-900/70 dark:via-zinc-900/60 dark:to-zinc-800/70 rounded-3xl p-8 border border-zinc-200/50 dark:border-zinc-800/50 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 flex flex-col">
             <div className="mb-6">
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center gap-2 mb-1">
                 <Zap className="w-6 h-6 text-yellow-500" />
                 <h3 className="text-2xl font-bold text-zinc-900 dark:text-white">
                   Бизнес Супер
@@ -126,7 +121,7 @@ const Pricing = () => {
               </p>
             </div>
 
-            <div className="mb-6">
+            <div className="mb-4">
               <div className="flex items-baseline gap-2">
                 <span className="text-lg text-zinc-500 dark:text-zinc-500 line-through">
                   99.99 €

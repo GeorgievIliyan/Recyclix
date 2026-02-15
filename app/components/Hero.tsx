@@ -36,9 +36,11 @@ const Hero = ({ totalUsers, totalBins, totalKgRecycled }: HeroProps) => {
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
           <a
             href="/auth/register"
-            className="group relative w-full sm:w-auto pl-10 pr-9 py-4 bg-gradient-to-br from-[#00CD56] via-emerald-500 to-[#00b849] hover:from-[#00b849] hover:via-[#00a341] hover:to-emerald-600 text-white text-lg font-semibold rounded-2xl shadow-2xl shadow-[#00CD56]/30 dark:shadow-[#00CD56]/20 transition-all duration-300 hover:scale-105 active:scale-95 hover:shadow-[#00CD56]/40"
+            className="group relative w-full sm:w-auto px-8 py-4 bg-gradient-to-br from-[#00CD56] via-emerald-500 to-[#00b849] hover:from-[#00b849] hover:via-[#00a341] hover:to-emerald-600 text-white text-lg font-semibold rounded-2xl shadow-2xl shadow-[#00CD56]/30 dark:shadow-[#00CD56]/20 transition-all duration-300 hover:scale-105 active:scale-95 hover:shadow-[#00CD56]/40"
           >
-            <span className="relative z-10 flex gap-2 items-center justify-items center">Започнете сега <ArrowRight /></span>
+            <span className="relative z-10 flex gap-2 items-center justify-center">
+              Започнете сега <ArrowRight />
+            </span>
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           </a>
           <a

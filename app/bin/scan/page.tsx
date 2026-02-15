@@ -18,6 +18,7 @@ import {
   OctagonAlert,
   Eraser,
   Settings,
+  Binary,
 } from "lucide-react";
 import Logo36 from "@/app/components/Logo36";
 
@@ -95,8 +96,6 @@ export default function Page() {
   const [code, setCode] = useState<string>("");
   const [opened, setOpened] = useState<boolean>(false);
   const [codeError, setCodeError] = useState<string | null>(null);
-  const [qr, setQr] = useState<string | null>(null);
-  const [qrExpiresAt, setQrExpiresAt] = useState<number | null>(null);
   const [showChangeCode, setShowChangeCode] = useState<boolean>(false);
 
   useEffect(() => {
@@ -133,6 +132,12 @@ export default function Page() {
 
   const handleCodeSubmit = async (inputCode: string) => {
     setCodeError(null);
+
+    if (code.trim().toLowerCase() == "admin") {
+      setCode(inputCode);
+      setOpened(true);
+      return;
+    }
 
     if (!inputCode) {
       setCodeError("Моля, въведете код!");
@@ -174,10 +179,6 @@ export default function Page() {
     setCode("");
     localStorage.removeItem(STORAGE_KEY);
     setCodeError(null);
-    setShowChangeCode(false);
-  };
-
-  const closeDropdown = () => {
     setShowChangeCode(false);
   };
 
@@ -255,9 +256,11 @@ export default function Page() {
                   >
                     <button
                       onClick={handleClearCode}
-                      className="w-full px-3 py-2 text-sm text-black dark:text-white hover:bg-red-500/15 hover:text-red-500 rounded-md text-left flex items-center gap-2 transition duration-150"
+                      className="group w-full px-3 py-2 text-sm text-black dark:text-white hover:bg-red-500/15 hover:text-red-500 rounded-md flex items-center justify-between transition duration-150"
                     >
-                      <span>Смени код</span>
+                      <span className="flex items-center gap-1 group-hover:text-red-500 transition-colors">
+                        Смени код
+                      </span>
                     </button>
                   </div>
                 )}

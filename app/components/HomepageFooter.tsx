@@ -1,6 +1,6 @@
 const HomepageFooter = () => {
   return (
-    <footer className="relative border-t border-zinc-200/50 dark:border-zinc-800/50 backdrop-blur-xl bg-white/80 dark:bg-zinc-950/80">
+    <footer className="relative border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
       <div className="max-w-7xl mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div className="md:col-span-2">
@@ -19,6 +19,7 @@ const HomepageFooter = () => {
               среда лесно и награждаващо.
             </p>
           </div>
+
           <div>
             <h4 className="text-lg font-bold text-zinc-900 dark:text-white mb-4">
               Бързи връзки
@@ -27,7 +28,7 @@ const HomepageFooter = () => {
               <li>
                 <a
                   href="#features"
-                  className="text-zinc-600 dark:text-zinc-400 hover:text-[#00CD56] transition-colors"
+                  className="text-zinc-600 dark:text-zinc-400 hover:text-[#00CD56] dark:hover:text-[#00CD56] transition duration-150"
                 >
                   Предимства
                 </a>
@@ -35,7 +36,7 @@ const HomepageFooter = () => {
               <li>
                 <a
                   href="#how-it-works"
-                  className="text-zinc-600 dark:text-zinc-400 hover:text-[#00CD56] transition-colors"
+                  className="text-zinc-600 dark:text-zinc-400 hover:text-[#00CD56] dark:hover:text-[#00CD56] transition duration-150"
                 >
                   Как работи
                 </a>
@@ -43,7 +44,7 @@ const HomepageFooter = () => {
               <li>
                 <a
                   href="#impact"
-                  className="text-zinc-600 dark:text-zinc-400 hover:text-[#00CD56] transition-colors"
+                  className="text-zinc-600 dark:text-zinc-400 hover:text-[#00CD56] dark:hover:text-[#00CD56] transition duration-150"
                 >
                   Въздействие
                 </a>
@@ -51,13 +52,14 @@ const HomepageFooter = () => {
               <li>
                 <a
                   href="#pricing"
-                  className="text-zinc-600 dark:text-zinc-400 hover:text-[#00CD56] transition-colors"
+                  className="text-zinc-600 dark:text-zinc-400 hover:text-[#00CD56] dark:hover:text-[#00CD56] transition duration-150"
                 >
                   Цени
                 </a>
               </li>
             </ul>
           </div>
+
           <div>
             <h4 className="text-lg font-bold text-zinc-900 dark:text-white mb-4">
               Акаунт
@@ -66,7 +68,7 @@ const HomepageFooter = () => {
               <li>
                 <a
                   href="/auth/login"
-                  className="text-zinc-600 dark:text-zinc-400 hover:text-[#00CD56] transition-colors"
+                  className="text-zinc-600 dark:text-zinc-400 hover:text-[#00CD56] dark:hover:text-[#00CD56] transition duration-150"
                 >
                   Вход
                 </a>
@@ -74,7 +76,7 @@ const HomepageFooter = () => {
               <li>
                 <a
                   href="/auth/register"
-                  className="text-zinc-600 dark:text-zinc-400 hover:text-[#00CD56] transition-colors"
+                  className="text-zinc-600 dark:text-zinc-400 hover:text-[#00CD56] dark:hover:text-[#00CD56] transition duration-150"
                 >
                   Регистрация
                 </a>
@@ -82,7 +84,8 @@ const HomepageFooter = () => {
             </ul>
           </div>
         </div>
-        <div className="pt-8 border-t border-zinc-200/50 dark:border-zinc-800/50 text-center text-zinc-500 dark:text-zinc-500 text-sm">
+
+        <div className="pt-8 border-t border-zinc-200 dark:border-zinc-800 text-center text-zinc-500 dark:text-zinc-500 text-sm">
           © {new Date().getFullYear()} Recyclix. Всички права запазени.
         </div>
       </div>

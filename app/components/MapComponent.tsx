@@ -924,9 +924,8 @@ const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
         const isReportDisabledForThisBin = isReportDisabled(bin.id);
 
         const popupContent = (
-          <div className="relative p-4 min-w-[220px] dark:bg-neutral-800 bg-white dark:text-white text-gray-900">
-            {/* Иконки за действие */}
-            <div className="absolute top-3 right-3 flex gap-2">
+          <div className="relative p-4 w-[85vw] max-w-[320px] sm:w-[260px] break-words dark:bg-neutral-800 bg-white dark:text-white text-gray-900 rounded-lg">
+            <div className="absolute top-2 right-2 flex gap-1.5">
               <button
                 className={`p-1.5 rounded-md transition ${
                   isReportDisabledForThisBin
@@ -935,7 +934,7 @@ const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
                 }`}
                 title={
                   isReportDisabledForThisBin
-                    ? "Отчетът е временно деактивиран за това кошче"
+                    ? "Отчетът е временно деактивиран"
                     : "Докладвай проблем"
                 }
                 onClick={() => !isReportDisabledForThisBin && onReport(bin)}
@@ -945,7 +944,7 @@ const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
               </button>
 
               <button
-                className="p-1.5 rounded-md hover:bg-green-100 hover:text-green-500 text-gray-600 dark:text-neutral-300 transition hover:text-gray-800 dark:hover:bg-green-500/10 dark:hover:text-green-500 transition duration-150"
+                className="p-1.5 rounded-md hover:bg-green-100 hover:text-green-500 text-gray-600 dark:text-neutral-300 transition dark:hover:bg-green-500/10 dark:hover:text-green-500 duration-150"
                 title="Предложи редактиране"
                 onClick={() => onEdit(bin)}
               >
@@ -953,97 +952,103 @@ const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
               </button>
             </div>
 
-            {/* Заглавна част */}
-            <div className="flex items-start gap-3 pr-10">
+            <div
+              className={`flex gap-3 pr-12 ${!bin.tags?.name ? "items-center" : "items-start"}`}
+            >
               <div
-                className={`w-10 h-10 rounded-full flex items-center aspect-1/1 justify-center ${getColorForBin(bin)}`}
+                className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center flex-shrink-0 ${getColorForBin(bin)}`}
               >
                 {bin.tags?.amenity === "waste_basket" ? (
-                  <Trash2 className="w-5 h-5 text-white" />
+                  <Trash2 className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                 ) : (
-                  <Recycle className="w-5 h-5 text-white" strokeWidth={2.5} />
+                  <Recycle
+                    className="w-4 h-4 sm:w-5 sm:h-5 text-white"
+                    strokeWidth={2.5}
+                  />
                 )}
               </div>
 
-              <div>
-                <h3 className="font-bold text-base text-gray-800 dark:text-white">
+              <div className="min-w-0">
+                <h3 className="font-semibold text-sm sm:text-base text-gray-800 dark:text-white leading-tight">
                   {bin.tags?.amenity === "waste_basket"
                     ? "Кошче за боклук"
                     : "Място за рециклиране"}
                 </h3>
                 {bin.tags?.name && (
-                  <p className="text-sm text-gray-600 dark:text-neutral-300">
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-neutral-300 mt-0.5">
                     {bin.tags.name}
                   </p>
                 )}
               </div>
             </div>
 
-            {/* Съдържание */}
-            <div className="space-y-3">
-              {bin.tags?.opening_hours && (
-                <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded-md mt-3">
-                  <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300 text-sm">
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                    <span>
-                      <strong>Работно време:</strong>{" "}
-                      {translateDays(bin.tags.opening_hours)}
-                    </span>
+            {(bin.tags?.opening_hours ||
+              (acceptedMaterials && acceptedMaterials.length > 0)) && (
+              <div className="space-y-3 mt-3">
+                {bin.tags?.opening_hours && (
+                  <div className="bg-blue-50 dark:bg-blue-800/20 p-2 rounded-md">
+                    <div className="flex items-center gap-2 text-blue-700 dark:text-blue-400 text-xs sm:text-sm">
+                      <svg
+                        className="w-4 h-4 flex-shrink-0"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                      <span className="leading-tight">
+                        <span className="opacity-80">Работно време:</span>{" "}
+                        <span className="font-semibold">
+                          {translateDays(bin.tags.opening_hours)}
+                        </span>
+                      </span>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {acceptedMaterials.length > 0 && (
-                <div>
-                  <div className="text-sm font-semibold text-gray-800 dark:text-white mb-2 flex gap-2 items-center">
-                    <CircleCheckBig className="text-green-500 w-4 h-4" />
-                    <p>Приема:</p>
-                  </div>
-
-                  <div className="space-y-2">
-                    {acceptedMaterials.map((material, idx) => {
-                      const translated =
-                        materialTranslations[material.trim().toLowerCase()] ||
-                        material;
-                      const category = getCategoryForMaterial(material);
-                      const color = getMaterialColor(material);
-
-                      return (
-                        <div
-                          key={idx}
-                          className="flex items-center justify-between"
-                        >
-                          <div className="flex items-center gap-2">
-                            <div
-                              className="w-4 h-4 rounded-full flex-shrink-0"
-                              style={{ backgroundColor: color }}
-                            />
-                            <span className="text-sm text-gray-700 dark:text-neutral-200">
-                              {translated}
+                {acceptedMaterials?.length > 0 && (
+                  <div>
+                    <div className="text-xs sm:text-sm font-semibold text-gray-800 dark:text-white mb-2 flex gap-2 items-center">
+                      <CircleCheckBig className="text-green-500 w-4 h-4" />
+                      <p>Приема:</p>
+                    </div>
+                    <div className="space-y-2">
+                      {acceptedMaterials.map((material, idx) => {
+                        const translated =
+                          materialTranslations[material.trim().toLowerCase()] ||
+                          material;
+                        const category = getCategoryForMaterial(material);
+                        const color = getMaterialColor(material);
+                        return (
+                          <div
+                            key={idx}
+                            className="flex items-center justify-between gap-2"
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              <div
+                                className="w-3 h-3 sm:w-4 sm:h-4 rounded-full flex-shrink-0"
+                                style={{ backgroundColor: color }}
+                              />
+                              <span className="text-xs sm:text-sm text-gray-700 dark:text-neutral-200 truncate">
+                                {translated}
+                              </span>
+                            </div>
+                            <span className="text-[10px] sm:text-xs px-2 py-1 rounded-full bg-gray-100 dark:bg-neutral-700 text-gray-600 dark:text-neutral-300 whitespace-nowrap">
+                              {category}
                             </span>
                           </div>
-                          <span className="text-xs px-2 py-1 rounded-full bg-gray-100 dark:bg-neutral-700 text-gray-600 dark:text-neutral-300">
-                            {category}
-                          </span>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
           </div>
         );
 
@@ -2478,8 +2483,6 @@ export default function MapComponent({
               "Error saving image to report_photos table:",
               dbInsertError,
             );
-          } else {
-            console.log("✅ Image saved to report_photos table");
           }
         } catch (err) {
           console.error("Error processing image:", err);
@@ -2534,14 +2537,13 @@ export default function MapComponent({
     images?: File[];
   }) => {
     try {
-      // Get current user
       const {
         data: { user },
       } = await supabase.auth.getUser();
 
       if (!user) throw new Error("Потребителят не е влязъл в системата.");
 
-      // Insert bin into pending_bins
+      // вмъкване на изображения
       const { data, error } = await supabase
         .from("pending_bins")
         .insert({
@@ -2557,7 +2559,7 @@ export default function MapComponent({
       if (error) throw error;
       const newBin = data[0];
 
-      // Upload images if any
+      // качване на снимки
       if (binData.images && binData.images.length > 0) {
         for (const image of binData.images) {
           const fileExt = image.name.split(".").pop();
@@ -2576,12 +2578,10 @@ export default function MapComponent({
             continue;
           }
 
-          // Get public URL
           const {
             data: { publicUrl },
           } = supabase.storage.from("bins").getPublicUrl(filePath);
 
-          // Update bin with image URL (only first image for now)
           const { error: dbUpdateError } = await supabase
             .from("pending_bins")
             .update({
@@ -2592,7 +2592,6 @@ export default function MapComponent({
 
           if (dbUpdateError)
             console.error("Error saving bin image URL:", dbUpdateError);
-          else console.log("✅ Bin image saved:", publicUrl);
         }
       }
 
@@ -2611,7 +2610,6 @@ export default function MapComponent({
       setIsSubmitting(true);
 
       try {
-        // ===== REPORT MODE =====
         if (modalMode === "report") {
           if (!selectedBin) throw new Error("Грешка: Не е избрано кошче.");
           const canReport = spamProtection.canReportBin(selectedBin.id);
@@ -2640,7 +2638,6 @@ export default function MapComponent({
           return;
         }
 
-        // ===== EDIT MODE =====
         if (modalMode === "edit") {
           if (!selectedBin) throw new Error("Грешка: Не е избрано кошче.");
           await submitEditSuggestionToSupabase({
@@ -2668,7 +2665,6 @@ export default function MapComponent({
           return;
         }
 
-        // ===== ADD NEW BIN MODE =====
         if (!tempMarkerPosition)
           throw new Error("Локацията на кошчето не е зададена.");
 
@@ -2683,18 +2679,18 @@ export default function MapComponent({
 
         const code = generateRandomCode();
 
-        // Submit bin with images
+        // изпращане на формуляра
         const result = await submitBinToPending({
           lat: tempMarkerPosition[0],
           lon: tempMarkerPosition[1],
           tags,
           code,
-          images: binImages, // <- NEW: pass images
+          images: binImages,
         });
 
         console.log("Кошчето е записано успешно в pending_bins:", result);
 
-        // Update local state / call callback
+        // опресняване на кошовете
         if (onNewBinCreated) {
           const newBin: NewBin = {
             id: result[0].id,
@@ -2716,7 +2712,7 @@ export default function MapComponent({
           onNewBinCreated(newBin);
         }
 
-        // Reset form
+        // изчистване на формуляра
         setIsModalOpen(false);
         setTempMarkerPosition(null);
         setFormData({
@@ -2985,7 +2981,7 @@ export default function MapComponent({
           </Marker>
         )}
 
-        {/* Viewport-aware маркери - показват се само тези в зоната на виждане */}
+        {/* Маркери */}
         <ViewportAwareMarkers
           filteredBins={filteredBins}
           zoom={zoom}

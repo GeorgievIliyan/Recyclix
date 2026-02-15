@@ -211,29 +211,29 @@ export function MaterialsBreakdownChart({
       {/* Деликатен градиентен акцент */}
       <div className="absolute top-0 left-0 w-32 h-32 bg-green-500/10 rounded-full blur-[80px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
-      <div className="relative z-10 p-4 sm:p-6 border-b border-border dark:border-neutral-700/50 flex flex-row gap-3 items-center justify-items-center">
-        <div className="p-2 bg-green-500/10 dark:bg-green-500/20 rounded-lg group-hover:scale-110 transition-transform duration-300">
-          <Recycle className="h-8 w-8 text-green-500" />
+      <div className="relative z-10 p-3 sm:p-4 md:p-6 border-b border-border dark:border-neutral-700/50 flex flex-row gap-2 sm:gap-3 items-center justify-items-center">
+        <div className="p-1.5 sm:p-2 bg-green-500/10 dark:bg-green-500/20 rounded-lg group-hover:scale-110 transition-transform duration-300">
+          <Recycle className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 text-green-500" />
         </div>
         <div>
-          <h3 className="text-lg sm:text-xl font-semibold text-foreground dark:text-neutral-100">
+          <h3 className="text-base sm:text-lg md:text-xl font-semibold text-foreground dark:text-neutral-100">
             Рециклирани материали
           </h3>
-          <p className="text-xs sm:text-sm text-muted-foreground dark:text-neutral-400">
+          <p className="text-[11px] sm:text-xs md:text-sm text-muted-foreground dark:text-neutral-400">
             Разпределени по тип
           </p>
         </div>
       </div>
-      <div className="relative z-10 p-4 sm:p-6">
+      <div className="relative z-10 p-3 sm:p-4 md:p-6">
         {hasData ? (
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={260}>
             <PieChart>
               <Pie
                 data={translatedData}
                 cx="50%"
                 cy="50%"
-                innerRadius={60}
-                outerRadius={90}
+                innerRadius={50}
+                outerRadius={80}
                 paddingAngle={2}
                 dataKey="value"
                 activeShape={false}
@@ -275,8 +275,8 @@ export function MaterialsBreakdownChart({
             </PieChart>
           </ResponsiveContainer>
         ) : (
-          <div className="h-[300px] flex items-center justify-center">
-            <p className="text-muted-foreground dark:text-gray-400 text-sm">
+          <div className="h-[260px] flex items-center justify-center">
+            <p className="text-muted-foreground dark:text-gray-400 text-xs sm:text-sm">
               Няма данни
             </p>
           </div>

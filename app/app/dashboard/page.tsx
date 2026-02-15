@@ -243,11 +243,11 @@ export default function DashboardPage() {
         <div className="absolute top-20 -left-32 w-96 h-96 bg-[#00CD56]/10 rounded-full blur-[120px] pointer-events-none" />
         <div className="absolute bottom-40 -right-32 w-96 h-96 bg-emerald-400/10 rounded-full blur-[120px] pointer-events-none" />
 
-        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-7xl">
-          <header className="mb-8">
-            <div className="flex items-center justify-between flex-wrap gap-4">
+        <div className="relative z-10 container mx-auto px-5 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 max-w-7xl">
+          <header className="mb-6 sm:mb-8">
+            <div className="flex items-center justify-between flex-nowrap gap-4">
               <div>
-                <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-neutral-900 dark:text-neutral-50">
+                <h1 className="text-3xl sm:text-3xl md:text-5xl font-bold tracking-tight text-neutral-900 dark:text-neutral-50 leading-tight mb-4 md:mb-2 lg:mb-0">
                   Добре дошъл,{" "}
                   <span className="bg-gradient-to-r from-[#00CD56] to-emerald-500 bg-clip-text text-transparent">
                     {userData.username}
@@ -255,7 +255,7 @@ export default function DashboardPage() {
                   !
                 </h1>
               </div>
-              <div className="relative overflow-hidden bg-[#00CD56] text-white px-6 py-2 rounded-full font-bold shadow-xl shadow-[#00CD56]/20">
+              <div className="shrink-0 relative overflow-hidden bg-[#00CD56] text-white px-4 py-2 rounded-full text-sm sm:text-base font-bold shadow-xl shadow-[#00CD56]/20">
                 <span className="relative z-10">Ниво {userData.level}</span>
                 <div className="absolute inset-0 bg-white/20 skew-x-12 translate-x-full group-hover:translate-x-0 transition-transform duration-500" />
               </div>
@@ -263,7 +263,7 @@ export default function DashboardPage() {
           </header>
 
           {/* статистики */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-4 sm:mb-6 md:mb-8">
             <StatCard
               title="Общи рециклирани"
               value={userData.totalItems}
@@ -281,13 +281,13 @@ export default function DashboardPage() {
             <StatCard
               title="Спестени CO₂"
               value={`${userData.co2Saved.toFixed(1)} кг`}
-              icon={<Flame className="h-7 w-7" />}
+              icon={<Flame className="h-6 w-6 md:h-7 md:w-7" />}
               iconColor="text-yellow-500"
               iconBg="bg-yellow-500/10"
             />
             <StatCard
               title="Рекорд"
-              value={`${userData.currentStreak === 1 ? '1 ден' : `${userData.currentStreak} дни`}`}
+              value={`${userData.currentStreak === 1 ? "1 ден" : `${userData.currentStreak} дни`}`}
               icon={<Calendar className="h-6 w-6" />}
               iconColor="text-sky-500"
               iconBg="bg-sky-500/10"
@@ -295,28 +295,28 @@ export default function DashboardPage() {
           </div>
 
           {/* графика */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <div className="backdrop-blur-md bg-white/70 dark:bg-zinc-900/70 rounded-3xl border border-white/20 dark:border-zinc-800/50 shadow-2xl p-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6 md:mb-8">
+            <div className="backdrop-blur-md bg-white/70 dark:bg-zinc-900/70 rounded-2xl sm:rounded-3xl border border-white/20 dark:border-zinc-800/50 shadow-2xl p-0">
               <RecyclingActivityChart data={activityData} />
             </div>
 
-            <div className="backdrop-blur-md bg-white/70 dark:bg-zinc-900/70 rounded-3xl border border-white/20 dark:border-zinc-800/50 shadow-2xl p-4">
+            <div className="backdrop-blur-md bg-white/70 dark:bg-zinc-900/70 rounded-2xl sm:rounded-3xl border border-white/20 dark:border-zinc-800/50 shadow-2xl p-0">
               <MaterialsBreakdownChart data={materialsData} />
             </div>
           </div>
 
           {/* прогрес */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-            <div className="lg:col-span-2 backdrop-blur-md bg-white/70 dark:bg-zinc-900/70 rounded-3xl border border-white/20 dark:border-zinc-800/50 shadow-2xl overflow-hidden">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6 md:mb-8">
+            <div className="lg:col-span-2 backdrop-blur-md bg-white/70 dark:bg-zinc-900/70 rounded-2xl sm:rounded-3xl border border-white/20 dark:border-zinc-800/50 shadow-2xl overflow-hidden">
               <GamificationProgress totalXp={userData.totalPoints} />
             </div>
-            <div className="backdrop-blur-md bg-white/70 dark:bg-zinc-900/70 rounded-3xl border border-white/20 dark:border-zinc-800/50 shadow-2xl overflow-hidden">
+            <div className="backdrop-blur-md bg-white/70 dark:bg-zinc-900/70 rounded-2xl sm:rounded-3xl border border-white/20 dark:border-zinc-800/50 shadow-2xl overflow-hidden">
               <RecentActivity activities={recentActivities} />
             </div>
           </div>
 
           {/* значки */}
-          <div className="backdrop-blur-md bg-white/70 dark:bg-zinc-900/70 rounded-3xl border border-white/20 dark:border-zinc-800/50 shadow-2xl overflow-hidden">
+          <div className="backdrop-blur-md bg-white/70 dark:bg-zinc-900/70 rounded-2xl sm:rounded-3xl border border-white/20 dark:border-zinc-800/50 shadow-2xl overflow-hidden">
             <BadgesGallery userId={user?.id} />
           </div>
         </div>

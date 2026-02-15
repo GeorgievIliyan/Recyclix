@@ -70,7 +70,7 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-neutral-100 to-zinc-100 dark:from-neutral-950 dark:via-neutral-900 dark:to-zinc-900">
       <Navigation />
-      <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8 md:pt-16 lg:pt-20">
+      <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8 md:pt-16 lg:pt-22">
         {/* Картичка за профила */}
         <Card className="mb-6 border-neutral-200/50 dark:border-neutral-800/50 hover:border-green-500/30 transition-colors duration-300 overflow-hidden">
           <CardContent className="items-center">

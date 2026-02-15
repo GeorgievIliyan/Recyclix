@@ -22,18 +22,18 @@ export function StatCard({
       {/* Деликатен градиентен overlay при hover */}
       <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 via-transparent to-emerald-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-      <div className="relative z-10 p-4 sm:p-6">
-        <div className="flex items-center justify-between gap-3">
+      <div className="relative z-10 p-3 sm:p-4 md:p-6">
+        <div className="flex items-center justify-between gap-2 sm:gap-3">
           <div className="flex-1 min-w-0">
-            <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1 sm:mb-2 truncate">
+            <p className="text-xs font-medium text-muted-foreground mb-1 truncate">
               {title}
             </p>
-            <p className="text-2xl sm:text-3xl font-bold bg-gradient-to-br from-card-foreground via-card-foreground/90 to-card-foreground bg-clip-text text-transparent">
+            <p className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-br from-card-foreground via-card-foreground/90 to-card-foreground bg-clip-text text-transparent">
               {displayValue}
             </p>
           </div>
           <div
-            className={`rounded-xl p-2 sm:p-3 ${iconBg} shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg`}
+            className={`rounded-lg sm:rounded-xl p-2 ${iconBg} shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg`}
           >
             <div className={iconColor}>{icon}</div>
           </div>

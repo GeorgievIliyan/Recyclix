@@ -56,25 +56,25 @@ export function RecyclingActivityChart({ data }: RecyclingActivityChartProps) {
     <div className="group relative transform-gpu bg-white dark:bg-neutral-900 bg-gradient-to-br from-white to-zinc-50 dark:from-[#171717] dark:to-[#262626] rounded-xl border border-border dark:border-neutral-700/50 shadow-md overflow-hidden hover:shadow-lg hover:border-green-500/30 transition-all duration-300">
       <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full blur-[80px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
-      <div className="relative z-10 p-4 sm:p-6 border-b border-border dark:border-neutral-700/50 flex flex-row gap-3 items-center">
-        <div className="p-2 bg-yellow-400/10 dark:bg-yellow-400/20 rounded-lg group-hover:scale-110 transition-transform duration-300">
-          <Zap className="h-8 w-8 text-yellow-400" />
+      <div className="relative z-10 p-3 sm:p-4 md:p-6 border-b border-border dark:border-neutral-700/50 flex flex-row gap-2 sm:gap-3 items-center">
+        <div className="p-1.5 sm:p-2 bg-yellow-400/10 dark:bg-yellow-400/20 rounded-lg group-hover:scale-110 transition-transform duration-300">
+          <Zap className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 text-yellow-400" />
         </div>
         <div>
-          <h3 className="text-lg sm:text-xl font-semibold text-foreground dark:text-neutral-100">
+          <h3 className="text-base sm:text-lg md:text-xl font-semibold text-foreground dark:text-neutral-100">
             Активност
           </h3>
-          <p className="text-xs sm:text-sm text-muted-foreground dark:text-neutral-400">
+          <p className="text-[11px] sm:text-xs md:text-sm text-muted-foreground dark:text-neutral-400">
             Последните 3 дни
           </p>
         </div>
       </div>
 
-      <div className="relative z-10 p-4 sm:p-6">
-        <ResponsiveContainer width="100%" height={300}>
+      <div className="relative z-10 p-3 sm:p-4 md:p-6">
+        <ResponsiveContainer width="100%" height={250}>
           <BarChart
             data={filledData}
-            margin={{ top: 10, right: 20, left: 0, bottom: 5 }}
+            margin={{ top: 10, right: 10, left: -10, bottom: 5 }}
           >
             <defs>
               <linearGradient id={barGradientId} x1="0" y1="0" x2="0" y2="1">
@@ -132,7 +132,7 @@ export function RecyclingActivityChart({ data }: RecyclingActivityChartProps) {
               name="боклука"
               fill={`url(#${barGradientId})`}
               radius={[6, 6, 0, 0]}
-              barSize={40}
+              maxBarSize={50}
             />
           </BarChart>
         </ResponsiveContainer>
