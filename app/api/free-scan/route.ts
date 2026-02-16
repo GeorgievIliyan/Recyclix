@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import crypto from "crypto";
 import sharp from "sharp";
 
@@ -31,7 +31,7 @@ export async function POST(req: Request) {
         { status: 400, headers: corsHeaders },
       );
 
-    // Rate limiting by IP
+    // лимитиране на заявки
     const ip = req.headers.get("x-forwarded-for") || "unknown";
     const now = Date.now();
     const last = ipLastCalls.get(ip) || 0;
@@ -43,14 +43,14 @@ export async function POST(req: Request) {
     }
     ipLastCalls.set(ip, now);
 
-    // API key
+    // API ключ
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) throw new Error("Missing Gemini API key");
 
-    // Base64
+    // снимка в BASE64
     const base64Image = image.includes(",") ? image.split(",")[1] : image;
 
-    // SHA + pHash (optional, can keep for uniqueness)
+    // криптиране на снимката
     const shaHash = crypto
       .createHash("sha256")
       .update(base64Image, "base64")
@@ -66,16 +66,19 @@ export async function POST(req: Request) {
       .map((px) => (px >= avg ? "1" : "0"))
       .join("");
 
-    // Prepare Gemini prompt
-    const prompt = `
-    You are an AI assistant classifying waste. 
+    // prompt към изкуствения интелект
+    const prompt = `Analyze this image and identify the recycling items.
     Task: ${task}
-    Analyze the image and respond exactly in this format:
-    MATERIAL: [category]
-    COUNT: [number]
-    CO2: [float]
-    If unsure, MATERIAL: unknown
-    `;
+    
+    Return EXACTLY in this format:
+    MATERIAL: [plastic, glass, paper, metal, or unknown]
+    COUNT: [number of items - integer]
+    CO2: [estimated CO2 savings in grams - number]
+    
+    Example:
+    MATERIAL: plastic
+    COUNT: 2
+    CO2: 100`;
 
     const MODEL = "gemini-2.0-flash";
     const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`;
@@ -112,9 +115,9 @@ export async function POST(req: Request) {
     if (process.env.NODE_ENV === "development")
       console.log("Raw response:", rawText);
 
+    const materialMatch = rawText.match(/MATERIAL:\s*(\w+)/i);
     const countMatch = rawText.match(/COUNT:\s*(\d+)/i);
     const co2Match = rawText.match(/CO2:\s*([\d.]+)/i);
-    const matMatch = rawText.match(/MATERIAL:\s*(\w+)/i);
 
     const allowedMaterials = [
       "plastic",
@@ -126,11 +129,10 @@ export async function POST(req: Request) {
       "wood",
     ];
 
+    const materialRaw = materialMatch ? materialMatch[1].toLowerCase() : "unknown";
+    const material = allowedMaterials.find((m) => materialRaw.includes(m)) || "unknown";
     const count = countMatch ? parseInt(countMatch[1], 10) : 1;
-    const co2 = co2Match ? parseFloat(co2Match[1]) : 0;
-    const normalized = matMatch ? matMatch[1].toLowerCase() : "unknown";
-    const material =
-      allowedMaterials.find((m) => normalized.includes(m)) || "unknown";
+    const co2 = co2Match ? parseFloat(co2Match[1]) : count * 50;
     const points = material !== "unknown" ? count * 10 : 0;
 
     return NextResponse.json(

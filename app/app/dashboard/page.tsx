@@ -296,13 +296,8 @@ export default function DashboardPage() {
 
           {/* графика */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6 md:mb-8">
-            <div className="backdrop-blur-md bg-white/70 dark:bg-zinc-900/70 rounded-2xl sm:rounded-3xl border border-white/20 dark:border-zinc-800/50 shadow-2xl p-0">
               <RecyclingActivityChart data={activityData} />
-            </div>
-
-            <div className="backdrop-blur-md bg-white/70 dark:bg-zinc-900/70 rounded-2xl sm:rounded-3xl border border-white/20 dark:border-zinc-800/50 shadow-2xl p-0">
               <MaterialsBreakdownChart data={materialsData} />
-            </div>
           </div>
 
           {/* прогрес */}
@@ -310,9 +305,7 @@ export default function DashboardPage() {
             <div className="lg:col-span-2 backdrop-blur-md bg-white/70 dark:bg-zinc-900/70 rounded-2xl sm:rounded-3xl border border-white/20 dark:border-zinc-800/50 shadow-2xl overflow-hidden">
               <GamificationProgress totalXp={userData.totalPoints} />
             </div>
-            <div className="backdrop-blur-md bg-white/70 dark:bg-zinc-900/70 rounded-2xl sm:rounded-3xl border border-white/20 dark:border-zinc-800/50 shadow-2xl overflow-hidden">
-              <RecentActivity activities={recentActivities} />
-            </div>
+            <RecentActivity activities={recentActivities} />
           </div>
 
           {/* значки */}

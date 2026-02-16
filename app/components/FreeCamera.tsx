@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   Camera,
   X,
@@ -38,8 +39,13 @@ export function FreeCamera({ task }: { task: string }) {
   const [error, setError] = useState<string | null>(null);
   const [qrData, setQrData] = useState<QRData | null>(null);
   const [generatingQR, setGeneratingQR] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  // стартиране на камера
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
+
   useEffect(() => {
     if (!open) return;
 
@@ -59,7 +65,6 @@ export function FreeCamera({ task }: { task: string }) {
     };
   }, [open]);
 
-  // изпращане до ai
   async function capture() {
     if (!videoRef.current || !canvasRef.current) return;
     setLoading(true);
@@ -128,7 +133,6 @@ export function FreeCamera({ task }: { task: string }) {
     }
   }
 
-  // спиране на QR кода след 5 минути
   useEffect(() => {
     if (!qrData) return;
 
@@ -147,8 +151,7 @@ export function FreeCamera({ task }: { task: string }) {
   }, [qrData]);
 
   return (
-    <div>
-      {/* карта за камерата */}
+    <>
       <div
         onClick={() => setOpen(true)}
         className="
@@ -196,26 +199,18 @@ export function FreeCamera({ task }: { task: string }) {
         </div>
       </div>
 
-      {/* камера модал с тъмен слой и центриране */}
-      {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Тъмен слой (overlay) */}
+      {open && mounted && createPortal(
+        <div className="fixed inset-0 z-[9999]">
           <div
             className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-            onClick={() => setOpen(false)}
+            onClick={() => {
+              setOpen(false);
+              setError(null);
+              setResult(null);
+            }}
           />
 
-          {/* Модален прозорец в абсолютния център */}
-          <div
-            className="
-            relative bg-background overflow-hidden w-full h-full flex flex-col 
-            /* Десктоп размери и центриране */
-            md:max-w-5xl md:h-[85vh] md:rounded-3xl
-            shadow-2xl border-0 md:border md:border-border/50
-            z-50
-          "
-          >
-            {/* заглавна част */}
+          <div className="relative w-full h-full flex flex-col">
             <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/60 to-transparent p-4 md:p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3 md:gap-4">
@@ -241,7 +236,6 @@ export function FreeCamera({ task }: { task: string }) {
               </div>
             </div>
 
-            {/* видео изход */}
             <video
               ref={videoRef}
               className="w-full h-full object-cover"
@@ -251,7 +245,6 @@ export function FreeCamera({ task }: { task: string }) {
             />
             <canvas ref={canvasRef} className="hidden" />
 
-            {/* контроли */}
             <div className="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-black/60 to-transparent p-4 md:p-6 lg:p-8">
               <div className="flex items-center justify-center">
                 <button
@@ -285,7 +278,6 @@ export function FreeCamera({ task }: { task: string }) {
               </div>
             </div>
 
-            {/* резултат */}
             {result && (
               <div className="absolute inset-0 bg-background/95 backdrop-blur-sm flex items-center justify-center p-4 md:p-6 z-20">
                 <div
@@ -377,7 +369,6 @@ export function FreeCamera({ task }: { task: string }) {
               </div>
             )}
 
-            {/* При грешки */}
             {error && (
               <div className="absolute inset-0 bg-black/80 dark:bg-black/90 flex items-center justify-center p-4 md:p-6 backdrop-blur-sm z-20">
                 <div
@@ -415,8 +406,9 @@ export function FreeCamera({ task }: { task: string }) {
               </div>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
-    </div>
+    </>
   );
 }

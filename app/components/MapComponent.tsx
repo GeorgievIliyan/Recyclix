@@ -17,15 +17,18 @@ import { Trash2 } from "@/components/animate-ui/icons/trash-2";
 import {
   Recycle,
   MapPin,
-  Filter,
   X,
-  Home,
   Flag,
   PenLine,
   AlertCircle,
   CircleCheckBig,
+  MapIcon,
 } from "lucide-react";
 import { createClient } from "@supabase/supabase-js";
+import MapHome from "./MapHome";
+import MapFilter from "./MapFilter";
+import { isDev } from "@/lib/isDev";
+import FilterPanel from "./FilterPanel";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -105,7 +108,7 @@ export const RECYCLING_COLORS: Record<string, string> = {
 };
 
 // Дефиниция на филтриращите категории в интерфейса
-const FILTER_OPTIONS = [
+export const FILTER_OPTIONS = [
   {
     id: "paper",
     label: "Хартия",
@@ -520,7 +523,7 @@ const createIconForBin = (bin: Bin): L.DivIcon => {
   });
 };
 
-// Връщане на HEX цвят за специфичен материал за визуализация в Popup
+// цвят спрямо вида
 function getMaterialColor(material: string): string {
   if (material.includes("paper") || material.includes("cardboard"))
     return "#60a5fa";
@@ -544,69 +547,6 @@ function getMaterialColor(material: string): string {
   )
     return "#f472b6";
   return "#9ca3af";
-}
-
-// Функция за определяне на категория за материал
-function getCategoryForMaterial(material: string): string {
-  const materialLower = material.toLowerCase();
-
-  if (
-    materialLower.includes("paper") ||
-    materialLower.includes("cardboard") ||
-    materialLower.includes("newspaper") ||
-    materialLower.includes("magazine") ||
-    materialLower.includes("book")
-  ) {
-    return "Хартия";
-  } else if (materialLower.includes("plastic")) {
-    return "Пластмаса";
-  } else if (
-    materialLower.includes("glass") ||
-    materialLower.includes("bottle")
-  ) {
-    return "Стъкло";
-  } else if (
-    materialLower.includes("metal") ||
-    materialLower.includes("aluminum") ||
-    materialLower.includes("aluminium") ||
-    materialLower.includes("can") ||
-    materialLower.includes("scrap")
-  ) {
-    return "Метал";
-  } else if (
-    materialLower.includes("organic") ||
-    materialLower.includes("bio") ||
-    materialLower.includes("compost") ||
-    materialLower.includes("food")
-  ) {
-    return "Органични";
-  } else if (
-    materialLower.includes("electron") ||
-    materialLower.includes("batter") ||
-    materialLower.includes("weee") ||
-    materialLower.includes("electrical") ||
-    materialLower.includes("fluorescent")
-  ) {
-    return "Електроника";
-  } else if (
-    materialLower.includes("textile") ||
-    materialLower.includes("cloth") ||
-    materialLower.includes("clothes") ||
-    materialLower.includes("shoe") ||
-    materialLower.includes("tyre") ||
-    materialLower.includes("tire")
-  ) {
-    return "Текстил";
-  } else if (
-    materialLower.includes("general") ||
-    materialLower.includes("residual") ||
-    materialLower.includes("waste") ||
-    materialLower.includes("trash")
-  ) {
-    return "Общи отпадъци";
-  }
-
-  return "Други";
 }
 
 // Интерфейс за съхранение на отчети за кошче
@@ -900,7 +840,7 @@ const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
       const timeoutId = setTimeout(updateVisibleBins, 300);
       return () => clearTimeout(timeoutId);
     }
-  }, []); // Празен масив - изпълнява се само веднъж при монтиране
+  }, []); // Празен масив - изпълнява се само веднъж
 
   if (zoom < 10) return null;
 
@@ -924,7 +864,7 @@ const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
         const isReportDisabledForThisBin = isReportDisabled(bin.id);
 
         const popupContent = (
-          <div className="relative p-4 w-[85vw] max-w-[320px] sm:w-[260px] break-words dark:bg-neutral-800 bg-white dark:text-white text-gray-900 rounded-lg">
+          <div className="relative py-4 px-3 w-[85vw] max-w-[320px] sm:w-[260px] break-words dark:bg-neutral-800 bg-white dark:text-white text-gray-900 rounded-lg">
             <div className="absolute top-2 right-2 flex gap-1.5">
               <button
                 className={`p-1.5 rounded-md transition ${
@@ -984,7 +924,7 @@ const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
 
             {(bin.tags?.opening_hours ||
               (acceptedMaterials && acceptedMaterials.length > 0)) && (
-              <div className="space-y-3 mt-3">
+              <div className="mt-4">
                 {bin.tags?.opening_hours && (
                   <div className="bg-blue-50 dark:bg-blue-800/20 p-2 rounded-md">
                     <div className="flex items-center gap-2 text-blue-700 dark:text-blue-400 text-xs sm:text-sm">
@@ -1013,35 +953,33 @@ const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
 
                 {acceptedMaterials?.length > 0 && (
                   <div>
-                    <div className="text-xs sm:text-sm font-semibold text-gray-800 dark:text-white mb-2 flex gap-2 items-center">
+                    <div className="text-xs sm:text-sm font-semibold text-gray-800 dark:text-white flex gap-2 items-center">
                       <CircleCheckBig className="text-green-500 w-4 h-4" />
                       <p>Приема:</p>
                     </div>
-                    <div className="space-y-2">
+                    <div className="flex flex-wrap gap-1.5">
                       {acceptedMaterials.map((material, idx) => {
                         const translated =
                           materialTranslations[material.trim().toLowerCase()] ||
                           material;
-                        const category = getCategoryForMaterial(material);
                         const color = getMaterialColor(material);
                         return (
-                          <div
+                          <span
                             key={idx}
-                            className="flex items-center justify-between gap-2"
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm"
+                            style={{
+                              backgroundColor: `${color}20`,
+                              color: color,
+                              border: `1px solid ${color}40`,
+                              fontWeight: "540",
+                            }}
                           >
-                            <div className="flex items-center gap-2 min-w-0">
-                              <div
-                                className="w-3 h-3 sm:w-4 sm:h-4 rounded-full flex-shrink-0"
-                                style={{ backgroundColor: color }}
-                              />
-                              <span className="text-xs sm:text-sm text-gray-700 dark:text-neutral-200 truncate">
-                                {translated}
-                              </span>
-                            </div>
-                            <span className="text-[10px] sm:text-xs px-2 py-1 rounded-full bg-gray-100 dark:bg-neutral-700 text-gray-600 dark:text-neutral-300 whitespace-nowrap">
-                              {category}
-                            </span>
-                          </div>
+                            <span
+                              className="w-2 h-2 rounded-full"
+                              style={{ backgroundColor: color }}
+                            />
+                            {translated}
+                          </span>
                         );
                       })}
                     </div>
@@ -1049,6 +987,16 @@ const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
                 )}
               </div>
             )}
+
+            <a
+              href={`https://www.google.com/maps?q=${bin.lat},${bin.lon}&z=14`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="!text-green-500 !mt-5 !font-semibold !flex !gap-1"
+            >
+              <MapIcon className="!text-green-500 !h-4 !w-4" />
+              Google Maps
+            </a>
           </div>
         );
 
@@ -1071,113 +1019,6 @@ const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
   );
 });
 
-// Страничен панел за филтрация на обектите на картата
-const FilterPanel = memo(function FilterPanel({
-  showFilterPanel,
-  setShowFilterPanel,
-  activeFilters,
-  clearAllFilters,
-  removeFilter,
-  toggleFilter,
-  filteredBins,
-  bins,
-}: {
-  showFilterPanel: boolean;
-  setShowFilterPanel: (show: boolean) => void;
-  activeFilters: string[];
-  clearAllFilters: () => void;
-  removeFilter: (filterId: string) => void;
-  toggleFilter: (filterId: string) => void;
-  filteredBins: Bin[];
-  bins: Bin[];
-}) {
-  if (!showFilterPanel) return null;
-
-  return (
-    <div className="absolute top-[8px] left-[54px] z-[1000] bg-white p-4 rounded-md shadow-lg border max-w-xs w-64">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="font-semibold text-lg text-gray-800">
-          Филтри за материали
-        </h3>
-        <button
-          onClick={() => setShowFilterPanel(false)}
-          className="p-1 hover:bg-gray-100 rounded"
-        >
-          <X className="w-5 h-5 text-gray-600" />
-        </button>
-      </div>
-
-      {activeFilters.length > 0 && (
-        <div className="mb-4">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-medium text-gray-700">
-              Активни филтри:
-            </span>
-            <button
-              onClick={clearAllFilters}
-              className="text-xs text-red-600 hover:text-red-800"
-            >
-              Изчисти всички
-            </button>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {activeFilters.map((filterId) => {
-              const filter = FILTER_OPTIONS.find((f) => f.id === filterId);
-              if (!filter) return null;
-              return (
-                <div
-                  key={filterId}
-                  className="flex items-center gap-1 px-3 py-1 rounded-full text-sm text-white"
-                  style={{
-                    background: "linear-gradient(to right, #60a5fa, #3b82f6)",
-                  }}
-                >
-                  <span>{filter.label}</span>
-                  <button
-                    onClick={() => removeFilter(filterId)}
-                    className="ml-1 hover:bg-white/20 rounded-full w-4 h-4 flex items-center justify-center"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      <div className="space-y-2">
-        {FILTER_OPTIONS.map((filter) => {
-          const isActive = activeFilters.includes(filter.id);
-          return (
-            <button
-              key={filter.id}
-              onClick={() => toggleFilter(filter.id)}
-              className={`flex items-center justify-between w-full p-3 rounded-lg border transition-all ${
-                isActive
-                  ? "ring-2 ring-green-500 ring-offset-1 border-blue-500"
-                  : "hover:bg-gray-50 border-gray-200"
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <div className={`w-4 h-4 rounded-full ${filter.color}`}></div>
-                <span className="font-medium text-gray-800">
-                  {filter.label}
-                </span>
-              </div>
-              {isActive && (
-                <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center">
-                  <span className="text-white text-xs">✓</span>
-                </div>
-              )}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-});
-
 // Функция за проверка на администраторски статус
 const checkAdminStatus = async (userId: string): Promise<boolean> => {
   try {
@@ -1188,88 +1029,12 @@ const checkAdminStatus = async (userId: string): Promise<boolean> => {
       .single();
     return data?.is_admin === true;
   } catch (error) {
-    return false;
-  }
-};
-
-// Функция за одобряване на кош
-const approveBin = async (
-  userId: string,
-  binId: string,
-  binData: any,
-): Promise<boolean> => {
-  try {
-    console.log("Одобряване на кош:", binId, binData);
-
-    // Проверка за администраторски права
-    const isAdmin = await checkAdminStatus(userId);
-    if (!isAdmin) return false;
-
-    // Обновяване статуса на pending_bins
-    const { error: updateError } = await supabase
-      .from("pending_bins")
-      .update({
-        status: "approved",
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", binId);
-
-    if (updateError) {
-      console.error("грешка при обновяване:", updateError);
-      return false;
+    if (isDev) {
+      console.error(
+        "Error occured while checking for user admin status: ",
+        error,
+      );
     }
-
-    // Добавяне в recycling_bins
-    const nowISO = new Date().toISOString();
-    const recyclingBinData = {
-      code: binData.code || binId,
-      lat: binData.lat,
-      lon: binData.lon,
-      tags: binData.tags ?? {},
-      stats_today: {},
-      created_at: binData.created_at || nowISO,
-      updated_at: nowISO,
-      last_emptied: null,
-      osm_id: "",
-    };
-
-    const { error: insertError } = await supabase
-      .from("recycling_bins")
-      .insert([recyclingBinData]);
-
-    if (insertError) {
-      console.error("грешка при добавяне:", insertError);
-      return false;
-    }
-
-    console.log("успешно одобрен!");
-    return true;
-  } catch (error) {
-    console.error("грешка:", error);
-    return false;
-  }
-};
-
-// Функция за отхвърляне на кош
-const rejectBin = async (userId: string, binId: string): Promise<boolean> => {
-  try {
-    // Проверка за администраторски права
-    const isAdmin = await checkAdminStatus(userId);
-    if (!isAdmin) return false;
-
-    const { error } = await supabase
-      .from("pending_bins")
-      .delete()
-      .eq("id", binId);
-
-    if (error) {
-      console.error("Грешка при изтриване на кош:", error);
-      return false;
-    }
-
-    return true;
-  } catch (error) {
-    console.error("Грешка:", error);
     return false;
   }
 };
@@ -2782,12 +2547,12 @@ export default function MapComponent({
     return spamProtection.getLimitInfo(selectedBin.id);
   }, [selectedBin, spamProtection]);
 
-  // ДОБАВЕНА: Функция за получаване на броя неразрешени отчети
+  // Функция за получаване на броя неразрешени отчети
   const getUnresolvedReportsCount = useMemo(() => {
     return binReports.filter((report) => !report.resolved).length;
   }, [binReports]);
 
-  // ДОБАВЕНА: Функция за получаване на общия брой отчети
+  // Функция за получаване на общия брой отчети
   const getTotalReportsCount = useMemo(() => {
     return binReports.length;
   }, [binReports]);
@@ -2803,29 +2568,20 @@ export default function MapComponent({
   return (
     <div className="relative h-full w-full">
       {/* Копче за нулиране на изгледа */}
-      <button
-        onClick={handleZoomHome}
-        className="absolute top-[52px] left-[8px] z-[1000] bg-white dark:bg-neutral-800 p-2 rounded-md shadow-md border hover:bg-gray-50 transition-colors"
-        title="Нулирай изгледа"
-        disabled={isSubmitting || uploadingImages}
-      >
-        <Home className="w-5 h-5 text-neutral-800 dark:text-white" />
-      </button>
+      <MapHome
+        onZoomHome={handleZoomHome}
+        isSubmitting={isSubmitting}
+        uploadingImages={uploadingImages}
+      />
 
       {/* Копче за показване/скриване на филтрите */}
-      <button
-        onClick={() => setShowFilterPanel(!showFilterPanel)}
-        className="absolute top-[8px] left-[8px] z-[1000] bg-white dark:bg-neutral-800 p-2 rounded-md shadow-md border hover:bg-gray-50 transition-colors"
-        title="Филтри"
-        disabled={isSubmitting || uploadingImages}
-      >
-        <Filter className="w-5 h-5 text-neutral-800 dark:text-white" />
-        {activeFilters.length > 0 && (
-          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-            {activeFilters.length}
-          </span>
-        )}
-      </button>
+      <MapFilter
+        setShowFilterPanel={setShowFilterPanel}
+        showFilterPanel={showFilterPanel}
+        activeFilters={activeFilters}
+        isSubmitting={isSubmitting}
+        uploadingImages={uploadingImages}
+      />
 
       {/* Панел с филтри */}
       <FilterPanel
@@ -2864,7 +2620,7 @@ export default function MapComponent({
         handleRemoveBinImage={handleRemoveBinImage}
       />
 
-      {/* брой отчети индикатор (показва се само при докладване на проблем) */}
+      {/* брой отчети индикатор */}
       {modalMode === "report" && selectedBin && (
         <div className="absolute top-[160px] right-[10px] z-[1000] bg-white p-3 rounded-md shadow-md border max-w-xs w-64">
           <div className="flex items-center justify-between mb-2">

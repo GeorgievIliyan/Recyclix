@@ -12,6 +12,7 @@ import {
   Clock,
   PartyPopper,
   X,
+  CircleAlert,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { RecyclingLoader } from "@/app/components/RecyclingLoader";
@@ -98,7 +99,7 @@ export default function DailyTasksPage() {
       <div className="min-h-screen flex items-center justify-center bg-background px-4">
         <div className="text-center max-w-md">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-red-500/10 to-red-600/10 mb-4">
-            <span className="text-2xl">⚠️</span>
+            <span className="w-6 h-6"><CircleAlert /></span>
           </div>
           <h2 className="text-xl font-semibold mb-2">Грешка</h2>
           <p className="text-muted-foreground">{error}</p>
