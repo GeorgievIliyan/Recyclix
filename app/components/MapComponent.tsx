@@ -23,6 +23,7 @@ import {
   AlertCircle,
   CircleCheckBig,
   MapIcon,
+  CheckCircle,
 } from "lucide-react";
 import { createClient } from "@supabase/supabase-js";
 import MapHome from "./MapHome";
@@ -42,6 +43,7 @@ export interface Bin {
   lon: number;
   tags: Record<string, any>;
   osm_type: "node" | "way" | "relation";
+  is_smart: boolean;
 }
 
 // Типизация за новосъздадени обекти в базата данни
@@ -948,6 +950,16 @@ const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
                         </span>
                       </span>
                     </div>
+                  </div>
+                )}
+
+                {bin.is_smart && (
+                  <div className="text-xs sm:text-sm font-semibold text-gray-800 dark:text-white flex gap-2 items-center mb-0">
+                    <CheckCircle className="text-green-500 h-4 w-4" />
+                    <span className="bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-emerald-400">
+                      Smart
+                    </span>{" "}
+                    кош
                   </div>
                 )}
 
