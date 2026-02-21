@@ -175,12 +175,14 @@ export const FILTER_OPTIONS = [
       "Дрехи",
     ],
   },
+  /*
   {
     id: "general",
     label: "Общи отпадъци",
     color: "bg-gradient-to-r from-red-400 to-red-500",
     keywords: ["general", "residual", "waste", "trash"],
   },
+  */
 ];
 
 const materialTranslations: Record<string, string> = {
@@ -1941,34 +1943,26 @@ export default function MapComponent({
   const filteredBins = useMemo(() => {
     if (activeFilters.length === 0) return validBins;
 
-    // Събира всички ключови думи от активните филтри
-    const allKeywords: string[] = [];
-    activeFilters.forEach((filterId) => {
-      const filter = FILTER_OPTIONS.find((f) => f.id === filterId);
-      if (filter) {
-        allKeywords.push(...filter.keywords);
-      }
-    });
-
-    // Филтриране
     return validBins.filter((bin) => {
       const materials = binMaterialCache.get(bin.id);
       if (!materials) return false;
 
-      // Проверка дали поне един от ключовите думи съвпада
-      for (const keyword of allKeywords) {
-        // Проверка за директно съвпадение
-        if (materials.has(keyword)) return true;
+      return activeFilters.every((filterId) => {
+        const filter = FILTER_OPTIONS.find((f) => f.id === filterId);
+        if (!filter) return false;
 
-        // Проверка за частично съвпадение
-        for (const material of materials) {
-          if (material.includes(keyword) || keyword.includes(material)) {
-            return true;
+        return filter.keywords.some((keyword) => {
+          if (materials.has(keyword)) return true;
+
+          for (const material of materials) {
+            if (material.includes(keyword) || keyword.includes(material)) {
+              return true;
+            }
           }
-        }
-      }
 
-      return false;
+          return false;
+        });
+      });
     });
   }, [validBins, activeFilters, binMaterialCache]);
 

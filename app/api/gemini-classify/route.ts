@@ -37,7 +37,6 @@ export async function POST(req: Request) {
         { status: 400, headers: corsHeaders },
       );
 
-    // Rate limiting
     const ip = req.headers.get("x-forwarded-for") || "unknown";
     const now = Date.now();
     const last = ipLastCalls.get(ip) || 0;
@@ -80,26 +79,31 @@ export async function POST(req: Request) {
       .insert({ bin_id: binId, sha_hash: shaHash, p_hash: pHash });
     if (dbError) console.error("Supabase error:", dbError);
 
-    // Подготовка на prompt за Gemini API с броене на обекти
+    // Подготовка на prompt за Gemini API с добавено поле за превод само на материала
     const prompt = target
       ? `You are verifying waste material. 
           Target: ${target}
           Question: Does the object belong to the target material? 
           Also, count how many distinct items of this material are visible.
           Give a rough estimate of save CO2.
+          Estimate the total weight in kilograms.
           Respond exactly in this format:
           RESULT: [YES/NO]
           COUNT: [number]
           CO2: [float]
+          WEIGHT_KG: [float] (x.xxx)
           `
       : `Classify the recycling objects in the image. 
           Categories: plastic, paper, glass, metal, textile, organic, wood.
           Give a rough estimate of save CO2.
+          Estimate the total weight in kilograms.
           Respond exactly in this format:
           MATERIAL: [category]
+          MATERIAL_BG: [category in bulgarian]
           COUNT: [number]
           CO2: [float]
-          If unsure, MATERIAL: unknown`;
+          WEIGHT_KG: [float] (x.xxx)
+          If unsure, MATERIAL: unknown | MATERIAL_BG: неизвестно`;
 
     const MODEL = "gemini-2.0-flash";
     const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`;
@@ -136,21 +140,16 @@ export async function POST(req: Request) {
     if (process.env.NODE_ENV === "development") {
       console.log("Raw response:", rawText);
     }
+
+    // Парсване на общи полета
     const countMatch = rawText.match(/COUNT:\s*(\d+)/i);
     const count = countMatch ? parseInt(countMatch[1], 10) : 1;
 
     const co2Match = rawText.match(/CO2:\s*([\d.]+)/i);
     const co2 = co2Match ? parseFloat(co2Match[1]) : 0;
-
-    const allowedMaterials = [
-      "plastic",
-      "paper",
-      "glass",
-      "metal",
-      "textile",
-      "organic",
-      "wood",
-    ];
+    const weightKg = parseFloat(
+      rawText.match(/WEIGHT_KG:\s*([\d.]+)/i)?.[1] || "0",
+    );
 
     if (target) {
       const result = rawText.toUpperCase().includes("RESULT: YES")
@@ -159,20 +158,20 @@ export async function POST(req: Request) {
       const points = result === "YES" ? count * 10 : 0;
 
       return NextResponse.json(
-        { result, count, points, co2 },
+        { result, count, points, co2, weight_kg: weightKg },
         { headers: corsHeaders },
       );
     } else {
       const matMatch = rawText.match(/MATERIAL:\s*(\w+)/i);
-      const normalized = matMatch
-        ? matMatch[1].toLowerCase().trim()
-        : "unknown";
-      const found = allowedMaterials.find((m) => normalized.includes(m));
-      const material = found || "unknown";
+      const matBgMatch = rawText.match(/MATERIAL_BG:\s*(.+)/i);
+
+      const material = matMatch ? matMatch[1].toLowerCase().trim() : "unknown";
+      const materialBg = matBgMatch ? matBgMatch[1].trim() : "неизвестно";
+
       const points = material !== "unknown" ? count * 10 : 0;
 
       return NextResponse.json(
-        { material, count, points },
+        { material, materialBg, count, points, co2, weight_kg: weightKg },
         { headers: corsHeaders },
       );
     }
@@ -183,8 +182,10 @@ export async function POST(req: Request) {
         result: "NO",
         error: err.message,
         material: "unknown",
+        materialBg: "неизвестно",
         count: 0,
         points: 0,
+        weight_kg: 0,
       },
       { status: 500, headers: corsHeaders },
     );

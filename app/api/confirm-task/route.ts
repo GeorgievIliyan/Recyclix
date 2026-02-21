@@ -35,7 +35,7 @@ export async function OPTIONS() {
 
 export async function POST(req: NextRequest) {
   const token = req.headers.get("x-api-token");
-  if (!token || token !== process.env.SECURE_API_KEY) {
+  if (!token || token !== process.env.NEXT_PUBLIC_SECURE_API_KEY) {
     return NextResponse.json(
       { error: "Unauthorized" },
       { status: 401, headers: corsHeaders },
@@ -136,14 +136,22 @@ export async function POST(req: NextRequest) {
 
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
     const prompt = `
-      You are an AI assistant classifying waste. 
-      Task: ${taskDetails.title}
-      Analyze the image and respond exactly in this format:
-      MATERIAL: [category]
-      COUNT: [number]
-      CO2: [float]
-      If unsure, MATERIAL: unknown
-    `;
+    You are a strict recycling verification agent.
+    
+    REQUIRED TASK: "${taskDetails.title}"
+    TASK DESCRIPTION: "${taskDetails.description}"
+    
+    INSTRUCTIONS:
+    1. Analyze the image to see if it shows the user performing the task above.
+    2. If the image is unrelated, dark, blurry, or does NOT contain the material mentioned in the task, you MUST set MATERIAL to "unknown".
+    3. If the material matches, identify the specific material, count the items, and estimate CO2 saved.
+    
+    OUTPUT FORMAT (STRICT):
+    MATERIAL: [category or "unknown"]
+    COUNT: [number]
+    CO2: [float]
+    WEIGHT_KG: [float] (x.xxx)
+  `;
 
     const geminiRes = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
@@ -171,6 +179,7 @@ export async function POST(req: NextRequest) {
       aiText.match(/MATERIAL:\s*(.*)/i)?.[1]?.trim() || "unknown";
     const count = parseInt(aiText.match(/COUNT:\s*(\d+)/i)?.[1] || "0");
     const co2 = parseFloat(aiText.match(/CO2:\s*([\d.]+)/i)?.[1] || "0");
+    const weightKg = parseFloat(aiText.match(/WEIGHT_KG:\s*([\d.]+)/i)?.[1] || "0");
 
     const isVerified = material.toLowerCase() !== "unknown" && count > 0;
 
@@ -189,6 +198,7 @@ export async function POST(req: NextRequest) {
         material: material,
         count: count,
         co2_saved: co2,
+        weight_kg: weightKg,
         points: count * 10,
       });
 

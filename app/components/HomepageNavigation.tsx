@@ -100,49 +100,53 @@ const HomepageNavigation = () => {
 
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-zinc-200/50 dark:border-zinc-800/50">
-          <div className="px-4 py-4 space-y-3 bg-white/90 dark:bg-zinc-950/95 backdrop-blur-xl">
-            <a
-              href="#hero"
-              className="block px-4 py-2 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors font-medium"
-            >
-              Начало
-            </a>
-            <a
-              href="#features"
-              className="block px-4 py-2 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors font-medium"
-            >
-              Предимства
-            </a>
-            <a
-              href="#how-it-works"
-              className="block px-4 py-2 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors font-medium"
-            >
-              Как работи
-            </a>
-            <a
-              href="#impact"
-              className="block px-4 py-2 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors font-medium"
-            >
-              Въздействие
-            </a>
-            <a
-              href="#pricing"
-              className="block px-4 py-2 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors font-medium"
-            >
-              Цени
-            </a>
-            <a
-              href="/auth/login"
-              className="block px-4 py-2 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors font-medium"
-            >
-              Вход
-            </a>
-            <a
-              href="/auth/register"
-              className="block px-4 py-2 bg-gradient-to-br from-[#00CD56] via-emerald-500 to-[#00b849] text-white font-semibold rounded-xl text-center shadow-lg shadow-[#00CD56]/30"
-            >
-              Регистрация
-            </a>
+          <div className="py-2 backdrop-blur-sm bg-white/80 dark:bg-zinc-900/5">
+
+            <div className="px-4 py-2 space-y-1">
+              <a
+                href="#hero"
+                className="block px-4 py-2 text-zinc-700 dark:text-zinc-300 hover:text-[#00CD56] dark:hover:text-[#00CD56] hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-all duration-200 font-medium"
+              >
+                Начало
+              </a>
+              <a
+                href="#features"
+                className="block px-4 py-2 text-zinc-700 dark:text-zinc-300 hover:text-[#00CD56] dark:hover:text-[#00CD56] hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-all duration-200 font-medium"
+              >
+                Предимства
+              </a>
+              <a
+                href="#how-it-works"
+                className="block px-4 py-2 text-zinc-700 dark:text-zinc-300 hover:text-[#00CD56] dark:hover:text-[#00CD56] hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-all duration-200 font-medium"
+              >
+                Как работи
+              </a>
+              <a
+                href="#impact"
+                className="block px-4 py-2 text-zinc-700 dark:text-zinc-300 hover:text-[#00CD56] dark:hover:text-[#00CD56] hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-all duration-200 font-medium"
+              >
+                Въздействие
+              </a>
+              <a
+                href="#pricing"
+                className="block px-4 py-2 text-zinc-700 dark:text-zinc-300 hover:text-[#00CD56] dark:hover:text-[#00CD56] hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-all duration-200 font-medium"
+              >
+                Цени
+              </a>
+              <div className="border-t border-zinc-200/50 dark:border-zinc-800/50 my-2"></div>
+              <a
+                href="/auth/login"
+                className="block px-4 py-2 text-zinc-700 dark:text-zinc-300 hover:text-[#00CD56] dark:hover:text-[#00CD56] hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-all duration-200 font-medium"
+              >
+                Вход
+              </a>
+              <a
+                href="/auth/register"
+                className="block px-4 py-2 bg-gradient-to-br from-[#00CD56] via-emerald-500 to-[#00b849] hover:from-[#00b849] hover:via-[#00a341] hover:to-emerald-600 text-white font-semibold rounded-xl text-center shadow-lg shadow-[#00CD56]/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-[#00CD56]/40 mx-4 mt-2"
+              >
+                Регистрация
+              </a>
+            </div>
           </div>
         </div>
       )}

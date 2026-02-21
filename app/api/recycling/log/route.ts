@@ -16,13 +16,13 @@ export async function POST(req: NextRequest) {
       console.log("API /recycling/log received:", body);
     }
 
-    const { material, points, co2_saved, user_id, count } = body;
+    const { material, points, co2_saved, user_id, count, weight_kg } = body;
 
     if (
       !material ||
       points === undefined ||
       co2_saved === undefined ||
-      !user_id
+      !user_id === null
     ) {
       const errorMsg = `Missing required fields. Received: ${JSON.stringify(body)}`;
       if (isDev) console.error("Validation error:", errorMsg);
@@ -43,6 +43,7 @@ export async function POST(req: NextRequest) {
         points: points,
         co2_saved: co2_saved,
         count: count || 1,
+        weight_kg: weight_kg,
       })
       .select();
 

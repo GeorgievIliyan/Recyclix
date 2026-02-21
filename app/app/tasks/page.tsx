@@ -1,13 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase-browser";
 import ConfirmCamera from "@/app/components/ConfirmCamera";
 import { FreeCamera } from "@/app/components/FreeCamera";
 import {
   CheckCircle2,
   Circle,
-  Calendar,
   Trophy,
   Clock,
   PartyPopper,
@@ -111,7 +110,7 @@ export default function DailyTasksPage() {
     <>
       <Navigation />
 
-      <div className="relative min-h-screen bg-background py-8 md:pt-16 lg:pt-18 overflow-hidden">
+      <div className="relative min-h-screen bg-neutral-100 dark:bg-background py-8 md:pt-16 lg:pt-18 overflow-hidden">
         {/* Фонови декорации */}
         <div className="absolute top-20 -left-32 w-96 h-96 bg-gradient-to-br from-[#00CD56]/15 via-[#00b849]/10 to-transparent dark:from-[#00CD56]/8 dark:via-[#00b849]/5 dark:to-transparent rounded-full blur-3xl" />
         <div className="absolute top-1/3 -right-32 w-80 h-80 bg-gradient-to-tl from-emerald-400/12 via-[#00CD56]/8 to-transparent dark:from-emerald-400/6 dark:via-[#00CD56]/4 dark:to-transparent rounded-full blur-3xl" />
@@ -138,7 +137,7 @@ export default function DailyTasksPage() {
                   ${
                     task.completed
                       ? "bg-gradient-to-br from-[#00CD56]/8 via-emerald-400/5 to-[#00b849]/8 dark:from-[#00CD56]/5 dark:via-emerald-400/3 dark:to-[#00b849]/5 border-[#00CD56]/30 shadow-lg shadow-[#00CD56]/10"
-                      : "backdrop-blur-xl bg-gradient-to-br from-white/90 via-white/80 to-zinc-50/90 dark:from-zinc-900/70 dark:via-zinc-900/60 dark:to-zinc-800/70 border-zinc-200/50 dark:border-zinc-800/50 hover:border-[#00CD56]/40 hover:shadow-xl hover:shadow-[#00CD56]/5 hover:scale-[1.02]"
+                      : "backdrop-blur-xl bg-gradient-to-br from-white/90 via-white/80 to-zinc-50/90 dark:from-zinc-900/70 dark:via-zinc-900/60 dark:to-zinc-800/70 border-zinc-200/50 dark:border-zinc-800/50 hover:border-[#00CD56]/40 hover:shadow-xl hover:shadow-[#00CD56]/5"
                   }
                 `}
                 style={{
@@ -213,7 +212,7 @@ export default function DailyTasksPage() {
                         className="group/btn relative w-full px-4 py-2.5 bg-gradient-to-br from-[#00CD56] via-emerald-500 to-[#00b849] hover:from-[#00b849] hover:via-[#00a341] hover:to-emerald-600 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-md shadow-[#00CD56]/20 hover:shadow-lg hover:shadow-[#00CD56]/30 hover:scale-[1.02] active:scale-[0.98] overflow-hidden"
                       >
                         <span className="relative z-10">
-                          Отвори камера за задача
+                          Отвори камера
                         </span>
                         <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300" />
                       </button>

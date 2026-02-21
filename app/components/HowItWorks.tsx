@@ -1,3 +1,5 @@
+import { LogIn, Sparkles, Trash2 } from "lucide-react";
+
 const HowItWorks = () => {
   return (
     <div
@@ -18,16 +20,19 @@ const HowItWorks = () => {
             {
               step: "1",
               title: "Регистрирайте се",
+              icon: <LogIn className="text-green-500"/>,
               desc: "Създайте безплатен акаунт за по-малко от минута и започнете да следите вашия рециклиращ прогрес.",
             },
             {
               step: "2",
               title: "Намерете пункт",
+              icon: <Trash2 className="text-green-500"/>,
               desc: "Използвайте нашата интерактивна карта, за да намерите най-близкия пункт за рециклиране до вас.",
             },
             {
               step: "3",
               title: "Печелете точки",
+              icon: <Sparkles className="text-green-500"/>,
               desc: "Рециклирайте материали и автоматично печелете точки, които можете да разменяте за награди.",
             },
           ].map((s, i) => (
@@ -41,8 +46,8 @@ const HowItWorks = () => {
                   </span>
                 </div>
                 <div className="relative z-10 mt-6">
-                  <h3 className="text-2xl font-bold text-zinc-900 dark:text-white mb-3">
-                    {s.title}
+                  <h3 className="text-2xl font-bold text-zinc-900 dark:text-white mb-3 flex gap-3 items-center ">
+                    {s.icon} {s.title}
                   </h3>
                   <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed">
                     {s.desc}

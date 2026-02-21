@@ -43,4 +43,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# misc
 public/uploads/task-images/
+create_users.ts

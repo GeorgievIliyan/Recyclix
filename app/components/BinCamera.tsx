@@ -10,17 +10,15 @@ import {
   Hash,
   Sparkles,
   Leaf,
+  Weight,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import {
-  RecyclingLoader,
   SimpleSpinningRecycling,
   SpinningRecyclingLoader,
 } from "./RecyclingLoader";
 import { isDev } from "@/lib/isDev";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase-browser";
-import { env } from "process";
 
 // типове
 type MaterialType =
@@ -46,6 +44,7 @@ export default function BinCamera({ target, binId }: Props) {
   const [loading, setLoading] = useState(false);
   const [itemCount, setItemCount] = useState<number>(0);
   const [co2Saved, setCo2Saved] = useState<number>(0);
+  const [weightKg, setWeightKg] = useState<number>(0);
   const [qrData, setQrData] = useState<{
     qrUrl: string;
     expiresAt: string;
@@ -104,28 +103,23 @@ export default function BinCamera({ target, binId }: Props) {
     points: number,
     count: number,
     co2: number,
+    weight: number,
   ) => {
     try {
-      const calculatedCo2 = Number(co2.toFixed(3));
-      setCo2Saved(calculatedCo2);
-
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        console.error("No user found");
-        return;
-      }
+      const calculatedCo2 = Number(co2);
+      setCo2Saved(Number(co2));
+      setWeightKg(weight);
 
       const res = await fetch("/api/recycling/log", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          material,
-          points,
-          count,
+          material: material,
+          points: points,
+          count: count,
           co2_saved: calculatedCo2,
-          user_id: user.id,
+          weight_kg: weight,
+          created_at: new Date().toISOString(),
         }),
       });
 
@@ -148,6 +142,7 @@ export default function BinCamera({ target, binId }: Props) {
     setQrData(null);
     setItemCount(0);
     setCo2Saved(0);
+    setWeightKg(0);
 
     try {
       let endpoint: string;
@@ -174,15 +169,24 @@ export default function BinCamera({ target, binId }: Props) {
 
       const detectedCount = data.count || 1;
       const detectedPoints = data.points || 10;
-      const co2 = data.co2 || 0.1;
+      const detectedWeight = data.weight_kg || 0.1;
+      const detectedCo2 = data.co2 || 0.1;
+
       setItemCount(detectedCount);
+      setWeightKg(detectedWeight);
 
       if (target) {
         const result = data.result as VerifyResult;
         setVerifyResult(result);
 
         if (result === "YES") {
-          await logRecyclingEvent(target, detectedPoints, detectedCount, co2);
+          await logRecyclingEvent(
+            target,
+            detectedPoints,
+            detectedCount,
+            detectedCo2,
+            detectedWeight,
+          );
           await generateQR(detectedPoints);
         }
       } else {
@@ -190,7 +194,13 @@ export default function BinCamera({ target, binId }: Props) {
         setPrediction(material);
 
         if (material && material !== "unknown") {
-          await logRecyclingEvent(material, detectedPoints, detectedCount, co2);
+          await logRecyclingEvent(
+            material,
+            detectedPoints,
+            detectedCount,
+            detectedCo2,
+            detectedWeight,
+          );
           await generateQR(detectedPoints);
         }
       }
@@ -329,7 +339,14 @@ export default function BinCamera({ target, binId }: Props) {
                       +{qrData?.points || 0} т.
                     </span>
                   </div>
-                  {/* CO2 индикатор */}
+                  {/* Тегло на боклука */}
+                  <div className="bg-blue-500/10 px-3 py-2 rounded-lg flex items-center gap-2 border border-blue-500/20">
+                    <Weight className="w-4 h-4 text-blue-500" />
+                    <span className="text-sm font-semibold text-blue-600">
+                      {weightKg} кг.
+                    </span>
+                  </div>
+                  {/* CO2 */}
                   <div className="bg-emerald-500/10 px-3 py-2 rounded-lg flex items-center gap-2 border border-emerald-500/20">
                     <Leaf className="w-4 h-4 text-emerald-500" />
                     <span className="text-sm font-semibold text-emerald-600">
@@ -339,7 +356,7 @@ export default function BinCamera({ target, binId }: Props) {
                 </div>
 
                 {qrData ? (
-                  <div className="flex flex-col items-center gap-3">
+                  <div className="flex flex-col items-center gap-2">
                     <div className="p-5 bg-background/50 dark:bg-[#1D1D1D] rounded-lg">
                       <QRCodeSVG
                         value={qrData.qrUrl}
@@ -351,7 +368,16 @@ export default function BinCamera({ target, binId }: Props) {
                     <p className="text-sm text-muted-foreground dark:text-neutral-400">
                       Сканирай за точки
                     </p>
-                    <p className="text-xs text-muted-foreground/60">
+                    <p className="text-xs text-muted-foreground/60 -mt-1">
+                      или
+                    </p>
+                    <a
+                      href={qrData.qrUrl}
+                      className="hover:text-green-500 -mt-1"
+                    >
+                      Вземи тук
+                    </a>
+                    <p className="text-xs text-muted-foreground/60 mt-0.5">
                       Валиден до:{" "}
                       {new Date(qrData.expiresAt).toLocaleTimeString([], {
                         hour: "2-digit",
