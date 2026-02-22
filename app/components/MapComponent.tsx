@@ -43,7 +43,7 @@ export interface Bin {
   lon: number;
   tags: Record<string, any>;
   osm_type: "node" | "way" | "relation";
-  is_smart: boolean;
+  is_smart?: boolean | null;
 }
 
 // Типизация за новосъздадени обекти в базата данни

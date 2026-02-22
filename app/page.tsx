@@ -12,7 +12,6 @@ import Hero from "./components/Hero";
 import Feature from "./components/Feature";
 import HowItWorks from "./components/HowItWorks";
 import Impact from "./components/Impact";
-import { Quando } from "next/font/google";
 import Quote from "./components/Quote";
 
 const CACHE_DURATION = 2 * 60 * 60 * 1000;

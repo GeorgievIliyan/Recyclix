@@ -66,6 +66,23 @@ export function FreeCamera({ task }: { task: string }) {
     };
   }, [open]);
 
+  async function logToSchema(data: ScanResult) {
+    try {
+      await fetch("/api/recycling/log", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          material: data.material || "Unknown",
+          points: data.points,
+          co2_saved: data.co2 || 0,
+          count: data.count,
+        }),
+      });
+    } catch (e) {
+      console.error("Failed to log recycling event:", e);
+    }
+  }
+
   async function capture() {
     if (!videoRef.current || !canvasRef.current) return;
     setLoading(true);
@@ -94,6 +111,8 @@ export function FreeCamera({ task }: { task: string }) {
         setError(json.error || "Scan failed");
       } else {
         setResult(json);
+        // Log to database and generate QR simultaneously
+        await logToSchema(json);
         generateQRCode(json.points);
       }
     } catch (e: any) {
@@ -281,7 +300,7 @@ export function FreeCamera({ task }: { task: string }) {
               </div>
 
               {result && (
-                <div className="absolute inset-0 bg-background/95 backdrop-blur-sm flex items-center justify-center p-4 md:p-6 z-20">
+                <div className="absolute inset-0 bg-neutral-900/85 backdrop-blur-sm flex items-center justify-center p-4 md:p-6 z-20">
                   <div
                     className="
                   relative bg-card rounded-xl md:rounded-2xl p-6 md:p-8 lg:p-10 
@@ -336,7 +355,7 @@ export function FreeCamera({ task }: { task: string }) {
 
                       {qrData ? (
                         <div className="flex flex-col items-center gap-2">
-                          <div className="p-5 bg-background/50 dark:bg-[#1D1D1D] rounded-lg">
+                          <div className="p-5 bg-background dark:bg-[#1D1D1D] rounded-lg">
                             <QRCodeSVG
                               value={qrData.qrUrl}
                               size={180}

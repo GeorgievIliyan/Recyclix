@@ -11,11 +11,11 @@ const SmartBins = () => {
           <div className="relative">
             <div className="absolute -top-10 -left-10 w-40 h-40 bg-gradient-to-br from-[#00CD56]/20 to-transparent rounded-full blur-3xl" />
             <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-gradient-to-tl from-emerald-400/20 to-transparent rounded-full blur-3xl" />
-            <div className="relative backdrop-blur-xl bg-gradient-to-br from-white/90 via-white/80 to-zinc-50/90 dark:from-zinc-900/70 dark:via-zinc-900/60 dark:to-zinc-800/70 rounded-3xl p-8 border border-zinc-200/50 dark:border-zinc-800/50 shadow-2xl overflow-hidden">
+            <div className="relative backdrop-blur-xl bg-gradient-to-br from-white/90 via-white/80 to-zinc-50/90 dark:from-zinc-900/70 dark:via-zinc-900/60 dark:to-zinc-800/70 rounded-3xl p-8 border border-zinc-200/50 dark:border-zinc-800/50 shadow-xl overflow-hidden">
               <img
                 src="/assets/smart_bin.png"
                 alt="Интелигентен контейнер за рециклиране"
-                className="w-full h-auto rounded-2xl shadow-lg"
+                className="w-full h-auto rounded-2xl"
               />
             </div>
           </div>

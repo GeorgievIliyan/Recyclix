@@ -71,7 +71,7 @@ const Impact = ({
                     Спестен CO2
                   </span>
                   <span className="text-2xl font-bold bg-gradient-to-br from-[#00CD56] via-emerald-500 to-[#00b849] bg-clip-text text-transparent">
-                    {totalCO2Reduction} кг
+                    {totalCO2Reduction.toFixed(2)} кг
                   </span>
                 </div>
                 <div className="flex justify-between items-center p-4 bg-gradient-to-r from-zinc-100/80 to-zinc-50/80 dark:from-zinc-950/40 dark:to-zinc-900/40 rounded-xl border border-zinc-200/30 dark:border-zinc-800/50 hover:border-[#00CD56]/30 transition-all duration-300">
@@ -79,7 +79,7 @@ const Impact = ({
                     Спестена вода
                   </span>
                   <span className="text-2xl font-bold bg-gradient-to-br from-[#00CD56] via-emerald-500 to-[#00b849] bg-clip-text text-transparent">
-                    {co2ToWater(totalCO2Reduction)} литра
+                    {co2ToWater(totalCO2Reduction.toFixed(2))} литра
                   </span>
                 </div>
                 <div className="flex justify-between items-center p-4 bg-gradient-to-r from-zinc-100/80 to-zinc-50/80 dark:from-zinc-950/40 dark:to-zinc-900/40 rounded-xl border border-zinc-200/30 dark:border-zinc-800/50 hover:border-[#00CD56]/30 transition-all duration-300">
@@ -87,7 +87,7 @@ const Impact = ({
                     Спестена енергия
                   </span>
                   <span className="text-2xl font-bold bg-gradient-to-br from-[#00CD56] via-emerald-500 to-[#00b849] bg-clip-text text-transparent">
-                    {co2ToKwh(totalCO2Reduction)} kWh
+                    {co2ToKwh(totalCO2Reduction.toFixed(2))} kWh
                   </span>
                 </div>
               </div>
@@ -125,7 +125,7 @@ const Impact = ({
                     Пластмаса
                   </span>
                   <span className="text-2xl font-bold bg-gradient-to-br from-[#00CD56] via-emerald-500 to-[#00b849] bg-clip-text text-transparent">
-                    {totalPlasticRecycled} кг
+                    {totalPlasticRecycled.toFixed(2)} кг
                   </span>
                 </div>
                 <div className="flex justify-between items-center p-4 bg-gradient-to-r from-zinc-100/80 to-zinc-50/80 dark:from-zinc-950/40 dark:to-zinc-900/40 rounded-xl border border-zinc-200/30 dark:border-zinc-800/50 hover:border-[#00CD56]/30 transition-all duration-300">
@@ -133,7 +133,7 @@ const Impact = ({
                     Хартия
                   </span>
                   <span className="text-2xl font-bold bg-gradient-to-br from-[#00CD56] via-emerald-500 to-[#00b849] bg-clip-text text-transparent">
-                    {totalPaperRecycled} кг
+                    {totalPaperRecycled.toFixed(2)} кг
                   </span>
                 </div>
                 <div className="flex justify-between items-center p-4 bg-gradient-to-r from-zinc-100/80 to-zinc-50/80 dark:from-zinc-950/40 dark:to-zinc-900/40 rounded-xl border border-zinc-200/30 dark:border-zinc-800/50 hover:border-[#00CD56]/30 transition-all duration-300">
@@ -141,7 +141,7 @@ const Impact = ({
                     Метал и стъкло
                   </span>
                   <span className="text-2xl font-bold bg-gradient-to-br from-[#00CD56] via-emerald-500 to-[#00b849] bg-clip-text text-transparent">
-                    {totalGlassMetalRecycled} кг
+                    {totalGlassMetalRecycled.toFixed(2)} кг
                   </span>
                 </div>
               </div>

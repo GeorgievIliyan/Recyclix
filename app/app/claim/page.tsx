@@ -77,13 +77,14 @@ function ClaimContent() {
           <div className="flex gap-2">
             <button
               onClick={() => router.push("/app/dashboard")}
-              className="bg-primary text-primary-foreground px-6 py-3 hover:bg-neutral-400 transition duration-250 rounded-lg font-medium w-full"
+              className="bg-white text-gray-900 border border-gray-200 px-6 py-3 rounded-lg font-medium w-full transition duration-200 hover:bg-gray-50 hover:shadow-sm active:scale-[0.99]"
             >
               Начално табло
             </button>
+
             <button
               onClick={() => router.back()}
-              className="bg-primary text-primary-foreground hover:text-white hover:bg-red-500 transition duration-250 px-6 py-3 rounded-lg font-medium w-full"
+              className="bg-white text-gray-900 border border-gray-200 px-6 py-3 rounded-lg font-medium w-full transition duration-200 hover:bg-gray-50 hover:shadow-sm active:scale-[0.99]"
             >
               Назад
             </button>
@@ -107,13 +108,14 @@ function ClaimContent() {
           <div className="flex gap-2">
             <button
               onClick={() => router.push("/app/dashboard")}
-              className="bg-primary text-primary-foreground px-6 py-3 hover:bg-neutral-400 transition duration-250 rounded-lg font-medium w-full"
+              className="bg-white text-gray-900 border border-gray-200 px-6 py-3 rounded-lg font-medium w-full transition duration-200 hover:bg-gray-50 hover:shadow-sm active:scale-[0.99]"
             >
               Начално табло
             </button>
+
             <button
               onClick={() => router.back()}
-              className="bg-primary text-primary-foreground hover:text-white hover:bg-red-500 transition duration-250 px-6 py-3 rounded-lg font-medium w-full"
+              className="bg-white text-gray-900 border border-gray-200 px-6 py-3 rounded-lg font-medium w-full transition duration-200 hover:bg-gray-50 hover:shadow-sm active:scale-[0.99]"
             >
               Назад
             </button>
@@ -137,13 +139,14 @@ function ClaimContent() {
           <div className="flex gap-2">
             <button
               onClick={() => router.push("/app/dashboard")}
-              className="bg-primary text-primary-foreground px-6 py-3 hover:bg-neutral-400 transition duration-250 rounded-lg font-medium w-full"
+              className="bg-white text-gray-900 border border-gray-200 px-6 py-3 rounded-lg font-medium w-full transition duration-200 hover:bg-gray-50 hover:shadow-sm active:scale-[0.99]"
             >
               Начално табло
             </button>
+
             <button
               onClick={() => router.back()}
-              className="bg-primary text-primary-foreground hover:text-white hover:bg-red-500 transition duration-250 px-6 py-3 rounded-lg font-medium w-full"
+              className="bg-white text-gray-900 border border-gray-200 px-6 py-3 rounded-lg font-medium w-full transition duration-200 hover:bg-gray-50 hover:shadow-sm active:scale-[0.99]"
             >
               Назад
             </button>
@@ -168,13 +171,14 @@ function ClaimContent() {
         <div className="flex gap-2">
           <button
             onClick={() => router.push("/app/dashboard")}
-            className="bg-primary text-primary-foreground px-6 py-3 hover:bg-neutral-400 transition duration-250 rounded-lg font-medium w-full"
+            className="bg-white text-gray-900 border border-gray-200 px-6 py-3 rounded-lg font-medium w-full transition duration-200 hover:bg-gray-50 hover:shadow-sm active:scale-[0.99]"
           >
             Начално табло
           </button>
+
           <button
             onClick={() => router.back()}
-            className="bg-primary text-primary-foreground hover:text-white hover:bg-red-500 transition duration-250 px-6 py-3 rounded-lg font-medium w-full"
+            className="bg-white text-gray-900 border border-gray-200 px-6 py-3 rounded-lg font-medium w-full transition duration-200 hover:bg-gray-50 hover:shadow-sm active:scale-[0.99]"
           >
             Назад
           </button>

@@ -3,7 +3,7 @@ import { Check, Zap, Sparkles } from "lucide-react";
 const Pricing = () => {
   return (
     <div id="pricing" className="relative py-20 px-4">
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-r from-[#00CD56]/10 via-emerald-400/8 to-[#00b849]/10 dark:from-[#00CD56]/5 dark:via-emerald-400/3 dark:to-[#00b849]/5 rounded-full blur-3xl" />
       </div>
 
@@ -54,7 +54,7 @@ const Pricing = () => {
             </ul>
 
             <a
-              href="/auth/register"
+              href="/app/request-access"
               className="mt-auto block w-full py-3 px-6 text-center bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-semibold rounded-xl hover:bg-zinc-800 dark:hover:bg-zinc-100 transition-colors"
             >
               Изберете план
@@ -62,7 +62,7 @@ const Pricing = () => {
           </div>
 
           {/* Популярен план */}
-          <div className="relative backdrop-blur-xl bg-gradient-to-br from-[#00CD56] via-emerald-500 to-[#00b849] rounded-3xl p-8 shadow-2xl shadow-[#00CD56]/30 dark:shadow-[#00CD56]/20 hover:shadow-[#00CD56]/50 transition-all duration-300 scale-100 md:scale-105 hover:scale-105 md:hover:scale-110 border-2 border-[#00CD56]/50 flex flex-col">
+          <div className="relative z-10 backdrop-blur-xl bg-gradient-to-br from-[#00CD56] via-emerald-500 to-[#00b849] rounded-3xl p-8 shadow-2xl shadow-[#00CD56]/30 dark:shadow-[#00CD56]/20 hover:shadow-[#00CD56]/50 transition-all duration-300 scale-100 md:scale-105 hover:scale-105 md:hover:scale-110 border-2 border-[#00CD56]/50 flex flex-col">
             <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-6 py-2 bg-gradient-to-r from-yellow-400 to-orange-400 text-white text-sm font-bold rounded-full shadow-lg flex items-center gap-2">
               <Sparkles className="w-4 h-4" />
               Популярен
@@ -100,7 +100,7 @@ const Pricing = () => {
             </ul>
 
             <a
-              href="/auth/register"
+              href="/app/request-access"
               className="mt-auto block w-full py-3 px-6 text-center bg-white text-[#00CD56] font-semibold rounded-xl hover:bg-zinc-50 transition-colors shadow-lg"
             >
               Изберете план
