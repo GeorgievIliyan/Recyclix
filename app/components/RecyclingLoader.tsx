@@ -1,5 +1,6 @@
 "use client";
 
+// зареждащ индикатор
 export function RecyclingLoader() {
   return (
     <div className="flex flex-col items-center justify-center space-y-4 p-4">
@@ -26,14 +27,11 @@ export function RecyclingLoader() {
           </svg>
         </div>
       </div>
-
-      <p className="text-sm font-medium text-gray-600 dark:text-gray-300 animate-pulse">
-        Зареждане...
-      </p>
     </div>
   );
 }
 
+// опростен вариант
 export function SpinningRecyclingLoader() {
   return (
     <div className="flex flex-col items-center justify-center space-y-4">
@@ -64,13 +62,11 @@ export function SpinningRecyclingLoader() {
           </svg>
         </div>
       </div>
-      <p className="text-sm font-medium text-gray-600 dark:text-gray-300 animate-pulse">
-        Рециклиране...
-      </p>
     </div>
   );
 }
 
+// прост вариант
 export function SimpleSpinningRecycling() {
   return (
     <div className="inline-flex items-center justify-center">

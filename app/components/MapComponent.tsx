@@ -25,16 +25,11 @@ import {
   MapIcon,
   CheckCircle,
 } from "lucide-react";
-import { createClient } from "@supabase/supabase-js";
+import { createBrowserClient } from "@supabase/ssr";
 import MapHome from "./MapHome";
 import MapFilter from "./MapFilter";
 import { isDev } from "@/lib/isDev";
 import FilterPanel from "./FilterPanel";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-);
 
 // Типизация за данни от OpenStreetMap (OSM)
 export interface Bin {
@@ -175,14 +170,6 @@ export const FILTER_OPTIONS = [
       "Дрехи",
     ],
   },
-  /*
-  {
-    id: "general",
-    label: "Общи отпадъци",
-    color: "bg-gradient-to-r from-red-400 to-red-500",
-    keywords: ["general", "residual", "waste", "trash"],
-  },
-  */
 ];
 
 const materialTranslations: Record<string, string> = {
@@ -230,7 +217,7 @@ const translateDays = (hours: string) => {
   return hours.replace(/\b(Mo|Tu|We|Th|Fr|Sa|Su)\b/g, (match) => dayMap[match]);
 };
 
-// Типове отчети от вашата таблица
+// Типове отчети
 type ReportType =
   | "incorrect_location"
   | "bin_missing"
@@ -240,7 +227,6 @@ type ReportType =
   | "duplicate"
   | "other";
 
-// Интерфейс за изображение на отчет
 interface ReportImage {
   id: string;
   report_id: string;
@@ -248,18 +234,10 @@ interface ReportImage {
   created_at: string;
 }
 
-interface CreateReportPayload {
-  bin_id: string;
-  type: ReportType;
-  title: string;
-  description?: string;
-  images?: File[];
-}
-
 // Интерфейс за отчет от таблицата reports
 export interface Report {
   id: string;
-  user_id: string;
+  user_id: string | null;
   bin_id: string;
   created_at: string;
   updated_at: string;
@@ -279,7 +257,7 @@ interface EditFormData {
   notes: string;
 }
 
-// Контейнер за маркери с визуален ефект на пръстен
+// Контейнер за маркери
 const MarkerWrapper = ({
   color,
   children,
@@ -288,7 +266,6 @@ const MarkerWrapper = ({
   children: React.ReactNode;
 }) => (
   <div className="relative">
-    {/* Вътрешно тяло на маркера */}
     <div
       className={`w-8 h-8 rounded-full shadow-lg flex items-center justify-center relative z-10 ${color} shadow-sm`}
     >
@@ -297,21 +274,18 @@ const MarkerWrapper = ({
   </div>
 );
 
-// Компонент за иконата за рециклиране
 const RecyclingIconContent = ({ color }: { color: string }) => (
   <MarkerWrapper color={color}>
     <Recycle className="w-5 h-5 text-white" strokeWidth={2.5} />
   </MarkerWrapper>
 );
 
-// Компонент за иконата на обикновено кошче
 const TrashIconContent = ({ color }: { color: string }) => (
   <MarkerWrapper color={color}>
     <Trash2 className="w-5 h-5 text-white" />
   </MarkerWrapper>
 );
 
-// Конфигурация на маркера за текущата позиция на потребителя
 const UserMarkerIcon = L.divIcon({
   html: renderToString(
     <div className="relative">
@@ -330,7 +304,6 @@ const UserMarkerIcon = L.divIcon({
   popupAnchor: [0, -16],
 });
 
-// Компонент за следене на промените в мащаба на картата
 function ZoomWatcher({ onZoom }: { onZoom: (z: number) => void }) {
   useMapEvents({
     zoomend: (e) => {
@@ -340,7 +313,6 @@ function ZoomWatcher({ onZoom }: { onZoom: (z: number) => void }) {
   return null;
 }
 
-// Компонент за обработка на кликове върху повърхността на картата
 function MapClickHandler({
   onMapClick,
 }: {
@@ -354,7 +326,6 @@ function MapClickHandler({
   return null;
 }
 
-// Логика за определяне на основния цвят на маркера
 const getColorForBin = (bin: Bin): string => {
   const types =
     bin.tags?.recycling_type
@@ -398,13 +369,10 @@ const getColorForBin = (bin: Bin): string => {
     }
   }
 
-  if (types.length > 1) {
+  if (types.length > 1)
     return "bg-gradient-to-r from-emerald-400 to-emerald-500";
-  }
-
-  if (recyclingTags.length > 1) {
+  if (recyclingTags.length > 1)
     return "bg-gradient-to-r from-emerald-400 to-emerald-500";
-  }
 
   const hasRecyclingTypes =
     bin.tags?.recycling_type && bin.tags.recycling_type.trim().length > 0;
@@ -415,98 +383,81 @@ const getColorForBin = (bin: Bin): string => {
   }
 
   for (const cleanType of types) {
-    if (RECYCLING_COLORS[cleanType]) {
-      return RECYCLING_COLORS[cleanType];
-    }
-
-    if (cleanType === "paper" || cleanType === "cardboard") {
+    if (RECYCLING_COLORS[cleanType]) return RECYCLING_COLORS[cleanType];
+    if (cleanType === "paper" || cleanType === "cardboard")
       return RECYCLING_COLORS.paper;
-    } else if (cleanType === "plastic") {
-      return RECYCLING_COLORS.plastic;
-    } else if (cleanType === "glass") {
-      return RECYCLING_COLORS.glass;
-    } else if (
+    else if (cleanType === "plastic") return RECYCLING_COLORS.plastic;
+    else if (cleanType === "glass") return RECYCLING_COLORS.glass;
+    else if (
       cleanType === "metal" ||
       cleanType === "aluminum" ||
       cleanType === "aluminium"
-    ) {
+    )
       return RECYCLING_COLORS.metal;
-    } else if (
+    else if (
       cleanType === "organic" ||
       cleanType === "bio" ||
       cleanType === "compost"
-    ) {
+    )
       return RECYCLING_COLORS.organic;
-    } else if (
+    else if (
       cleanType === "electronics" ||
       cleanType === "e_waste" ||
       cleanType === "weee"
-    ) {
+    )
       return RECYCLING_COLORS.electronics;
-    } else if (cleanType === "batteries") {
-      return RECYCLING_COLORS.batteries;
-    } else if (
+    else if (cleanType === "batteries") return RECYCLING_COLORS.batteries;
+    else if (
       cleanType === "general" ||
       cleanType === "residual" ||
       cleanType === "waste"
-    ) {
+    )
       return RECYCLING_COLORS.general;
-    }
   }
 
   for (const tag of recyclingTags) {
     const material = tag.replace("recycling:", "").trim().toLowerCase();
-
-    if (RECYCLING_COLORS[material]) {
-      return RECYCLING_COLORS[material];
-    }
-
-    if (material.includes("paper") || material.includes("cardboard")) {
+    if (RECYCLING_COLORS[material]) return RECYCLING_COLORS[material];
+    if (material.includes("paper") || material.includes("cardboard"))
       return RECYCLING_COLORS.paper;
-    } else if (material.includes("plastic")) {
-      return RECYCLING_COLORS.plastic;
-    } else if (
+    else if (material.includes("plastic")) return RECYCLING_COLORS.plastic;
+    else if (
       material.includes("metal") ||
       material.includes("aluminum") ||
       material.includes("aluminium")
-    ) {
+    )
       return RECYCLING_COLORS.metal;
-    } else if (material.includes("glass")) {
-      return RECYCLING_COLORS.glass;
-    } else if (
+    else if (material.includes("glass")) return RECYCLING_COLORS.glass;
+    else if (
       material.includes("organic") ||
       material.includes("bio") ||
       material.includes("compost")
-    ) {
+    )
       return RECYCLING_COLORS.organic;
-    } else if (
+    else if (
       material.includes("electr") ||
       material.includes("e_waste") ||
       material.includes("weee")
-    ) {
+    )
       return RECYCLING_COLORS.electronics;
-    } else if (material.includes("batter")) {
-      return RECYCLING_COLORS.batteries;
-    } else if (
+    else if (material.includes("batter")) return RECYCLING_COLORS.batteries;
+    else if (
       material.includes("general") ||
       material.includes("residual") ||
       material.includes("waste")
-    ) {
+    )
       return RECYCLING_COLORS.general;
-    }
   }
 
   const amenity = bin.tags?.amenity?.toLowerCase();
-  if (amenity === "waste_basket" || amenity === "waste_basket;recycling") {
+  if (amenity === "waste_basket" || amenity === "waste_basket;recycling")
     return RECYCLING_COLORS.waste_basket;
-  } else if (amenity === "recycling") {
+  else if (amenity === "recycling")
     return "bg-gradient-to-r from-emerald-400 to-emerald-500";
-  }
 
   return RECYCLING_COLORS.unknown;
 };
 
-// Генериране на Leaflet икона за конкретно кошче
 const createIconForBin = (bin: Bin): L.DivIcon => {
   const color = getColorForBin(bin);
   const isTrash = bin.tags?.amenity === "waste_basket";
@@ -517,7 +468,6 @@ const createIconForBin = (bin: Bin): L.DivIcon => {
       <RecyclingIconContent color={color} />
     ),
   );
-
   return L.divIcon({
     html,
     className: "",
@@ -527,7 +477,6 @@ const createIconForBin = (bin: Bin): L.DivIcon => {
   });
 };
 
-// цвят спрямо вида
 function getMaterialColor(material: string): string {
   if (material.includes("paper") || material.includes("cardboard"))
     return "#60a5fa";
@@ -553,33 +502,22 @@ function getMaterialColor(material: string): string {
   return "#9ca3af";
 }
 
-// Интерфейс за съхранение на отчети за кошче
 interface BinReportHistory {
   lastReportTime: number;
   reportCount: number;
 }
 
-// Хук за анти-спам защита на отчетите
 const useReportSpamProtection = () => {
-  // Запазваме история за всяко кошче (bin id -> report history)
   const binReportHistoryRef = useRef<Map<number, BinReportHistory>>(new Map());
-
-  // Запазваме общата история на потребителя (общ брой отчети в последния час)
   const [userReportHistory, setUserReportHistory] = useState<number[]>([]);
 
-  // Конфигурация на ограниченията
   const LIMITS = {
-    // Максимален брой отчети за едно кошче в рамките на 24 часа
     BIN_MAX_REPORTS_PER_DAY: 2,
-    // Минимално време между отчети за едно кошче (в минути)
     BIN_MIN_TIME_BETWEEN_REPORTS: 60,
-    // Максимален общ брой отчети на потребител в рамките на 1 час
     USER_MAX_REPORTS_PER_HOUR: 2,
-    // Минимално време между общи отчети (в секунди)
     USER_MIN_TIME_BETWEEN_REPORTS: 60,
   };
 
-  // Функция за проверка дали отчетът е разрешен
   const canReportBin = useCallback(
     (
       binId: number,
@@ -587,12 +525,10 @@ const useReportSpamProtection = () => {
       const now = Date.now();
       const history = binReportHistoryRef.current.get(binId);
 
-      // Проверка за твърде много отчети за едно кошче
       if (history) {
         const timeSinceLastReport = now - history.lastReportTime;
         const reportsInLastDay = history.reportCount;
 
-        // Проверка за минимално време между отчети
         if (
           timeSinceLastReport <
           LIMITS.BIN_MIN_TIME_BETWEEN_REPORTS * 60 * 1000
@@ -609,7 +545,6 @@ const useReportSpamProtection = () => {
           };
         }
 
-        // Проверка за максимален брой отчети дневно
         if (reportsInLastDay >= LIMITS.BIN_MAX_REPORTS_PER_DAY) {
           return {
             allowed: false,
@@ -618,7 +553,6 @@ const useReportSpamProtection = () => {
         }
       }
 
-      // Проверка за общ брой отчети на потребителя
       const oneHourAgo = now - 60 * 60 * 1000;
       const recentUserReports = userReportHistory.filter(
         (time) => time > oneHourAgo,
@@ -631,7 +565,6 @@ const useReportSpamProtection = () => {
         };
       }
 
-      // Проверка за минимално време между общи отчети
       if (userReportHistory.length > 0) {
         const lastReportTime = userReportHistory[userReportHistory.length - 1];
         const timeSinceLastUserReport = now - lastReportTime;
@@ -658,18 +591,14 @@ const useReportSpamProtection = () => {
     [userReportHistory, LIMITS],
   );
 
-  // Функция за записване на отчет
   const recordReport = useCallback((binId: number) => {
     const now = Date.now();
     const history = binReportHistoryRef.current.get(binId);
 
-    // Актуализиране на историята за кошчето
     if (history) {
-      // Нулиране на брояча ако е минал ден
       const oneDayAgo = now - 24 * 60 * 60 * 1000;
       const reportCount =
         history.lastReportTime > oneDayAgo ? history.reportCount + 1 : 1;
-
       binReportHistoryRef.current.set(binId, {
         lastReportTime: now,
         reportCount,
@@ -681,14 +610,12 @@ const useReportSpamProtection = () => {
       });
     }
 
-    // Актуализиране на общата история на потребителя
     setUserReportHistory((prev) => {
       const oneHourAgo = now - 60 * 60 * 1000;
       const filtered = prev.filter((time) => time > oneHourAgo);
       return [...filtered, now];
     });
 
-    // Почистване на стара история от кошчетата (след 24 часа)
     const oneDayAgo = now - 24 * 60 * 60 * 1000;
     for (const [id, binHistory] of binReportHistoryRef.current) {
       if (binHistory.lastReportTime < oneDayAgo) {
@@ -697,7 +624,6 @@ const useReportSpamProtection = () => {
     }
   }, []);
 
-  // Функция за получаване на информация за лимитите
   const getLimitInfo = useCallback(
     (binId: number) => {
       const history = binReportHistoryRef.current.get(binId);
@@ -726,7 +652,6 @@ const useReportSpamProtection = () => {
   };
 };
 
-// Оптимизиран компонент за рендиране само на маркерите във видимата част на екрана
 const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
   filteredBins,
   zoom,
@@ -745,64 +670,46 @@ const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
   const prevFilteredBinsRef = useRef<Bin[]>([]);
   const prevZoomRef = useRef<number>(zoom);
 
-  // Функция за обновяване на видимите маркери - мемоизирана с useCallback
   const updateVisibleBins = useCallback(() => {
     if (!map || zoom < 10) {
-      if (visibleBins.length > 0) {
-        setVisibleBins([]);
-      }
+      if (visibleBins.length > 0) setVisibleBins([]);
       return;
     }
 
     const bounds = map.getBounds();
     const center = map.getCenter();
     const zoomLevel = map.getZoom();
-
-    // Динамичен лимит на маркерите за предотвратяване на лагване
     const maxMarkers = zoomLevel < 13 ? 50 : zoomLevel < 15 ? 100 : 200;
 
     const inViewport = filteredBins
       .filter((bin) => {
-        // ФИКС: Проверка за валидни координати
         if (
           bin.lat == null ||
           bin.lon == null ||
           isNaN(bin.lat) ||
           isNaN(bin.lon)
-        ) {
+        )
           return false;
-        }
-
         const latDiff = Math.abs(bin.lat - center.lat);
         const lngDiff = Math.abs(bin.lon - center.lng);
-
-        // Бърза филтрация по координатна разлика
         if (latDiff > 0.1 || lngDiff > 0.1) return false;
-
         return bounds.contains([bin.lat, bin.lon]);
       })
       .slice(0, maxMarkers);
 
-    // Проверка дали има промяна преди да се извика setVisibleBins
     const hasChanged =
       visibleBins.length !== inViewport.length ||
       !visibleBins.every((bin, index) => bin.id === inViewport[index]?.id);
 
-    if (hasChanged) {
-      setVisibleBins(inViewport);
-    }
-  }, [map, zoom, filteredBins, visibleBins]); // Добавяме visibleBins в зависимостите
+    if (hasChanged) setVisibleBins(inViewport);
+  }, [map, zoom, filteredBins, visibleBins]);
 
-  // Обновяване на видимите маркери при промяна на мащаба или списъка
   useEffect(() => {
     if (zoom < 10) {
-      if (visibleBins.length > 0) {
-        setVisibleBins([]);
-      }
+      if (visibleBins.length > 0) setVisibleBins([]);
       return;
     }
 
-    // Проверяваме дали има реална промяна преди да извикаме updateVisibleBins
     const filteredBinsChanged =
       prevFilteredBinsRef.current.length !== filteredBins.length ||
       !prevFilteredBinsRef.current.every(
@@ -812,54 +719,40 @@ const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
     const zoomChanged = prevZoomRef.current !== zoom;
 
     if (filteredBinsChanged || zoomChanged) {
-      // Изчакване на 100ms за стабилизиране на картата
       const timeoutId = setTimeout(updateVisibleBins, 100);
-
-      // Актуализираме референциите
       prevFilteredBinsRef.current = filteredBins;
       prevZoomRef.current = zoom;
-
       return () => clearTimeout(timeoutId);
     }
   }, [updateVisibleBins, zoom, filteredBins, visibleBins.length]);
 
-  // Слушател за събитието на преместване на картата
   useEffect(() => {
     if (!map || zoom < 10) return;
-
-    const handleMoveEnd = () => {
-      updateVisibleBins();
-    };
-
-    map.on("moveend", handleMoveEnd);
-
+    map.on("moveend", updateVisibleBins);
     return () => {
-      map.off("moveend", handleMoveEnd);
+      map.off("moveend", updateVisibleBins);
     };
   }, [map, zoom, updateVisibleBins]);
 
-  // Първоначално зареждане при монтиране
   useEffect(() => {
     if (map && zoom >= 10) {
       const timeoutId = setTimeout(updateVisibleBins, 300);
       return () => clearTimeout(timeoutId);
     }
-  }, []); // Празен масив - изпълнява се само веднъж
+  }, []);
 
   if (zoom < 10) return null;
 
   return (
     <>
       {visibleBins.map((bin) => {
-        // Пропускане на кошовете с невалидни координати
         if (
           bin.lat == null ||
           bin.lon == null ||
           isNaN(bin.lat) ||
           isNaN(bin.lon)
-        ) {
+        )
           return null;
-        }
 
         const acceptedMaterials = Object.entries(bin.tags)
           .filter(([k, v]) => k.startsWith("recycling:") && v === "yes")
@@ -1034,27 +927,28 @@ const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
 });
 
 // Функция за проверка на администраторски статус
-const checkAdminStatus = async (userId: string): Promise<boolean> => {
+const checkAdminStatus = async (
+  supabase: ReturnType<typeof createBrowserClient>,
+  userId: string,
+): Promise<boolean> => {
   try {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from("profiles")
       .select("is_admin")
       .eq("id", userId)
       .single();
     return data?.is_admin === true;
   } catch (error) {
-    if (isDev) {
-      console.error(
-        "Error occured while checking for user admin status: ",
-        error,
-      );
-    }
+    if (isDev) console.error("Error checking admin status:", error);
     return false;
   }
 };
 
 // Функция за получаване на отчети за кош
-const getBinReports = async (binId: string): Promise<Report[]> => {
+const getBinReports = async (
+  supabase: ReturnType<typeof createBrowserClient>,
+  binId: string,
+): Promise<Report[]> => {
   try {
     const { data, error } = await supabase
       .from("reports")
@@ -1070,64 +964,7 @@ const getBinReports = async (binId: string): Promise<Report[]> => {
   }
 };
 
-// Функция за маркиране на отчет като разрешен
-const resolveReport = async (
-  reportId: string,
-  userId: string,
-): Promise<boolean> => {
-  try {
-    // Проверка за администраторски права
-    const isAdmin = await checkAdminStatus(userId);
-    if (!isAdmin) return false;
-
-    const { error } = await supabase
-      .from("reports")
-      .update({
-        resolved: true,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", reportId);
-
-    if (error) {
-      console.error("Грешка при разрешаване на отчет:", error);
-      return false;
-    }
-
-    return true;
-  } catch (error) {
-    console.error("Грешка:", error);
-    return false;
-  }
-};
-
-// Функция за изтриване на отчет
-const deleteReport = async (
-  reportId: string,
-  userId: string,
-): Promise<boolean> => {
-  try {
-    // Проверка за администраторски права
-    const isAdmin = await checkAdminStatus(userId);
-    if (!isAdmin) return false;
-
-    const { error } = await supabase
-      .from("reports")
-      .delete()
-      .eq("id", reportId);
-
-    if (error) {
-      console.error("Грешка при изтриване на отчет:", error);
-      return false;
-    }
-
-    return true;
-  } catch (error) {
-    console.error("Грешка:", error);
-    return false;
-  }
-};
-
-// Модален прозорец за добавяне на нов контейнер от потребител
+// Модален прозорец
 const AddBinModal = memo(function AddBinModal({
   isModalOpen,
   modalMode,
@@ -1155,11 +992,7 @@ const AddBinModal = memo(function AddBinModal({
   modalMode: ModalMode;
   tempMarkerPosition: [number, number] | null;
   formData: BinFormData;
-  reportData: {
-    type: string;
-    title: string;
-    description: string;
-  };
+  reportData: { type: string; title: string; description: string };
   editData: EditFormData;
   handleModalCancel: () => void;
   handleFormSubmit: (e: React.FormEvent) => void;
@@ -1270,7 +1103,7 @@ const AddBinModal = memo(function AddBinModal({
                   <input
                     value={reportData.title}
                     onChange={(e) => updateReport("title", e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-900 dark:text-white dark:bg-neutral-800 focus:ring-2 focus:ring-green-500\ focus:border-green-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-900 dark:text-white dark:bg-neutral-800 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                     required
                     placeholder="Напр. Кошчето е препълнено"
                     disabled={isSubmitting || uploadingImages}
@@ -1326,7 +1159,6 @@ const AddBinModal = memo(function AddBinModal({
                         />
                       </label>
                     )}
-
                     {reportImages.length > 0 && (
                       <div className="grid grid-cols-2 gap-2">
                         {reportImages.map((image, index) => (
@@ -1340,10 +1172,7 @@ const AddBinModal = memo(function AddBinModal({
                             />
                             <button
                               type="button"
-                              onClick={() =>
-                                handleRemoveBinImage &&
-                                handleRemoveBinImage(index)
-                              }
+                              onClick={() => handleRemoveImage(index)}
                               className="absolute top-1 right-1 p-1 opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center w-5 h-5"
                               disabled={isSubmitting || uploadingBinImages}
                             >
@@ -1356,7 +1185,6 @@ const AddBinModal = memo(function AddBinModal({
                         ))}
                       </div>
                     )}
-
                     {uploadingImages && (
                       <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                         <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
@@ -1380,7 +1208,6 @@ const AddBinModal = memo(function AddBinModal({
                     disabled={isSubmitting}
                   />
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Работно време (по избор)
@@ -1395,7 +1222,6 @@ const AddBinModal = memo(function AddBinModal({
                     disabled={isSubmitting}
                   />
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Материали за рециклиране (разделени със запетая)
@@ -1409,7 +1235,6 @@ const AddBinModal = memo(function AddBinModal({
                         .split(",")
                         .map((m) => m.trim())
                         .filter((m) => m !== "");
-
                       updateEdit("materials", materialsArray);
                     }}
                     className="w-full h-32 resize-none px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-900 dark:text-white dark:bg-neutral-800 focus:ring-2 focus:ring-green-500 focus:border-green-500"
@@ -1421,7 +1246,6 @@ const AddBinModal = memo(function AddBinModal({
                     Въведете материали, разделени със запетая
                   </p>
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Допълнителни бележки
@@ -1458,7 +1282,6 @@ const AddBinModal = memo(function AddBinModal({
                     <option value="other">Друго</option>
                   </select>
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Тип рециклиране
@@ -1479,7 +1302,6 @@ const AddBinModal = memo(function AddBinModal({
                         value: "органични отпадъци",
                         label: "Органични отпадъци",
                       },
-                      { value: "биоотпадъци", label: "Биоотпадъци" },
                       { value: "общи отпадъци", label: "Общи отпадъци" },
                     ].map((option) => {
                       const currentTypes = formData.recycling_type
@@ -1488,7 +1310,6 @@ const AddBinModal = memo(function AddBinModal({
                             .map((t) => t.trim())
                         : [];
                       const isChecked = currentTypes.includes(option.value);
-
                       return (
                         <div key={option.value} className="flex items-center">
                           <input
@@ -1501,14 +1322,11 @@ const AddBinModal = memo(function AddBinModal({
                                     .split(",")
                                     .map((t) => t.trim())
                                 : [];
-                              let newTypes;
-                              if (e.target.checked) {
-                                newTypes = [...currentTypes, option.value];
-                              } else {
-                                newTypes = currentTypes.filter(
-                                  (t) => t !== option.value,
-                                );
-                              }
+                              const newTypes = e.target.checked
+                                ? [...currentTypes, option.value]
+                                : currentTypes.filter(
+                                    (t) => t !== option.value,
+                                  );
                               handleInputChange(
                                 "recycling_type",
                                 newTypes.join(", "),
@@ -1528,7 +1346,6 @@ const AddBinModal = memo(function AddBinModal({
                     })}
                   </div>
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Оператор
@@ -1543,7 +1360,6 @@ const AddBinModal = memo(function AddBinModal({
                     disabled={isSubmitting}
                   />
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Брой контейнери
@@ -1563,12 +1379,10 @@ const AddBinModal = memo(function AddBinModal({
                     disabled={isSubmitting}
                   />
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Снимка на коша
                   </label>
-
                   <div className="space-y-3">
                     {binImages.length < 5 && (
                       <label className="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-gray-300 dark:border-neutral-600 rounded-lg cursor-pointer hover:border-gray-400 dark:hover:border-neutral-500 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors">
@@ -1598,7 +1412,6 @@ const AddBinModal = memo(function AddBinModal({
                         />
                       </label>
                     )}
-
                     {binImages.length > 0 && (
                       <div className="grid grid-cols-2 gap-2">
                         {binImages.map((image, index) => (
@@ -1629,7 +1442,6 @@ const AddBinModal = memo(function AddBinModal({
                         ))}
                       </div>
                     )}
-
                     {uploadingBinImages && (
                       <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                         <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
@@ -1678,10 +1490,18 @@ export default function MapComponent({
   onNewBinCreated,
   jawgApiKey,
 }: MapProps) {
+  const supabase = useMemo(
+    () =>
+      createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      ),
+    [],
+  );
+
   const mapRef = useRef<L.Map | null>(null);
   const [isMounted, setIsMounted] = useState(false);
 
-  // states за изображения
   const [binImages, setBinImages] = useState<File[]>([]);
   const [uploadingBinImages, setUploadingBinImages] = useState(false);
 
@@ -1698,22 +1518,17 @@ export default function MapComponent({
   useEffect(() => {
     const applyPopupStyles = () => {
       const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-
       if (isDark) {
-        const popups = document.querySelectorAll(".leaflet-popup");
-        popups.forEach((popup) => {
-          popup.classList.add("dark-mode-popup");
-        });
+        document
+          .querySelectorAll(".leaflet-popup")
+          .forEach((popup) => popup.classList.add("dark-mode-popup"));
       }
     };
-
     applyPopupStyles();
     const interval = setInterval(applyPopupStyles, 500);
-
     return () => clearInterval(interval);
   }, []);
 
-  // Филтриране на кошовете с валидни координати
   const validBins = useMemo(
     () =>
       bins.filter(
@@ -1726,7 +1541,6 @@ export default function MapComponent({
     [bins],
   );
 
-  // Състояние за геолокация и настройки
   const [userLocation, setUserLocation] = useState<[number, number] | null>(
     null,
   );
@@ -1734,28 +1548,21 @@ export default function MapComponent({
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const [showFilterPanel, setShowFilterPanel] = useState(false);
 
-  // Начални координати
   const DEFAULT_CENTER: [number, number] = [42.6, 25.11];
-  let DEFAULT_ZOOM = 8;
+  const DEFAULT_ZOOM = 8;
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
 
-  // Модал състояния
   const [modalMode, setModalMode] = useState<ModalMode>("add");
   const [selectedBin, setSelectedBin] = useState<Bin | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Състояние за отчети на избраното кошче
   const [binReports, setBinReports] = useState<Report[]>([]);
   const [isLoadingReports, setIsLoadingReports] = useState(false);
 
   const [reportImages, setReportImages] = useState<File[]>([]);
   const [uploadingImages, setUploadingImages] = useState(false);
 
-  // Състояние за текущия потребител
-  const [currentUser, setCurrentUser] = useState<any>(null);
-
-  // Състояния за управление на формата за нов маркер
   const [tempMarkerPosition, setTempMarkerPosition] = useState<
     [number, number] | null
   >(null);
@@ -1768,14 +1575,11 @@ export default function MapComponent({
     count: 1,
   });
 
-  // Състояние за докладване
   const [reportData, setReportData] = useState({
     type: "",
     title: "",
     description: "",
   });
-
-  // Състояние за редактиране
   const [editData, setEditData] = useState<EditFormData>({
     name: "",
     opening_hours: "",
@@ -1783,25 +1587,21 @@ export default function MapComponent({
     notes: "",
   });
 
-  // Инициализиране на анти-спам системата
   const spamProtection = useReportSpamProtection();
 
   useEffect(() => {
     return () => {
       binImages.forEach((image) => {
-        if (image instanceof File) {
+        if (image instanceof File)
           URL.revokeObjectURL(URL.createObjectURL(image));
-        }
       });
       reportImages.forEach((image) => {
-        if (image instanceof File) {
+        if (image instanceof File)
           URL.revokeObjectURL(URL.createObjectURL(image));
-        }
       });
     };
   }, [binImages, reportImages]);
 
-  // Мемоизирана икона за временния маркер при добавяне
   const tempMarkerIcon = useMemo(() => {
     const html = renderToString(
       <div className="relative">
@@ -1826,44 +1626,31 @@ export default function MapComponent({
     });
   }, []);
 
-  // Кеширане на материалите за всеки контейнер за по-бързо филтриране
   const binMaterialCache = useMemo(() => {
     const cache = new Map<number, Set<string>>();
-
     validBins.forEach((bin) => {
-      // Използване на validBins вместо bins
       const materials = new Set<string>();
-
-      // Добавяне на материали от recycling_type
       if (bin.tags?.recycling_type) {
-        bin.tags.recycling_type.split(",").forEach((type: string) => {
-          materials.add(type.trim().toLowerCase());
-        });
+        bin.tags.recycling_type
+          .split(",")
+          .forEach((type: string) => materials.add(type.trim().toLowerCase()));
       }
-
-      // Добавяне на материали от recycling:* тагове
       Object.keys(bin.tags).forEach((key) => {
         if (key.startsWith("recycling:") && bin.tags[key] === "yes") {
-          const material = key.replace("recycling:", "").trim().toLowerCase();
-          materials.add(material);
+          materials.add(key.replace("recycling:", "").trim().toLowerCase());
         }
       });
-
       cache.set(bin.id, materials);
     });
-
     return cache;
   }, [validBins]);
 
-  /* Тъмен режим – безопасно за SSR */
   useEffect(() => {
     setPrefersDark(window.matchMedia("(prefers-color-scheme: dark)").matches);
   }, []);
 
-  /* Получаване на текущата локация */
   useEffect(() => {
     if (!navigator.geolocation) return;
-
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const loc: [number, number] = [
@@ -1871,40 +1658,17 @@ export default function MapComponent({
           position.coords.longitude,
         ];
         setUserLocation(loc);
-        DEFAULT_ZOOM = 12;
-        mapRef.current?.setView(loc, DEFAULT_ZOOM);
+        if (mapRef.current) {
+          mapRef.current.flyTo(loc, 16, {
+            duration: 2.75,
+            easeLinearity: 0.25,
+            animate: true,
+          });
+        }
       },
       (err) => console.warn("Грешка при геолокация:", err),
+      { enableHighAccuracy: true },
     );
-  }, []);
-
-  /* Получаване на текущия потребител */
-  useEffect(() => {
-    const getCurrentUser = async () => {
-      try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        if (session?.user) {
-          setCurrentUser(session.user);
-        }
-      } catch (error) {
-        console.error("Грешка при получаване на потребител:", error);
-      }
-    };
-
-    getCurrentUser();
-
-    // Слушател за промени в автентикацията
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      setCurrentUser(session?.user || null);
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
   }, []);
 
   useEffect(() => setIsMounted(true), []);
@@ -1915,120 +1679,77 @@ export default function MapComponent({
     }
   }, [isMounted]);
 
-  /* Проверка дали кошче приема материали - оптимизирана версия */
-  const binAcceptsMaterial = useCallback(
-    (bin: Bin, materialKeywords: string[]): boolean => {
-      const materials = binMaterialCache.get(bin.id);
-      if (!materials) return false;
-
-      // Проверка за всяка ключова дума
-      for (const keyword of materialKeywords) {
-        // Директна проверка в Set
-        if (materials.has(keyword)) return true;
-
-        // Проверка за частично съвпадение
-        for (const material of materials) {
-          if (material.includes(keyword) || keyword.includes(material)) {
-            return true;
-          }
-        }
-      }
-
-      return false;
-    },
-    [binMaterialCache],
-  );
-
-  /* Филтриране на кошчетата */
   const filteredBins = useMemo(() => {
     if (activeFilters.length === 0) return validBins;
-
     return validBins.filter((bin) => {
       const materials = binMaterialCache.get(bin.id);
       if (!materials) return false;
-
       return activeFilters.every((filterId) => {
         const filter = FILTER_OPTIONS.find((f) => f.id === filterId);
         if (!filter) return false;
-
         return filter.keywords.some((keyword) => {
           if (materials.has(keyword)) return true;
-
           for (const material of materials) {
-            if (material.includes(keyword) || keyword.includes(material)) {
+            if (material.includes(keyword) || keyword.includes(material))
               return true;
-            }
           }
-
           return false;
         });
       });
     });
   }, [validBins, activeFilters, binMaterialCache]);
 
-  /* Превключване на филтър */
   const toggleFilter = useCallback((filterId: string) => {
-    setActiveFilters((prev) => {
-      if (prev.includes(filterId)) {
-        return prev.filter((id) => id !== filterId);
-      } else {
-        return [...prev, filterId];
+    setActiveFilters((prev) =>
+      prev.includes(filterId)
+        ? prev.filter((id) => id !== filterId)
+        : [...prev, filterId],
+    );
+  }, []);
+
+  const clearAllFilters = useCallback(() => setActiveFilters([]), []);
+  const removeFilter = useCallback(
+    (filterId: string) =>
+      setActiveFilters((prev) => prev.filter((id) => id !== filterId)),
+    [],
+  );
+
+  const loadBinReports = useCallback(
+    async (binId: string) => {
+      if (!binId) return;
+      setIsLoadingReports(true);
+      try {
+        const reports = await getBinReports(supabase, binId);
+        setBinReports(reports);
+      } catch (error) {
+        console.error("Грешка при зареждане на отчети:", error);
+      } finally {
+        setIsLoadingReports(false);
       }
-    });
-  }, []);
-
-  /* Изчистване на всички филтри */
-  const clearAllFilters = useCallback(() => {
-    setActiveFilters([]);
-  }, []);
-
-  /* Премахване на филтър */
-  const removeFilter = useCallback((filterId: string) => {
-    setActiveFilters((prev) => prev.filter((id) => id !== filterId));
-  }, []);
-
-  // Функция за зареждане на отчети за кош
-  const loadBinReports = useCallback(async (binId: string) => {
-    if (!binId) return;
-
-    setIsLoadingReports(true);
-    try {
-      const reports = await getBinReports(binId);
-      setBinReports(reports);
-    } catch (error) {
-      console.error("Грешка при зареждане на отчети:", error);
-    } finally {
-      setIsLoadingReports(false);
-    }
-  }, []);
+    },
+    [supabase],
+  );
 
   const handleZoomHome = () => {
     const map = mapRef.current;
     if (!map) return;
-
     const previousBounds = map.getBounds();
     let isLocationFound = false;
 
     const onLocationFound = (e: L.LocationEvent) => {
       isLocationFound = true;
-      const targetZoom = 20;
-      const targetLatLng = e.latlng;
-
-      map.flyTo(targetLatLng, targetZoom, {
+      map.flyTo(e.latlng, 20, {
         animate: true,
         duration: 2.5,
         easeLinearity: 0.25,
         noMoveStart: true,
       });
     };
-
-    const onLocationError = (e: L.ErrorEvent) => {
+    const onLocationError = (e: L.ErrorEvent) =>
       console.warn("Грешка при определяне на локация:", e.message);
-    };
 
     map.once("locationfound", onLocationFound);
     map.once("locationerror", onLocationError);
-
     map.locate({
       setView: false,
       watch: false,
@@ -2040,7 +1761,6 @@ export default function MapComponent({
       if (!isLocationFound && map) {
         map.off("locationfound", onLocationFound);
         map.off("locationerror", onLocationError);
-
         map.flyToBounds(previousBounds, {
           animate: true,
           duration: 1.5,
@@ -2074,23 +1794,13 @@ export default function MapComponent({
 
   const handleModalCancel = useCallback(() => {
     if (isSubmitting || uploadingImages) return;
-
     setIsModalOpen(false);
     setTempMarkerPosition(null);
     setSelectedBin(null);
     setIsSubmitting(false);
-    setReportData({
-      type: "",
-      title: "",
-      description: "",
-    });
+    setReportData({ type: "", title: "", description: "" });
     setReportImages([]);
-    setEditData({
-      name: "",
-      opening_hours: "",
-      materials: [],
-      notes: "",
-    });
+    setEditData({ name: "", opening_hours: "", materials: [], notes: "" });
     setFormData({
       amenity: "recycling",
       recycling_type: "",
@@ -2104,188 +1814,149 @@ export default function MapComponent({
 
   const handleReport = useCallback(
     (bin: Bin) => {
-      if (!currentUser) {
-        alert("Моля, влезте в профила си, за да докладвате проблем.");
-        return;
-      }
-
       const canReport = spamProtection.canReportBin(bin.id);
-
       if (!canReport.allowed) {
-        if (typeof window !== "undefined") {
-          alert(canReport.message || "Отчетът не е позволен в момента.");
-        }
+        alert(canReport.message || "Отчетът не е позволен в момента.");
         return;
       }
-
       setSelectedBin(bin);
       setModalMode("report");
       setIsModalOpen(true);
-      setReportData({
-        type: "",
-        title: "",
-        description: "",
-      });
+      setReportData({ type: "", title: "", description: "" });
       loadBinReports(bin.id.toString());
     },
-    [spamProtection, currentUser, loadBinReports],
+    [spamProtection, loadBinReports],
   );
 
-  const handleEdit = useCallback(
-    (bin: Bin) => {
-      if (!currentUser) {
-        alert("Моля, влезте в профила си, за да предложите редактиране.");
-        return;
-      }
+  const handleEdit = useCallback((bin: Bin) => {
+    setSelectedBin(bin);
+    setModalMode("edit");
+    setIsModalOpen(true);
+    const currentMaterials = Object.entries(bin.tags)
+      .filter(([k, v]) => k.startsWith("recycling:") && v === "yes")
+      .map(([k]) => k.replace("recycling:", "").replace(/_/g, " "));
+    setEditData({
+      name: bin.tags?.name || "",
+      opening_hours: bin.tags?.opening_hours || "",
+      materials: currentMaterials,
+      notes: "",
+    });
+  }, []);
 
-      setSelectedBin(bin);
-      setModalMode("edit");
-      setIsModalOpen(true);
-
-      const currentMaterials = Object.entries(bin.tags)
-        .filter(([k, v]) => k.startsWith("recycling:") && v === "yes")
-        .map(([k]) => k.replace("recycling:", "").replace(/_/g, " "));
-
-      setEditData({
-        name: bin.tags?.name || "",
-        opening_hours: bin.tags?.opening_hours || "",
-        materials: currentMaterials,
-        notes: "",
-      });
-    },
-    [currentUser],
+  const updateReport = useCallback(
+    (key: string, value: string) =>
+      setReportData((prev) => ({ ...prev, [key]: value })),
+    [],
   );
-
-  const updateReport = useCallback((key: string, value: string) => {
-    setReportData((prev) => ({ ...prev, [key]: value }));
-  }, []);
-
-  const updateEdit = useCallback((key: string, value: string | string[]) => {
-    setEditData((prev) => ({ ...prev, [key]: value }));
-  }, []);
-
+  const updateEdit = useCallback(
+    (key: string, value: string | string[]) =>
+      setEditData((prev) => ({ ...prev, [key]: value })),
+    [],
+  );
   const isReportDisabled = useCallback(
-    (binId: number): boolean => {
-      const canReport = spamProtection.canReportBin(binId);
-      return !canReport.allowed;
-    },
+    (binId: number): boolean => !spamProtection.canReportBin(binId).allowed,
     [spamProtection],
   );
 
   const generateRandomCode = (): string => {
     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     let result = "";
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < 8; i++)
       result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
     return result;
   };
 
-  const submitReportToSupabase = async (reportData: {
+  const submitReportToSupabase = async (reportPayload: {
     bin_id: string;
     type: ReportType;
     title: string;
     description?: string | null;
   }) => {
-    if (!currentUser) {
-      throw new Error("Потребителят не е влязъл в системата.");
-    }
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const userId = session?.user?.id ?? null;
 
-    const { data: reportDataResult, error } = await supabase
-      .from("reports")
-      .insert([
-        {
-          bin_id: reportData.bin_id,
-          type: reportData.type,
-          title: reportData.title,
-          description: reportData.description,
-          user_id: currentUser.id,
-          resolved: false,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        },
-      ])
-      .select();
+      const { data: reportDataResult, error: reportError } = await supabase
+        .from("reports")
+        .insert([
+          {
+            bin_id: reportPayload.bin_id,
+            type: reportPayload.type,
+            title: reportPayload.title,
+            description: reportPayload.description,
+            user_id: userId,
+            resolved: false,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          },
+        ])
+        .select();
 
-    if (error) {
-      throw error;
-    }
+      if (reportError) throw reportError;
 
-    if (reportImages.length > 0 && reportDataResult && reportDataResult[0]) {
-      setUploadingImages(true);
-      const reportId = reportDataResult[0].id;
+      if (reportImages.length > 0 && reportDataResult?.[0]) {
+        setUploadingImages(true);
+        const reportId = reportDataResult[0].id;
 
-      for (const image of reportImages) {
-        try {
+        for (const image of reportImages) {
           const fileExt = image.name.split(".").pop();
-          const fileName = `${reportId}-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-          const filePath = fileName;
+          const fileName = `${reportId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
 
-          const { data: uploadData, error: uploadError } =
-            await supabase.storage
-              .from("report-photos")
-              .upload(filePath, image, {
-                cacheControl: "3600",
-                upsert: false,
-              });
-
+          const { error: uploadError } = await supabase.storage
+            .from("report-photos")
+            .upload(fileName, image);
           if (uploadError) {
-            console.error("Error uploading image to storage:", uploadError);
+            console.error("Storage error:", uploadError);
             continue;
           }
 
           const {
             data: { publicUrl },
-          } = supabase.storage.from("report-photos").getPublicUrl(filePath);
-
-          const { error: dbInsertError } = await supabase
-            .from("report_photos")
-            .insert([
-              {
-                report_id: reportId,
-                photo_url: publicUrl,
-                user_id: currentUser.id,
-                created_at: new Date().toISOString(),
-              },
-            ]);
-
-          if (dbInsertError) {
-            console.error(
-              "Error saving image to report_photos table:",
-              dbInsertError,
-            );
-          }
-        } catch (err) {
-          console.error("Error processing image:", err);
+          } = supabase.storage.from("report-photos").getPublicUrl(fileName);
+          await supabase.from("report_photos").insert([
+            {
+              report_id: reportId,
+              photo_url: publicUrl,
+              user_id: userId,
+              created_at: new Date().toISOString(),
+            },
+          ]);
         }
+        setUploadingImages(false);
+        setReportImages([]);
       }
-      setUploadingImages(false);
-    }
 
-    return reportDataResult;
+      return reportDataResult;
+    } catch (error: any) {
+      console.error("Full Report Error:", error);
+      throw error;
+    }
   };
 
-  const submitEditSuggestionToSupabase = async (editData: {
+  const submitEditSuggestionToSupabase = async (editPayload: {
     bin_id: string;
     name?: string;
     opening_hours?: string;
     materials?: string[];
     notes?: string;
   }) => {
-    if (!currentUser) {
-      throw new Error("Потребителят не е влязъл в системата.");
-    }
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const userId = session?.user?.id ?? null;
 
     const { data, error } = await supabase
       .from("edit_suggestions")
       .insert([
         {
-          bin_id: editData.bin_id,
-          name: editData.name,
-          opening_hours: editData.opening_hours,
-          materials: editData.materials?.join(", "),
-          notes: editData.notes,
-          user_id: currentUser.id,
+          bin_id: editPayload.bin_id,
+          name: editPayload.name,
+          opening_hours: editPayload.opening_hours,
+          materials: editPayload.materials?.join(", "),
+          notes: editPayload.notes,
+          user_id: userId,
           status: "pending",
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
@@ -2293,10 +1964,7 @@ export default function MapComponent({
       ])
       .select();
 
-    if (error) {
-      throw error;
-    }
-
+    if (error) throw error;
     return data;
   };
 
@@ -2309,66 +1977,79 @@ export default function MapComponent({
   }) => {
     try {
       const {
-        data: { user },
-      } = await supabase.auth.getUser();
+        data: { session },
+      } = await supabase.auth.getSession();
+      const userId = session?.user?.id ?? null;
 
-      if (!user) throw new Error("Потребителят не е влязъл в системата.");
-
-      // вмъкване на изображения
-      const { data, error } = await supabase
+      const { data, error: insertError } = await supabase
         .from("pending_bins")
         .insert({
-          user_id: user.id,
+          user_id: userId,
           lat: binData.lat,
           lon: binData.lon,
-          tags: binData.tags,
+          tags:
+            typeof binData.tags === "object"
+              ? JSON.stringify(binData.tags)
+              : binData.tags,
           code: binData.code,
           status: "pending",
+          created_at: new Date().toISOString(),
         })
         .select();
 
-      if (error) throw error;
+      if (insertError) throw insertError;
       const newBin = data[0];
 
-      // качване на снимки
       if (binData.images && binData.images.length > 0) {
-        for (const image of binData.images) {
-          const fileExt = image.name.split(".").pop();
-          const fileName = `${newBin.id}-${Date.now()}-${Math.random()
-            .toString(36)
-            .substring(7)}.${fileExt}`;
-          const filePath = fileName;
+        setUploadingBinImages(true);
+        try {
+          for (const image of binData.images) {
+            const fileExt = image.type.split("/").pop() ?? "jpg";
+            const fileName = `${newBin.id}-${crypto.randomUUID()}.${fileExt}`;
 
-          const { data: uploadData, error: uploadError } =
-            await supabase.storage
+            const { error: uploadError } = await supabase.storage
               .from("bins")
-              .upload(filePath, image, { cacheControl: "3600", upsert: false });
+              .upload(fileName, image, { upsert: false });
 
-          if (uploadError) {
-            console.error("Error uploading bin image:", uploadError);
-            continue;
+            if (uploadError) {
+              console.error("Upload error:", uploadError);
+              continue;
+            }
+
+            const {
+              data: { publicUrl },
+            } = supabase.storage.from("bins").getPublicUrl(fileName);
+
+            console.log(
+              "Uploading to pending_bins id:",
+              newBin.id,
+              "url:",
+              publicUrl,
+            );
+
+            const { data: updateData, error: updateError } = await supabase
+              .from("pending_bins")
+              .update({
+                image_url: publicUrl,
+                updated_at: new Date().toISOString(),
+              })
+              .eq("id", newBin.id)
+              .select();
+
+            console.log("Update result:", updateData, updateError);
+
+            if (updateError) {
+              console.error("Image URL update error:", updateError);
+            }
           }
-
-          const {
-            data: { publicUrl },
-          } = supabase.storage.from("bins").getPublicUrl(filePath);
-
-          const { error: dbUpdateError } = await supabase
-            .from("pending_bins")
-            .update({
-              image_url: publicUrl,
-              updated_at: new Date().toISOString(),
-            })
-            .eq("id", newBin.id);
-
-          if (dbUpdateError)
-            console.error("Error saving bin image URL:", dbUpdateError);
+        } finally {
+          setUploadingBinImages(false);
         }
       }
 
       return data;
-    } catch (error) {
-      console.error("Грешка при записване на кошче в pending_bins:", error);
+    } catch (error: any) {
+      console.error("Pending Bin Error:", error);
       throw error;
     }
   };
@@ -2376,13 +2057,14 @@ export default function MapComponent({
   const handleFormSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
-
       if (isSubmitting || uploadingImages) return;
+
       setIsSubmitting(true);
 
       try {
         if (modalMode === "report") {
           if (!selectedBin) throw new Error("Грешка: Не е избрано кошче.");
+
           const canReport = spamProtection.canReportBin(selectedBin.id);
           if (!canReport.allowed)
             throw new Error(canReport.message || "Отчетът вече не е позволен.");
@@ -2393,24 +2075,22 @@ export default function MapComponent({
             title: reportData.title,
             description: reportData.description || null,
           });
+
           spamProtection.recordReport(selectedBin.id);
-
-          if (typeof window !== "undefined") {
-            alert(
-              "Отчетът е изпратен успешно! Може да бъде прегледан от администратор.",
-            );
-          }
-
+          alert(
+            "Отчетът е изпратен успешно! Може да бъде прегледан от администратор.",
+          );
           setIsModalOpen(false);
           setReportData({ type: "", title: "", description: "" });
           setReportImages([]);
+          loadBinReports(selectedBin.id.toString());
           setSelectedBin(null);
-          if (selectedBin) loadBinReports(selectedBin.id.toString());
           return;
         }
 
         if (modalMode === "edit") {
           if (!selectedBin) throw new Error("Грешка: Не е избрано кошче.");
+
           await submitEditSuggestionToSupabase({
             bin_id: selectedBin.id.toString(),
             name: editData.name || undefined,
@@ -2419,12 +2099,9 @@ export default function MapComponent({
             notes: editData.notes || undefined,
           });
 
-          if (typeof window !== "undefined") {
-            alert(
-              "Предложението за редактиране е изпратено успешно! Може да бъде прегледано от администратор.",
-            );
-          }
-
+          alert(
+            "Предложението за редактиране е изпратено успешно! Може да бъде прегледано от администратор.",
+          );
           setIsModalOpen(false);
           setEditData({
             name: "",
@@ -2450,7 +2127,6 @@ export default function MapComponent({
 
         const code = generateRandomCode();
 
-        // изпращане на формуляра
         const result = await submitBinToPending({
           lat: tempMarkerPosition[0],
           lon: tempMarkerPosition[1],
@@ -2459,9 +2135,6 @@ export default function MapComponent({
           images: binImages,
         });
 
-        console.log("Кошчето е записано успешно в pending_bins:", result);
-
-        // опресняване на кошовете
         if (onNewBinCreated) {
           const newBin: NewBin = {
             id: result[0].id,
@@ -2483,7 +2156,6 @@ export default function MapComponent({
           onNewBinCreated(newBin);
         }
 
-        // изчистване на формуляра
         setIsModalOpen(false);
         setTempMarkerPosition(null);
         setFormData({
@@ -2495,12 +2167,9 @@ export default function MapComponent({
           count: 1,
         });
         setBinImages([]);
-
-        if (typeof window !== "undefined") {
-          alert(
-            "Кошчето е добавено успешно! Ще бъде прегледано от администратор преди да се появи на картата.",
-          );
-        }
+        alert(
+          "Кошчето е добавено успешно! Ще бъде прегледано от администратор преди да се появи на картата.",
+        );
       } catch (error: any) {
         console.error("Грешка при изпращане на формата:", error);
         alert(`Грешка: ${error.message || "Моля, опитайте отново."}`);
@@ -2509,18 +2178,17 @@ export default function MapComponent({
       }
     },
     [
-      tempMarkerPosition,
-      formData,
-      onNewBinCreated,
+      isSubmitting,
+      uploadingImages,
       modalMode,
       reportData,
       selectedBin,
       editData,
-      isSubmitting,
-      uploadingImages,
+      tempMarkerPosition,
+      formData,
       binImages,
       spamProtection,
-      currentUser,
+      onNewBinCreated,
       loadBinReports,
     ],
   );
@@ -2529,39 +2197,35 @@ export default function MapComponent({
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const files = e.target.files;
       if (files) {
-        const newImages = Array.from(files).slice(0, 5 - reportImages.length); // Max 5 images
+        const newImages = Array.from(files).slice(0, 5 - reportImages.length);
         setReportImages((prev) => [...prev, ...newImages]);
       }
     },
     [reportImages.length],
   );
 
-  const handleRemoveImage = useCallback((index: number) => {
-    setReportImages((prev) => prev.filter((_, i) => i !== index));
-  }, []);
-
-  const handleInputChange = useCallback(
-    (field: keyof BinFormData, value: string | boolean | number) => {
-      setFormData((prev) => ({ ...prev, [field]: value }));
-    },
+  const handleRemoveImage = useCallback(
+    (index: number) =>
+      setReportImages((prev) => prev.filter((_, i) => i !== index)),
     [],
   );
 
-  // Получаване на информация за лимитите за текущо избраното кошче
+  const handleInputChange = useCallback(
+    (field: keyof BinFormData, value: string | boolean | number) =>
+      setFormData((prev) => ({ ...prev, [field]: value })),
+    [],
+  );
+
   const reportLimitsInfo = useMemo(() => {
     if (!selectedBin) return undefined;
     return spamProtection.getLimitInfo(selectedBin.id);
   }, [selectedBin, spamProtection]);
 
-  // Функция за получаване на броя неразрешени отчети
-  const getUnresolvedReportsCount = useMemo(() => {
-    return binReports.filter((report) => !report.resolved).length;
-  }, [binReports]);
-
-  // Функция за получаване на общия брой отчети
-  const getTotalReportsCount = useMemo(() => {
-    return binReports.length;
-  }, [binReports]);
+  const getUnresolvedReportsCount = useMemo(
+    () => binReports.filter((r) => !r.resolved).length,
+    [binReports],
+  );
+  const getTotalReportsCount = useMemo(() => binReports.length, [binReports]);
 
   if (!isMounted) {
     return (
@@ -2573,14 +2237,11 @@ export default function MapComponent({
 
   return (
     <div className="relative h-full w-full">
-      {/* Копче за нулиране на изгледа */}
       <MapHome
         onZoomHome={handleZoomHome}
         isSubmitting={isSubmitting}
         uploadingImages={uploadingImages}
       />
-
-      {/* Копче за показване/скриване на филтрите */}
       <MapFilter
         setShowFilterPanel={setShowFilterPanel}
         showFilterPanel={showFilterPanel}
@@ -2588,8 +2249,6 @@ export default function MapComponent({
         isSubmitting={isSubmitting}
         uploadingImages={uploadingImages}
       />
-
-      {/* Панел с филтри */}
       <FilterPanel
         showFilterPanel={showFilterPanel}
         setShowFilterPanel={setShowFilterPanel}
@@ -2601,7 +2260,6 @@ export default function MapComponent({
         bins={validBins}
       />
 
-      {/* модален прозорец */}
       <AddBinModal
         isModalOpen={isModalOpen}
         modalMode={modalMode}
@@ -2626,7 +2284,6 @@ export default function MapComponent({
         handleRemoveBinImage={handleRemoveBinImage}
       />
 
-      {/* брой отчети индикатор */}
       {modalMode === "report" && selectedBin && (
         <div className="absolute top-[160px] right-[10px] z-[1000] bg-white p-3 rounded-md shadow-md border max-w-xs w-64">
           <div className="flex items-center justify-between mb-2">
@@ -2654,8 +2311,6 @@ export default function MapComponent({
                   {getTotalReportsCount - getUnresolvedReportsCount}
                 </span>
               </div>
-
-              {/* Последните 3 отчета */}
               <div className="mt-3 pt-3 border-t">
                 <p className="text-xs font-medium text-gray-500 mb-2">
                   Последни отчети:
@@ -2664,22 +2319,14 @@ export default function MapComponent({
                   {binReports.slice(0, 3).map((report) => (
                     <div
                       key={report.id}
-                      className={`p-2 rounded text-xs ${
-                        report.resolved
-                          ? "bg-green-50 border border-green-100"
-                          : "bg-red-50 border border-red-100"
-                      }`}
+                      className={`p-2 rounded text-xs ${report.resolved ? "bg-green-50 border border-green-100" : "bg-red-50 border border-red-100"}`}
                     >
                       <div className="flex justify-between">
                         <span className="font-medium truncate">
                           {report.title}
                         </span>
                         <span
-                          className={`px-1 py-0.5 rounded text-[10px] ${
-                            report.resolved
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
-                          }`}
+                          className={`px-1 py-0.5 rounded text-[10px] ${report.resolved ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}
                         >
                           {report.resolved ? "Разрешен" : "Активен"}
                         </span>
@@ -2714,6 +2361,11 @@ export default function MapComponent({
         ref={(map) => {
           if (map) mapRef.current = map;
         }}
+        markerZoomAnimation={true}
+        fadeAnimation={true}
+        zoomAnimation={true}
+        inertia={true}
+        wheelPxPerZoomLevel={120}
       >
         <ZoomWatcher onZoom={setZoom} />
         <MapClickHandler onMapClick={handleMapClick} />
@@ -2732,7 +2384,6 @@ export default function MapComponent({
           minNativeZoom={4}
         />
 
-        {/* Локация на потребителя */}
         {userLocation && (
           <Marker position={userLocation} icon={UserMarkerIcon} />
         )}
@@ -2743,7 +2394,6 @@ export default function MapComponent({
           </Marker>
         )}
 
-        {/* Маркери */}
         <ViewportAwareMarkers
           filteredBins={filteredBins}
           zoom={zoom}

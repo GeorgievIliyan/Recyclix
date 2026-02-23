@@ -619,7 +619,17 @@ export async function getPendingBins(): Promise<Bin[]> {
           }
         }
 
-        const imageUrls = bin.image_url ? [bin.image_url] : [];
+        const imageUrls: string[] = [];
+        if (bin.image_url) {
+          if (bin.image_url.startsWith("http")) {
+            imageUrls.push(bin.image_url);
+          } else {
+            const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+            imageUrls.push(
+              `${supabaseUrl}/storage/v1/object/public/bins/${bin.image_url}`,
+            );
+          }
+        }
 
         return {
           ...bin,
@@ -1522,7 +1532,7 @@ function BinDetails({
             </div>
           )}
 
-          {/* Image Gallery Section */}
+          {/* снимки на контейнерите */}
           {bin.image_urls && bin.image_urls.length > 0 ? (
             <div className="mb-4">
               <div className="flex items-center gap-2 mb-2">

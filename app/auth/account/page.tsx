@@ -168,7 +168,7 @@ export default function ProfilePage() {
         <div className="flex flex-col gap-3 sm:flex-row">
           <Button className="group w-full text-white dark:text-white sm:flex-1 bg-gradient-to-r from-green-400 via-green-500 to-emerald-600 hover:from-green-500 hover:via-green-600 hover:to-emerald-700 transition-all duration-200 items-center hover:shadow-lg hover:shadow-green-500/20">
             Редактирай профил
-            <SquarePen className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
+            <SquarePen className="h-4 w-4 transition-transform duration-200" />
           </Button>
           <LogoutButton />
         </div>

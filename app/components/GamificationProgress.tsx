@@ -24,7 +24,6 @@ export function GamificationProgress({ totalXp }: GamificationProgressProps) {
   const progressPercentage = (currentXp / xpForNextLevel) * 100;
 
   return (
-    /* h-fit prevents the component from stretching vertically in flex/grid layouts */
     <div className="group relative h-fit backdrop-blur-xl bg-gradient-to-br from-white/90 via-white/80 to-zinc-50/90 dark:from-zinc-900/70 dark:via-zinc-900/60 dark:to-zinc-800/70 rounded-xl border border-zinc-200/50 dark:border-zinc-800/50 shadow-md hover:shadow-xl hover:border-green-500/30 transition-all duration-300 overflow-hidden">
       {/* Декоративен градиент във фона */}
       <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-green-500/10 to-transparent rounded-full blur-2xl" />
@@ -40,7 +39,7 @@ export function GamificationProgress({ totalXp }: GamificationProgressProps) {
           </h3>
         </div>
 
-        <div className="p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4 md:space-y-6">
+        <div className="p-3 pb-4 sm:p-4 sm:pb-5 md:p-6 md:pb-8 space-y-3 sm:space-y-4 md:space-y-6">
           {/* Диспей за ниво */}
           <div className="flex items-center justify-between gap-2 sm:gap-4">
             <div className="relative">
@@ -84,7 +83,6 @@ export function GamificationProgress({ totalXp }: GamificationProgressProps) {
           <div className="relative flex items-start gap-2 p-2.5 sm:p-3 md:p-4 bg-gradient-to-r from-zinc-100/80 to-zinc-50/80 dark:from-zinc-800/60 dark:to-zinc-900/60 rounded-lg hover:border-green-500/30 transition-all duration-300 overflow-hidden">
             {/* Деликатен градиент при hover */}
             <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
             <div className="relative z-10 p-1 sm:p-1.5 bg-gradient-to-br from-yellow-300 via-yellow-400 to-amber-500 rounded-md sm:rounded-lg shadow-md flex-shrink-0">
               <Star
                 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white"

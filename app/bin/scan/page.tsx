@@ -18,7 +18,10 @@ import {
   OctagonAlert,
   Eraser,
   Settings,
-  Binary,
+  ChevronDown,
+  ChevronUp,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import Logo36 from "@/app/components/Logo36";
 
@@ -97,6 +100,7 @@ export default function Page() {
   const [opened, setOpened] = useState<boolean>(false);
   const [codeError, setCodeError] = useState<string | null>(null);
   const [showChangeCode, setShowChangeCode] = useState<boolean>(false);
+  const [isMenuExpanded, setIsMenuExpanded] = useState<boolean>(true); 
 
   useEffect(() => {
     const savedCode = localStorage.getItem(STORAGE_KEY);
@@ -163,7 +167,6 @@ export default function Page() {
         setCode(trimmedCode);
         setOpened(true);
         localStorage.setItem(STORAGE_KEY, trimmedCode);
-        console.log("Connected to bin ID:", data.id);
       } else {
         setCodeError("Кодът не бе намерен!");
         localStorage.removeItem(STORAGE_KEY);
@@ -188,11 +191,9 @@ export default function Page() {
         setShowChangeCode(false);
       }
     };
-
     if (showChangeCode) {
       document.addEventListener("click", handleClickOutside);
     }
-
     return () => {
       document.removeEventListener("click", handleClickOutside);
     };
@@ -205,7 +206,7 @@ export default function Page() {
           <div className="flex flex-shrink-0 items-center justify-between gap-3 px-4 py-3 border-b border-border bg-card/50 backdrop-blur-sm z-10">
             <div className="flex items-center gap-3">
               <Logo36 />
-              <h1 className="text-base sm:text-lg md:text-xl font-bold text-[#00CD56]">
+              <h1 className="hidden sm:block text-base font-bold text-[#00CD56]">
                 Recyclix
               </h1>
             </div>
@@ -269,51 +270,86 @@ export default function Page() {
           </div>
 
           <div className="flex-1 flex flex-col md:flex-row min-h-0 overflow-hidden">
-            <div className="flex-1 min-h-0 p-2 sm:p-3 md:p-4">
+            <div className="flex-1 flex flex-col min-h-0 p-2 sm:p-3 md:p-4">
               {opened && (
-                <BinCamera target={targetMaterial} binId={code.trim()} />
+                <div className="flex-1 min-h-0">
+                  <BinCamera target={targetMaterial} binId={code.trim()} />
+                </div>
               )}
             </div>
 
             {mode === "manual" && (
-              <div className="flex-shrink-0 md:w-96 md:border-l md:border-border bg-card p-4">
-                <MaterialButtons
-                  materials={materials}
-                  targetMaterial={targetMaterial}
-                  setTargetMaterial={setTargetMaterial}
-                />
+              <div
+                className={`flex-shrink-0 md:border-l md:border-border bg-card flex flex-col transition-[width] duration-300 ease-in-out ${isMenuExpanded ? "md:w-80" : "md:w-22"}`}
+              >
+                <button
+                  onClick={() => setIsMenuExpanded(!isMenuExpanded)}
+                  className="md:hidden flex items-center justify-between p-4 border-t border-border"
+                >
+                  <h2 className="text-md font-semibold tracking-wider text-primary">
+                    Избор на материал
+                  </h2>
+                  {isMenuExpanded ? (
+                    <ChevronUp className="w-5 h-5" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5" />
+                  )}
+                </button>
+
+                {/* Бутон за десктоп у-ва */}
+                <button
+                  onClick={() => setIsMenuExpanded(!isMenuExpanded)}
+                  className="hidden md:flex items-center justify-center p-3 border-b border-border hover:bg-muted transition-colors"
+                >
+                  {isMenuExpanded ? (
+                    <ChevronRight className="w-5 h-5" />
+                  ) : (
+                    <ChevronLeft className="w-5 h-5" />
+                  )}
+                </button>
+
+                <div
+                  className={`${
+                    isMenuExpanded ? "block" : "hidden"
+                  } md:block flex-1 overflow-y-auto p-4 border-t md:border-t-0 border-border max-h-[50vh] md:max-h-none`}
+                >
+                  <MaterialButtons
+                    materials={materials}
+                    targetMaterial={targetMaterial}
+                    setTargetMaterial={setTargetMaterial}
+                    isExpanded={isMenuExpanded}
+                  />
+                </div>
               </div>
             )}
           </div>
         </div>
       ) : (
+        /* ... keeping your login screen code exactly the same ... */
         <div className="flex h-screen w-screen flex-col items-center justify-center bg-white px-4 antialiased dark:bg-neutral-950">
           <div className="w-full max-w-sm space-y-2 text-center">
             <h1 className="text-3xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-50">
               Въведете код на кош
             </h1>
-
             <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-6">
               Моля, въведете 6-цифрения код, за да продължите напред
             </p>
-
             {codeError && (
               <span className="text-red-500 bg-red-500/10 rounded-full text-md inline-flex gap-2 py-3 px-3.5">
                 <OctagonAlert /> {codeError}
               </span>
             )}
-
             <div className="space-y-4">
               <input
                 type="text"
                 placeholder="Напр. 4K3NWX"
                 value={code}
-                className="flex h-12 w-full rounded-md border border-neutral-200 bg-transparent px-3 py-2 text-center text-lg ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-800 dark:ring-offset-neutral-950 dark:placeholder:text-neutral-400 dark:focus-visible:ring-neutral-300"
+                className="flex h-12 w-full rounded-md border border-neutral-200 bg-transparent px-3 py-2 text-center text-lg ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 dark:border-neutral-800 dark:ring-offset-neutral-950 dark:focus-visible:ring-neutral-300"
                 onChange={(e) => setCode(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleCodeSubmit(code)}
               />
               <button
-                className="inline-flex gap-1 h-10 w-full items-center justify-center rounded-md bg-[#00CD56] px-4 py-2 text-sm font-medium text-neutral-50 transition-colors hover:bg-[#00CD56]/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 disabled:pointer-events-none disabled:opacity-50"
+                className="inline-flex gap-1 h-10 w-full items-center justify-center rounded-md bg-[#00CD56] px-4 py-2 text-sm font-medium text-neutral-50 transition-colors hover:bg-[#00CD56]/90"
                 onClick={() => handleCodeSubmit(code)}
               >
                 Потвърди <Check className="w-4 h-4" />
@@ -330,39 +366,54 @@ interface MaterialButtonsProps {
   materials: Material[];
   targetMaterial: string;
   setTargetMaterial: (id: string) => void;
+  isExpanded: boolean;
 }
 
 function MaterialButtons({
   materials,
   targetMaterial,
   setTargetMaterial,
+  isExpanded,
 }: MaterialButtonsProps) {
   return (
     <div className="h-full flex flex-col gap-2">
-      <h2 className="text-lg font-semibold mb-2">Избор на материал</h2>
+      <h2
+        className={`hidden md:block text-lg font-semibold mb-2 truncate ${!isExpanded && "md:invisible"}`}
+      >
+        Избор на материал
+      </h2>
 
-      <div className="grid grid-cols-1 gap-2 md:grid-cols-1 md:h-full">
+      <div className="grid grid-cols-2 gap-2 md:grid-cols-1 md:h-full">
         {materials.map((material) => {
           const IconComponent = material.icon;
+          const isSelected = targetMaterial === material.id;
 
           return (
             <button
               key={material.id}
               onClick={() => setTargetMaterial(material.id)}
+              title={material.label}
               className={`
                 relative w-full flex items-center gap-2 p-3 rounded-lg
                 text-white font-medium transition-all active:scale-[0.97]
                 ${material.color}
-                ${targetMaterial === material.id ? "ring-2 ring-primary ring-offset-2 ring-offset-background" : ""}
-                md:flex-1 md:h-full
+                ${isSelected ? "ring-2 ring-primary ring-offset-2 ring-offset-background" : ""}
+                md:flex-1 md:h-full justify-center md:justify-start
               `}
             >
-              <IconComponent className="w-6 h-6 md:h-7 md:w-7 lg:w-8 lg:h-8" />
-              <span className="flex-1 text-left lg:text-[18px]">
+              <IconComponent
+                className={`w-6 h-6 md:h-7 md:w-7 lg:w-8 lg:h-8 flex-shrink-0`}
+              />
+
+              <span
+                className={`flex-1 text-left lg:text-[18px] truncate transition-opacity duration-200 ${!isExpanded ? "md:hidden" : "md:block"}`}
+              >
                 {material.label}
               </span>
 
-              {targetMaterial === material.id && <Check className="w-5 h-5" />}
+              {isSelected && isExpanded && (
+                <Check className="w-5 h-5 flex-shrink-0" />
+              )}
             </button>
           );
         })}
@@ -371,9 +422,14 @@ function MaterialButtons({
       {targetMaterial && (
         <button
           onClick={() => setTargetMaterial("")}
-          className="mt-2 w-full bg-gradient-to-r from-secondary to-secondary/90 hover:from-secondary/90 hover:to-secondary text-secondary-foreground font-medium px-4 py-2.5 rounded-lg flex items-center justify-center"
+          className="mt-2 w-full bg-gradient-to-r from-secondary to-secondary/90 text-secondary-foreground font-medium px-4 py-2.5 rounded-lg flex items-center justify-center"
         >
-          Изчисти избора <Eraser className="w-5 h-5 ml-2" />
+          <Eraser className="w-5 h-5 flex-shrink-0" />
+          <span
+            className={`ml-2 truncate ${!isExpanded ? "md:hidden" : "md:block"}`}
+          >
+            Изчисти
+          </span>
         </button>
       )}
     </div>

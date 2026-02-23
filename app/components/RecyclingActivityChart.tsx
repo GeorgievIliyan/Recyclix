@@ -96,6 +96,7 @@ export function RecyclingActivityChart({ data }: RecyclingActivityChartProps) {
               axisLine={false}
               fontSize={12}
               dy={10}
+              
             />
 
             <YAxis
@@ -134,6 +135,7 @@ export function RecyclingActivityChart({ data }: RecyclingActivityChartProps) {
               fill={`url(#${barGradientId})`}
               radius={[6, 6, 0, 0]}
               maxBarSize={50}
+              minPointSize={5}
             />
           </BarChart>
         </ResponsiveContainer>

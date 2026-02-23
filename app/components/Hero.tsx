@@ -68,7 +68,7 @@ const Hero = ({ totalUsers, totalBins, totalKgRecycled }: HeroProps) => {
             </div>
             <div className="text-center">
               <div className="text-4xl font-bold bg-gradient-to-br from-[#00CD56] via-emerald-500 to-[#00b849] bg-clip-text text-transparent mb-2">
-                {totalKgRecycled} кг.
+                {totalKgRecycled.toFixed(2)} кг.
               </div>
               <div className="text-zinc-600 dark:text-zinc-500">
                 Рециклирани материали
