@@ -2020,13 +2020,6 @@ export default function MapComponent({
               data: { publicUrl },
             } = supabase.storage.from("bins").getPublicUrl(fileName);
 
-            console.log(
-              "Uploading to pending_bins id:",
-              newBin.id,
-              "url:",
-              publicUrl,
-            );
-
             const { data: updateData, error: updateError } = await supabase
               .from("pending_bins")
               .update({
@@ -2036,9 +2029,7 @@ export default function MapComponent({
               .eq("id", newBin.id)
               .select();
 
-            console.log("Update result:", updateData, updateError);
-
-            if (updateError) {
+            if (updateError && isDev) {
               console.error("Image URL update error:", updateError);
             }
           }

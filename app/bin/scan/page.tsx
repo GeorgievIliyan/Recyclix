@@ -206,7 +206,7 @@ export default function Page() {
           <div className="flex flex-shrink-0 items-center justify-between gap-3 px-4 py-3 border-b border-border bg-card/50 backdrop-blur-sm z-10">
             <div className="flex items-center gap-3">
               <Logo36 />
-              <h1 className="hidden sm:block text-base font-bold text-[#00CD56]">
+              <h1 className="hidden sm:block text-2xl font-bold bg-gradient-to-r from-green-400 to-emerald-500 bg-clip-text text-transparent">
                 Recyclix
               </h1>
             </div>
@@ -222,7 +222,7 @@ export default function Page() {
                   }`}
                 >
                   <CameraIcon className="w-4 h-4" />
-                  <span className="text-sm font-medium">Авто</span>
+                  <span className="hidden sm:block text-sm font-medium">Ръчен</span>
                 </button>
 
                 <button
@@ -234,7 +234,7 @@ export default function Page() {
                   }`}
                 >
                   <MousePointer2 className="w-4 h-4" />
-                  <span className="text-sm font-medium">Ръчен</span>
+                  <span className="hidden sm:block text-sm font-medium">Ръчен</span>
                 </button>
               </div>
 

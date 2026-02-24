@@ -1,6 +1,7 @@
 "use client";
-import { supabase } from "@/lib/supabase-browser";
+
 import { useState, useEffect, type ReactNode } from "react";
+import { supabase } from "@/lib/supabase-browser";
 import {
   CheckCircle,
   XCircle,
@@ -16,24 +17,23 @@ import {
   Moon,
   Calendar,
   Hash,
-  Navigation,
   Building,
   Trash2,
-  Globe,
   CircleCheck,
   Recycle,
   List,
   PenLine,
   Trash,
   Flag,
-  MessageCircle,
   X,
-  LogOut,
+  Mail,
 } from "lucide-react";
 import LeafletMap from "./LeafletMap";
 import { SimpleSpinningRecycling } from "./RecyclingLoader";
 import LogoutButtonAlt from "./LogoutButtonAlt";
+import { isDev } from "@/lib/isDev";
 
+// типизация
 export interface Bin {
   id: string;
   code?: string;
@@ -129,44 +129,36 @@ interface OrganizationRequest {
   created_at: string;
 }
 
+// функции за извличане на допълнителна информация
+async function getUserInfo(userId: string): Promise<{ email: string; username: string }> {
+  const { data } = await supabase
+    .from("user_profiles")
+    .select("email, username")
+    .eq("id", userId)
+    .single();
+  return {
+    email: data?.email || "Анонимен",
+    username: data?.username || data?.email || "Анонимен",
+  };
+}
+
+// проверка дали потребителят е администратор
 export async function checkAdminStatus(userId: string): Promise<boolean> {
   try {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (user?.role === "service_role") return true;
-
-    const { data, error } = await supabase
-      .from("profiles")
+    const { data } = await supabase
+      .from("user_profiles")
       .select("is_admin")
       .eq("id", userId)
       .single();
-
     return data?.is_admin === true;
-  } catch (error) {
+  } catch {
     return false;
   }
 }
 
-function parseTagsObject(tags: any): {
-  amenity: string;
-  recycling_type: string;
-  operator: string;
-  recycling_clothes: boolean;
-  recycling_shoes: boolean;
-  count: number;
-} {
-  if (!tags || typeof tags !== "object") {
-    return {
-      amenity: "recycling",
-      recycling_type: "",
-      operator: "",
-      recycling_clothes: false,
-      recycling_shoes: false,
-      count: 1,
-    };
-  }
-
+function parseTagsObject(tags: any) {
+  if (!tags || typeof tags !== "object")
+    return { amenity: "recycling", recycling_type: "", operator: "", recycling_clothes: false, recycling_shoes: false, count: 1 };
   return {
     amenity: tags.amenity || "recycling",
     recycling_type: tags.recycling_type || "",
@@ -177,412 +169,21 @@ function parseTagsObject(tags: any): {
   };
 }
 
-export async function getOrganizationRequests(): Promise<
-  OrganizationRequest[]
-> {
+// взимане на данни за различните секции на админ панела
+export async function getOrganizationRequests(): Promise<OrganizationRequest[]> {
   try {
     const { data, error } = await supabase
       .from("organization_requests")
       .select("*")
       .eq("status", "pending")
       .order("created_at", { ascending: false });
-
     if (error) throw error;
     return data || [];
-  } catch (error) {
-    console.error("Грешка при зареждане на заявки:", error);
+  } catch {
     return [];
   }
 }
 
-function OrganizationRequestDetails({
-  request,
-  onApprove,
-  onReject,
-}: {
-  request: OrganizationRequest;
-  onApprove: (requestId: string) => Promise<void>;
-  onReject: (requestId: string) => Promise<void>;
-}) {
-  const [isProcessing, setIsProcessing] = useState(false);
-
-  const sendApprovalEmail = () => {
-    // Създаване на тема и съдържание на имейл
-    const subject = encodeURIComponent(
-      `Заявка за кошове от ${request.organization_name} - ОДОБРЕНО`,
-    );
-    const body = encodeURIComponent(
-      `Уважаеми/а ${request.contact_name},
-
-      Вашата заявка за получаване на ${request.intended_bin_count} кош${request.intended_bin_count > 1 ? "а" : ""} за рециклиране е одобрена!
-
-      Детайли на заявката:
-      - Организация: ${request.organization_name}
-      - Тип организация: ${request.organization_type}
-      - Контактно лице: ${request.contact_name}
-      - Брой кошове: ${request.intended_bin_count}
-      ${request.city ? `- Град: ${request.city}` : ""}
-      ${request.country ? `- Държава: ${request.country}` : ""}
-      ${request.message ? `- Съобщение: ${request.message}` : ""}
-
-      Следващи стъпки:
-      1. Ще се свържем с вас в рамките на 2 работни дни за координиране на доставката.
-      2. Ще ви предоставим инструкции за инсталиране и използване на кошовете.
-
-      За допълнителни въпроси, можете да се свържете с нас на този имейл.
-
-      С уважение,
-      Екипът на Recyclix`,
-    );
-
-    // Създаване на линк и отваряне в нов прозорец
-    const mailtoLink =
-      `https://mail.google.com/mail/u/0/?view=cm&fs=1` +
-      `&to=${encodeURIComponent(request.contact_email)}` +
-      `&su=${encodeURIComponent(subject)}` +
-      `&body=${encodeURIComponent(body)}`;
-
-    // Първо пробвайте с window.open
-    const emailWindow = window.open(mailtoLink, "_blank");
-
-    // Ако window.open не работи, пробвайте със създаване на линк и кликване
-    if (
-      !emailWindow ||
-      emailWindow.closed ||
-      typeof emailWindow.closed === "undefined"
-    ) {
-      const link = document.createElement("a");
-      link.href = mailtoLink;
-      link.target = "_blank";
-      link.rel = "noopener noreferrer";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-  };
-
-  const sendRejectionEmail = () => {
-    const subject = encodeURIComponent(
-      `Заявка за кошове от ${request.organization_name} - ОТХВЪРЛЕНА`,
-    );
-    const body = encodeURIComponent(
-      `Уважаеми/а ${request.contact_name},
-
-      Съжаляваме да Ви информираме, че вашата заявка за получаване на ${request.intended_bin_count} кош${request.intended_bin_count > 1 ? "а" : ""} за рециклиране не бе одобрена.
-
-      Детайли на заявката:
-      - Организация: ${request.organization_name}
-      - Тип организация: ${request.organization_type}
-      - Контактно лице: ${request.contact_name}
-      - Брой кошове: ${request.intended_bin_count}
-      ${request.city ? `- Град: ${request.city}` : ""}
-      ${request.country ? `- Държава: ${request.country}` : ""}
-
-      Причина за отхвърляне:
-      -
-
-      Можете да подадете нова заявка след 24 часа.
-
-      За допълнителна информация, моля свържете се с нас.
-
-      С уважение,
-      Екипът на Recyclix`,
-    );
-
-    // Създаване на линк и отваряне в нов прозорец
-    const mailtoLink = `mailto:${request.contact_email}?subject=${subject}&body=${body}`;
-
-    const emailWindow = window.open(mailtoLink, "_blank");
-
-    if (
-      !emailWindow ||
-      emailWindow.closed ||
-      typeof emailWindow.closed === "undefined"
-    ) {
-      const link = document.createElement("a");
-      link.href = mailtoLink;
-      link.target = "_blank";
-      link.rel = "noopener noreferrer";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-  };
-
-  const handleApprove = async () => {
-    const confirmMessage = `Сигурни ли сте, че искате да одобрите заявката от "${request.organization_name}"? След потвърждение ще се отвори имейл клиент за изпращане на одобрение.`;
-
-    if (!window.confirm(confirmMessage)) {
-      return; // Потребителят отмени
-    }
-
-    setIsProcessing(true);
-
-    try {
-      // Първо отваряме имейл клиент
-      sendApprovalEmail();
-
-      // Дадем малко време преди да одобрим в базата данни
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      // След това одобряваме заявката в базата данни
-      await onApprove(request.id);
-    } catch (error) {
-      console.error("Грешка при одобряване на заявка:", error);
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const handleReject = async () => {
-    const confirmMessage = `Сигурни ли сте, че искате да отхвърлите заявката от "${request.organization_name}"?`;
-
-    if (!window.confirm(confirmMessage)) {
-      return; // Потребителят отмени
-    }
-
-    const sendEmail = window.confirm(
-      "Желаете ли да изпратите имейл за отхвърляне?",
-    );
-
-    setIsProcessing(true);
-
-    try {
-      if (sendEmail) {
-        sendRejectionEmail();
-        await new Promise((resolve) => setTimeout(resolve, 500));
-      }
-      await onReject(request.id);
-    } catch (error) {
-      console.error("Грешка при отхвърляне на заявка:", error);
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const handleSendEmailOnly = () => {
-    const subject = encodeURIComponent(
-      `Заявка за кошове от ${request.organization_name}`,
-    );
-    const body = encodeURIComponent(
-      `Уважаеми/а ${request.contact_name},
-
-      Относно Вашата заявка за получаване на ${request.intended_bin_count} кош${request.intended_bin_count > 1 ? "а" : ""} за рециклиране.
-
-      Детайли на заявката:
-      - Организация: ${request.organization_name}
-      - Тип организация: ${request.organization_type}
-      - Контактно лице: ${request.contact_name}
-      - Брой кошове: ${request.intended_bin_count}
-      ${request.city ? `- Град: ${request.city}` : ""}
-      ${request.country ? `- Държава: ${request.country}` : ""}
-      ${request.message ? `- Съобщение: ${request.message}` : ""}
-
-      С уважение,
-      Екипът на Recyclix`,
-    );
-
-    // Създаване на линк и отваряне в нов прозорец
-    const mailtoLink = `mailto:${request.contact_email}?subject=${subject}&body=${body}`;
-
-    const emailWindow = window.open(mailtoLink, "_blank");
-
-    if (
-      !emailWindow ||
-      emailWindow.closed ||
-      typeof emailWindow.closed === "undefined"
-    ) {
-      const link = document.createElement("a");
-      link.href = mailtoLink;
-      link.target = "_blank";
-      link.rel = "noopener noreferrer";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-  };
-
-  return (
-    <div className="border border-neutral-200 dark:border-neutral-700 rounded-lg p-4 bg-white dark:bg-neutral-800">
-      <div className="flex flex-col lg:flex-row gap-4">
-        <div className="flex-1">
-          <div className="flex items-start justify-between mb-3">
-            <div>
-              <h3 className="font-semibold text-lg text-neutral-900 dark:text-white">
-                {request.organization_name}
-              </h3>
-              <div className="flex items-center gap-2 mt-1">
-                <Building className="w-4 h-4 text-neutral-400" />
-                <span className="text-neutral-600 dark:text-neutral-400 capitalize">
-                  {request.organization_type}
-                </span>
-              </div>
-            </div>
-            <span
-              className={`px-3 py-1 rounded-full text-sm font-medium ${
-                request.status === "pending"
-                  ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300"
-                  : request.status === "approved"
-                    ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
-                    : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
-              }`}
-            >
-              {request.status === "pending"
-                ? "Чакаща"
-                : request.status === "approved"
-                  ? "Одобрена"
-                  : "Отхвърлена"}
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <User className="w-4 h-4 text-neutral-400" />
-                <div>
-                  <span className="text-sm text-neutral-500 dark:text-neutral-400">
-                    Контактно лице:
-                  </span>
-                  <p className="text-neutral-700 dark:text-neutral-300 font-medium">
-                    {request.contact_name}
-                  </p>
-                  <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                    <a
-                      href={`mailto:${request.contact_email}`}
-                      className="text-blue-500 hover:underline"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        window.open(
-                          `mailto:${request.contact_email}`,
-                          "_blank",
-                        );
-                      }}
-                    >
-                      {request.contact_email}
-                    </a>
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Package className="w-4 h-4 text-neutral-400" />
-                <div>
-                  <span className="text-sm text-neutral-500 dark:text-neutral-400">
-                    Брой кошове:
-                  </span>
-                  <p className="text-neutral-700 dark:text-neutral-300">
-                    {request.intended_bin_count}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              {(request.city || request.country) && (
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-neutral-400" />
-                  <div>
-                    <span className="text-sm text-neutral-500 dark:text-neutral-400">
-                      Локация:
-                    </span>
-                    <p className="text-neutral-700 dark:text-neutral-300">
-                      {[request.city, request.country]
-                        .filter(Boolean)
-                        .join(", ")}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-neutral-400" />
-                <div>
-                  <span className="text-sm text-neutral-500 dark:text-neutral-400">
-                    Дата на заявка:
-                  </span>
-                  <p className="text-neutral-700 dark:text-neutral-300">
-                    {new Date(request.created_at).toLocaleDateString("bg-BG")}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {request.message && (
-            <div className="mb-4">
-              <div className="flex items-center gap-2 mb-2">
-                <MessageCircle className="w-4 h-4 text-neutral-400" />
-                <span className="font-medium text-neutral-700 dark:text-neutral-300">
-                  Съобщение:
-                </span>
-              </div>
-              <div className="p-3 bg-neutral-50 dark:bg-neutral-800/50 rounded-lg border border-neutral-200 dark:border-neutral-700">
-                <p className="text-neutral-700 dark:text-neutral-300">
-                  {request.message}
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="flex lg:flex-col gap-2">
-          {request.status === "pending" && (
-            <>
-              <button
-                onClick={handleSendEmailOnly}
-                disabled={isProcessing}
-                className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-neutral-400 text-white rounded-lg font-medium transition-colors"
-              >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                  />
-                </svg>
-                Изпрати имейл
-              </button>
-
-              <button
-                onClick={handleApprove}
-                disabled={isProcessing}
-                className="flex items-center justify-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 disabled:bg-neutral-400 text-white rounded-lg font-medium transition-colors"
-              >
-                {isProcessing ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <CheckCircle className="w-4 h-4" />
-                )}
-                Одобри
-              </button>
-
-              <button
-                onClick={handleReject}
-                disabled={isProcessing}
-                className="flex items-center justify-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 disabled:bg-neutral-400 text-white rounded-lg font-medium transition-colors"
-              >
-                {isProcessing ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <XCircle className="w-4 h-4" />
-                )}
-                Откажи
-              </button>
-            </>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
 export async function getPendingBins(): Promise<Bin[]> {
   try {
     const { data, error } = await supabase
@@ -590,106 +191,55 @@ export async function getPendingBins(): Promise<Bin[]> {
       .select("*")
       .eq("status", "pending")
       .order("created_at", { ascending: false });
-
     if (error) throw error;
-
     const binsWithEmail = await Promise.all(
       (data || []).map(async (bin) => {
-        let userEmail = "Анонимен";
-        let userUsername = "Анонимен";
+        let userEmail = "Анонимен", userUsername = "Анонимен";
         if (bin.user_id) {
-          const { data: authUser, error: authError } =
-            await supabase.auth.admin.getUserById(bin.user_id);
-
-          if (!authError && authUser?.user) {
-            userEmail = authUser.user.email || "Анонимен";
-            userUsername =
-              authUser.user.user_metadata?.username ||
-              authUser.user.email ||
-              "Анонимен";
-          } else {
-            const { data: profileData } = await supabase
-              .from("profiles")
-              .select("email, username")
-              .eq("id", bin.user_id)
-              .single();
-            userEmail = profileData?.email || "Анонимен";
-            userUsername =
-              profileData?.username || profileData?.email || "Анонимен";
-          }
+          const info = await getUserInfo(bin.user_id);
+          userEmail = info.email;
+          userUsername = info.username;
         }
-
         const imageUrls: string[] = [];
         if (bin.image_url) {
-          if (bin.image_url.startsWith("http")) {
-            imageUrls.push(bin.image_url);
-          } else {
-            const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-            imageUrls.push(
-              `${supabaseUrl}/storage/v1/object/public/bins/${bin.image_url}`,
-            );
-          }
+          imageUrls.push(
+            bin.image_url.startsWith("http")
+              ? bin.image_url
+              : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/bins/${bin.image_url}`,
+          );
         }
-
-        return {
-          ...bin,
-          user_email: userEmail,
-          user_username: userUsername,
-          image_urls: imageUrls,
-        };
+        return { ...bin, user_email: userEmail, user_username: userUsername, image_urls: imageUrls };
       }),
     );
-
     return binsWithEmail;
-  } catch (error) {
-    console.error("Грешка при зареждане:", error);
+  } catch {
     return [];
   }
 }
 
 export async function getEditSuggestions(): Promise<EditSuggestion[]> {
   try {
-    // Вземане на всички pending предложения за редакция
     const { data, error } = await supabase
       .from("edit_suggestions")
       .select("*")
       .eq("status", "pending")
       .order("created_at", { ascending: false });
-
     if (error) throw error;
-
-    // Обогатяване на всяко предложение със детайли за потребителя
     const suggestionsWithDetails = await Promise.all(
       (data || []).map(async (suggestion) => {
         let userEmail = "Анонимен";
         if (suggestion.user_id) {
-          // Първо опитай да вземеш от auth.users
-          const { data: authUser, error: authError } =
-            await supabase.auth.admin.getUserById(suggestion.user_id);
-
-          if (!authError && authUser?.user) {
-            userEmail = authUser.user.email || "Анонимен";
-          } else {
-            // Резервен вариант към profiles таблицата
-            const { data: profileData } = await supabase
-              .from("profiles")
-              .select("email")
-              .eq("id", suggestion.user_id)
-              .single();
-            userEmail = profileData?.email || "Анонимен";
-          }
+          const info = await getUserInfo(suggestion.user_id);
+          userEmail = info.email;
         }
-
-        // Вземане на информация за коша
-        let binData: Bin | undefined = undefined;
+        let binData: Bin | undefined;
         if (suggestion.bin_id) {
           const { data: binFromRecycling } = await supabase
             .from("recycling_bins")
             .select("*")
             .eq("code", suggestion.bin_id)
             .single();
-
-          if (binFromRecycling) {
+          if (binFromRecycling)
             binData = {
               id: binFromRecycling.code,
               code: binFromRecycling.code,
@@ -698,118 +248,58 @@ export async function getEditSuggestions(): Promise<EditSuggestion[]> {
               tags: binFromRecycling.tags,
               created_at: binFromRecycling.created_at,
             };
-          }
         }
-
-        return {
-          ...suggestion,
-          user_email: userEmail,
-          bin: binData,
-        };
+        return { ...suggestion, user_email: userEmail, bin: binData };
       }),
     );
-
     return suggestionsWithDetails;
-  } catch (error) {
-    // Грешка при зареждане на предложения
-    console.error("Грешка при зареждане на предложения:", error);
+  } catch {
     return [];
   }
 }
 
-// Функция за зареждане на отчети за проблеми
 export async function getReports(): Promise<Report[]> {
   try {
-    // Вземане на всички отчети
     const { data: reportsData, error } = await supabase
       .from("reports")
       .select("*")
       .order("created_at", { ascending: false });
-
     if (error) throw error;
-
-    // Обогатяване на всяко предложение със детайли за потребителя и коша
     const reportsWithDetails = await Promise.all(
       (reportsData || []).map(async (report) => {
-        // Детайли за потребителя
-        let userEmail = "Анонимен";
-        let userUsername = "Анонимен";
+        let userEmail = "Анонимен", userUsername = "Анонимен";
         if (report.user_id) {
-          try {
-            // Опитай да вземеш от auth.users
-            const { data: authUser, error: authError } =
-              await supabase.auth.admin.getUserById(report.user_id);
-
-            if (!authError && authUser?.user) {
-              userEmail = authUser.user.email || "Анонимен";
-              userUsername =
-                authUser.user.user_metadata?.username ||
-                authUser.user.email ||
-                "Анонимен";
-            }
-          } catch (authError) {
-            console.log(
-              "Неуспешно извличане на потребител от auth:",
-              authError,
-            );
-          }
+          const info = await getUserInfo(report.user_id);
+          userEmail = info.email;
+          userUsername = info.username;
         }
-
-        // Детайли за коша
-        let binData: Bin | undefined = undefined;
-        let binCode = "";
-        let binLat = 0;
-        let binLon = 0;
-
+        let binCode = "", binLat = 0, binLon = 0;
         if (report.bin_id) {
           const { data: binFromRecycling } = await supabase
             .from("recycling_bins")
             .select("code, lat, lon")
             .eq("id", report.bin_id)
             .single();
-
           if (binFromRecycling) {
             binCode = binFromRecycling.code;
             binLat = binFromRecycling.lat || 0;
             binLon = binFromRecycling.lon || 0;
           }
         }
-
-        // Извличане на снимки от report_photos таблицата
         let images: ReportImage[] = [];
         try {
-          const { data: imagesData, error: imagesError } = await supabase
+          const { data: imagesData } = await supabase
             .from("report_photos")
             .select("*")
             .eq("report_id", report.id)
             .order("created_at", { ascending: true });
-
-          if (!imagesError && imagesData) {
-            images = imagesData;
-          }
-        } catch (imgError) {
-          console.error(
-            "Грешка при извличане на снимки от report_photos:",
-            imgError,
-          );
-        }
-
-        return {
-          ...report,
-          user_email: userEmail,
-          user_username: userUsername,
-          bin_code: binCode,
-          bin_lat: binLat,
-          bin_lon: binLon,
-          bin: binData,
-          images: images,
-        };
+          if (imagesData) images = imagesData;
+        } catch { }
+        return { ...report, user_email: userEmail, user_username: userUsername, bin_code: binCode, bin_lat: binLat, bin_lon: binLon, images };
       }),
     );
-
     return reportsWithDetails;
-  } catch (error) {
-    console.error("Грешка при зареждане на отчети:", error);
+  } catch {
     return [];
   }
 }
@@ -823,27 +313,12 @@ export async function getStats() {
       { count: reports },
       { count: orgRequests },
     ] = await Promise.all([
-      supabase
-        .from("pending_bins")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "pending"),
-      supabase
-        .from("recycling_bins")
-        .select("*", { count: "exact", head: true }),
-      supabase
-        .from("edit_suggestions")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "pending"),
-      supabase
-        .from("reports")
-        .select("*", { count: "exact", head: true })
-        .eq("resolved", false),
-      supabase
-        .from("organization_requests")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "pending"),
+      supabase.from("pending_bins").select("*", { count: "exact", head: true }).eq("status", "pending"),
+      supabase.from("recycling_bins").select("*", { count: "exact", head: true }),
+      supabase.from("edit_suggestions").select("*", { count: "exact", head: true }).eq("status", "pending"),
+      supabase.from("reports").select("*", { count: "exact", head: true }).eq("resolved", false),
+      supabase.from("organization_requests").select("*", { count: "exact", head: true }).eq("status", "pending"),
     ]);
-
     return {
       pending: pending || 0,
       approved: approved || 0,
@@ -852,50 +327,19 @@ export async function getStats() {
       reports: reports || 0,
       orgRequests: orgRequests || 0,
     };
-  } catch (error) {
-    return {
-      pending: 0,
-      approved: 0,
-      total: 0,
-      suggestions: 0,
-      reports: 0,
-      orgRequests: 0,
-    };
+  } catch {
+    return { pending: 0, approved: 0, total: 0, suggestions: 0, reports: 0, orgRequests: 0 };
   }
 }
 
-function getStorageImageUrl(filePath: string): string {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  return `${supabaseUrl}/storage/v1/object/public/bins/${filePath}`;
-}
-
-export async function approveBin(
-  binId: string,
-  binData: Bin,
-): Promise<boolean> {
+export async function approveBin(binId: string, binData: Bin): Promise<boolean> {
   try {
-    console.log("одобряване на кош:", binId, binData);
-
-    // Парсваме таговете за материали
-    const parsedTags = parseTagsObject(binData.tags);
-
-    // 1. Обновяваме статуса на pending_bins
     const { error: updateError } = await supabase
       .from("pending_bins")
-      .update({
-        status: "approved",
-        updated_at: new Date().toISOString(),
-      })
+      .update({ status: "approved", updated_at: new Date().toISOString() })
       .eq("id", binId);
-
-    if (updateError) {
-      console.error("грешка при обновяване:", updateError);
-      return false;
-    }
-
-    // 2. Подготвяме данните за insert в recycling_bins
+    if (updateError) return false;
     const nowISO = new Date().toISOString();
-
     const recyclingBinData: RecyclingBin = {
       code: binData.code || binId,
       lat: binData.lat,
@@ -907,1795 +351,734 @@ export async function approveBin(
       last_emptied: undefined,
       osm_id: "",
     };
-
-    console.log("данни за добавяне:", recyclingBinData);
-
-    // 3. Insert в recycling_bins
-    const { error: insertError } = await supabase
-      .from("recycling_bins")
-      .insert([recyclingBinData]);
-
-    if (insertError) {
-      console.error("грешка при добавяне:", insertError);
-      return false;
-    }
-
-    console.log("успешно одобрен!");
-    return true;
-  } catch (error) {
-    console.error("грешка:", error);
+    const { error: insertError } = await supabase.from("recycling_bins").insert([recyclingBinData]);
+    return !insertError;
+  } catch {
     return false;
   }
 }
 
 export async function rejectBin(binId: string): Promise<boolean> {
   try {
-    const { error } = await supabase
-      .from("pending_bins")
-      .delete()
-      .eq("id", binId);
-
-    if (error) {
-      console.error("Грешка при изтриване на кош:", error);
-      return false;
-    }
-
-    return true;
-  } catch (error) {
-    console.error("Грешка:", error);
+    const { error } = await supabase.from("pending_bins").delete().eq("id", binId);
+    return !error;
+  } catch {
     return false;
   }
 }
 
-export async function approveOrganizationRequest(
-  requestId: string,
-): Promise<boolean> {
+export async function approveOrganizationRequest(requestId: string): Promise<boolean> {
   try {
     const { error } = await supabase
       .from("organization_requests")
-      .update({
-        status: "approved",
-        updated_at: new Date().toISOString(),
-      })
+      .update({ status: "approved", updated_at: new Date().toISOString() })
       .eq("id", requestId);
-
-    if (error) throw error;
-    return true;
-  } catch (error) {
-    console.error("Грешка при одобряване на заявка:", error);
+    return !error;
+  } catch {
     return false;
   }
 }
 
-export async function rejectOrganizationRequest(
-  requestId: string,
-): Promise<boolean> {
+export async function rejectOrganizationRequest(requestId: string): Promise<boolean> {
   try {
     const { error } = await supabase
       .from("organization_requests")
-      .update({
-        status: "rejected",
-        updated_at: new Date().toISOString(),
-      })
+      .update({ status: "rejected", updated_at: new Date().toISOString() })
       .eq("id", requestId);
-
-    if (error) throw error;
-    return true;
-  } catch (error) {
-    console.error("Грешка при отхвърляне на заявка:", error);
+    return !error;
+  } catch {
     return false;
   }
 }
 
-// Функция за разрешаване на отчет
 export async function resolveReport(reportId: string): Promise<boolean> {
   try {
-    console.log("Разрешаване на отчет:", reportId);
-
     const { error } = await supabase
       .from("reports")
-      .update({
-        resolved: true,
-        updated_at: new Date().toISOString(),
-      })
+      .update({ resolved: true, updated_at: new Date().toISOString() })
       .eq("id", reportId);
-
-    if (error) {
-      console.error("Грешка при разрешаване на отчет:", error);
-      return false;
-    }
-
-    console.log("Отчетът е разрешен успешно!");
-    return true;
-  } catch (error) {
-    console.error("Грешка:", error);
+    return !error;
+  } catch {
     return false;
   }
 }
 
-// Функция за изтриване на отчет
 export async function deleteReport(reportId: string): Promise<boolean> {
   try {
-    // Първо изтрий свързаните снимки от report_photos
-    const { data: images } = await supabase
-      .from("report_photos")
-      .select("id, photo_url")
-      .eq("report_id", reportId);
-
-    if (images && images.length > 0) {
-      // Изтриване на записите от report_photos
-      const { error: deleteImagesError } = await supabase
-        .from("report_photos")
-        .delete()
-        .eq("report_id", reportId);
-
-      if (deleteImagesError) {
-        console.error("Грешка при изтриване на снимки:", deleteImagesError);
-      }
-    }
-
-    // След това изтрий отчета от reports
-    const { error } = await supabase
-      .from("reports")
-      .delete()
-      .eq("id", reportId);
-
-    if (error) {
-      console.error("Грешка при изтриване на отчет:", error);
-      return false;
-    }
-
-    return true;
-  } catch (error) {
-    console.error("Грешка:", error);
+    await supabase.from("report_photos").delete().eq("report_id", reportId);
+    const { error } = await supabase.from("reports").delete().eq("id", reportId);
+    return !error;
+  } catch {
     return false;
   }
 }
 
-async function approveSuggestion(
-  suggestionId: string,
-  suggestionData: EditSuggestion,
-): Promise<boolean> {
+async function approveSuggestion(suggestionId: string, suggestionData: EditSuggestion): Promise<boolean> {
   try {
-    console.log("Одобряване на предложение:", suggestionId, suggestionData);
-
-    // Вземане на текущия потребител
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      console.error("Няма автентикиран потребител");
-      return false;
-    }
-
-    // Вземане на текущите данни на коша
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return false;
     let { data: binData, error: binFetchError } = await supabase
       .from("recycling_bins")
       .select("*")
       .eq("id", suggestionData.bin_id)
       .single();
-
     if (binFetchError) {
-      // Ако не намерим кош, проверяваме по код
-      console.log("Опитваме се да намерим кош по код:", suggestionData.bin_id);
-
       const { data: binByCode, error: codeError } = await supabase
         .from("recycling_bins")
         .select("*")
         .eq("code", suggestionData.bin_id)
         .single();
-
-      if (codeError || !binByCode) {
-        console.error(
-          "Грешка при четене на кош:",
-          codeError || "Кошът не е намерен",
-        );
-        return false;
-      }
-      // Използваме намерения кош
+      if (codeError || !binByCode) return false;
       binData = binByCode;
     }
-
-    // Проверка дали имаме валидни данни за коша
-    if (!binData) {
-      console.error("Няма намерен кош с ID:", suggestionData.bin_id);
-      return false;
-    }
-
-    // Променлива за данните на коша
-    const currentBinData = binData;
-
-    // Подготовка на обновените тагове
-    const currentTags = currentBinData?.tags || {};
-    const updatedTags = { ...currentTags };
-
-    // Актуализация на таговете с предложените промени
-    if (suggestionData.name) {
-      updatedTags.name = suggestionData.name;
-    }
-    if (suggestionData.opening_hours) {
-      updatedTags.opening_hours = suggestionData.opening_hours;
-    }
-    if (suggestionData.materials) {
-      updatedTags.recycling_type = suggestionData.materials;
-    }
-
-    // Актуализирайте и останалите полета, ако съществуват
-    if (suggestionData.field_name && suggestionData.new_value !== undefined) {
+    if (!binData) return false;
+    const updatedTags = { ...(binData.tags || {}) };
+    if (suggestionData.name) updatedTags.name = suggestionData.name;
+    if (suggestionData.opening_hours) updatedTags.opening_hours = suggestionData.opening_hours;
+    if (suggestionData.materials) updatedTags.recycling_type = suggestionData.materials;
+    if (suggestionData.field_name && suggestionData.new_value !== undefined)
       updatedTags[suggestionData.field_name] = suggestionData.new_value;
-    }
-
-    console.log("Обновени тагове:", updatedTags);
-
-    // Обновяване на коша с новите данни
     const { error: binUpdateError } = await supabase
       .from("recycling_bins")
-      .update({
-        tags: updatedTags,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", currentBinData.id);
-
-    if (binUpdateError) {
-      console.error("Грешка при обновяване на кош:", binUpdateError);
-      return false;
-    }
-
-    // Обновяване на статуса на предложението
+      .update({ tags: updatedTags, updated_at: new Date().toISOString() })
+      .eq("id", binData.id);
+    if (binUpdateError) return false;
     const { error: suggestionUpdateError } = await supabase
       .from("edit_suggestions")
-      .update({
-        status: "approved",
-        reviewed_by: user.id,
-        reviewed_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
+      .update({ status: "approved", reviewed_by: user.id, reviewed_at: new Date().toISOString(), updated_at: new Date().toISOString() })
       .eq("id", suggestionId);
-
-    if (suggestionUpdateError) {
-      console.error(
-        "Грешка при обновяване на предложение:",
-        suggestionUpdateError,
-      );
-      return false;
-    }
-
-    console.log("Предложението е успешно одобрено");
-    return true;
-  } catch (error) {
-    console.error("Грешка при одобряване на предложение:", error);
+    return !suggestionUpdateError;
+  } catch {
     return false;
   }
 }
 
-async function rejectSuggestion(
-  suggestionId: string,
-  reviewNotes?: string,
-): Promise<boolean> {
+async function rejectSuggestion(suggestionId: string, reviewNotes?: string): Promise<boolean> {
   try {
-    console.log("Отхвърляне на предложение:", suggestionId);
-
-    // Вземане на текущия потребител за проследяване
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    const reviewerId = user?.id || null;
-
-    // Обновяване на статуса на предложението
-    const { error: updateError } = await supabase
+    const { data: { user } } = await supabase.auth.getUser();
+    const { error } = await supabase
       .from("edit_suggestions")
       .update({
         status: "rejected",
-        reviewed_by: reviewerId,
+        reviewed_by: user?.id || null,
         reviewed_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         review_notes: reviewNotes || null,
       })
       .eq("id", suggestionId);
-
-    if (updateError) {
-      console.error("Грешка при отхвърляне на предложение:", updateError);
-      return false;
-    }
-
-    console.log("Предложението е отхвърлено успешно");
-    return true;
-  } catch (error) {
-    console.error("Грешка:", error);
+    return !error;
+  } catch {
     return false;
   }
 }
 
-function BinDetails({
-  bin,
-  onApprove,
-  onReject,
-}: {
-  bin: Bin;
-  onApprove: (binId: string, binData: Bin) => Promise<void>;
-  onReject: (binId: string) => Promise<void>;
-}) {
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [showMapModal, setShowMapModal] = useState(false);
-  const [isMapMounted, setIsMapMounted] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [imageError, setImageError] = useState<Record<string, boolean>>({});
-
-  const formData = parseTagsObject(bin.tags);
-
-  // Зареждане на LeafletMap само когато модалът е отворен
-  useEffect(() => {
-    if (showMapModal) {
-      setIsMapMounted(true);
-    } else {
-      setIsMapMounted(false);
-    }
-  }, [showMapModal]);
-
-  const handleApprove = async () => {
-    setIsProcessing(true);
-    await onApprove(bin.id, bin);
-    setIsProcessing(false);
+// ui компоненти
+function StatusBadge({ status, labels }: { status: string; labels: Record<string, string> }) {
+  const colors: Record<string, string> = {
+    pending: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 ring-1 ring-amber-200 dark:ring-amber-800",
+    approved: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 ring-1 ring-emerald-200 dark:ring-emerald-800",
+    rejected: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 ring-1 ring-red-200 dark:ring-red-800",
+    active: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 ring-1 ring-red-200 dark:ring-red-800",
+    resolved: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 ring-1 ring-emerald-200 dark:ring-emerald-800",
   };
-
-  const handleReject = async () => {
-    setIsProcessing(true);
-    await onReject(bin.id);
-    setIsProcessing(false);
-  };
-
-  const LeafletMapModal = () => {
-    if (!bin.lat || !bin.lon || !showMapModal || !isMapMounted) return null;
-
-    return (
-      <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-        onClick={() => setShowMapModal(false)}
-      >
-        <div
-          className="bg-white dark:bg-neutral-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="flex items-center justify-between p-4 border-b border-neutral-200 dark:border-neutral-700">
-            <h3 className="text-lg font-semibold text-neutral-900 dark:text-white">
-              Интерактивна карта
-            </h3>
-            <button
-              onClick={() => setShowMapModal(false)}
-              className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-lg"
-            >
-              <XCircle className="w-5 h-5 text-neutral-500" />
-            </button>
-          </div>
-
-          <div className="p-4">
-            {/* Използвай твоя LeafletMap компонент */}
-            <LeafletMap lat={bin.lat} lon={bin.lon} zoom={16} height={500} />
-
-            <div className="mt-3 text-sm text-neutral-600 dark:text-neutral-400 flex items-center justify-center gap-2">
-              <Navigation className="w-4 h-4" />
-              <span>
-                Координати: {bin.lat.toFixed(6)}, {bin.lon.toFixed(6)}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const ImageModal = () => {
-    if (!selectedImage) return null;
-
-    return (
-      <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
-        onClick={() => setSelectedImage(null)}
-      >
-        <div className="relative max-w-4xl max-h-[90vh]">
-          <button
-            onClick={() => setSelectedImage(null)}
-            className="absolute top-2 right-2 p-2 bg-white rounded-full hover:bg-neutral-100"
-          >
-            <X className="w-5 h-5 text-neutral-900" />
-          </button>
-          <img
-            src={selectedImage || "/placeholder.svg"}
-            alt="Bin"
-            className="max-w-full max-h-[90vh] rounded-lg"
-            onClick={(e) => e.stopPropagation()}
-            onError={(e) => {
-              e.currentTarget.src = "/placeholder.svg";
-              e.currentTarget.classList.add("opacity-50");
-            }}
-          />
-        </div>
-      </div>
-    );
-  };
-
-  const MapPreview = () => {
-    if (!bin.lat || !bin.lon) return null;
-
-    return (
-      <div className="mt-4">
-        <div className="flex items-center gap-2 mb-2">
-          <MapPin className="w-4 h-4 text-blue-500 dark:text-neutral-300" />
-          <span className="font-medium text-neutral-700 dark:text-neutral-300">
-            Местоположение:
-          </span>
-        </div>
-
-        <div className="p-3 bg-blue-50 dark:bg-neutral-700/50 rounded-lg mb-3 border border-blue-200 dark:border-neutral-600">
-          <div className="flex items-start gap-3">
-            <Navigation className="w-5 h-5 text-blue-600 dark:text-neutral-300 mt-0.5" />
-            <div className="flex-1">
-              <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                GPS Координати:
-              </p>
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div>
-                  <span className="text-neutral-500 dark:text-neutral-400">
-                    Географска ширина:
-                  </span>
-                  <code className="block font-mono text-blue-700 dark:text-neutral-200 font-semibold mt-1">
-                    {bin.lat.toFixed(6)}°
-                  </code>
-                </div>
-                <div>
-                  <span className="text-neutral-500 dark:text-neutral-400">
-                    Географска дължина:
-                  </span>
-                  <code className="block font-mono text-blue-700 dark:text-neutral-200 font-semibold mt-1">
-                    {bin.lon.toFixed(6)}°
-                  </code>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-lg overflow-hidden border border-neutral-200 dark:border-neutral-700">
-          <div className="p-3 bg-neutral-50 dark:bg-neutral-800 flex items-center justify-between">
-            <div className="text-sm text-neutral-600 dark:text-neutral-400">
-              Интерактивна карта
-            </div>
-            <button
-              onClick={() => setShowMapModal(true)}
-              className="flex items-center gap-1 px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-md text-sm font-medium"
-            >
-              <Globe className="w-4 h-4" />
-              Отвори карта
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   return (
-    <div className="border border-neutral-200 dark:border-neutral-700 rounded-lg p-4 bg-white dark:bg-neutral-800">
-      <div className="flex flex-col lg:flex-row gap-4">
-        <div className="flex-1">
-          <div className="flex items-start justify-between mb-3">
-            <div>
-              <h3 className="font-semibold text-lg text-neutral-900 dark:text-white">
-                {formData.amenity === "recycling"
-                  ? "Контейнер за рециклиране"
-                  : "Кошче за отпадъци"}
-                {formData.operator && ` - ${formData.operator}`}
-              </h3>
-              <div className="flex items-center gap-2 mt-1">
-                <MapPin className="w-4 h-4 text-neutral-400" />
-                <span className="text-neutral-600 dark:text-neutral-400">
-                  {bin.lat != null && bin.lon != null
-                    ? `${bin.lat.toFixed(6)}, ${bin.lon.toFixed(6)}`
-                    : "—"}
-                </span>
-              </div>
-            </div>
-            <span
-              className={`px-3 py-1 rounded-full text-sm font-medium ${
-                formData.amenity === "recycling"
-                  ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
-                  : "bg-blue-100 text-blue-800 dark:bg-neutral-700 dark:text-neutral-300"
-              }`}
-            >
-              {formData.amenity}
-            </span>
-          </div>
+    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wide ${colors[status] || colors.pending}`}>
+      {labels[status] || status}
+    </span>
+  );
+}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <User className="w-4 h-4 text-neutral-400" />
-                <div>
-                  <span className="text-sm text-neutral-500 dark:text-neutral-400">
-                    Добавен от:
-                  </span>
-                  <p className="text-neutral-700 dark:text-neutral-300 font-medium">
-                    {bin.user_username || "Анонимен"}
-                  </p>
-                  {bin.user_email && bin.user_email !== "Анонимен" && (
-                    <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                      {bin.user_email}
-                    </p>
-                  )}
-                </div>
-              </div>
+function ActionButton({ onClick, disabled, variant, icon: Icon, label }: {
+  onClick: () => void;
+  disabled: boolean;
+  variant: "approve" | "reject" | "email" | "resolve" | "neutral";
+  icon: any;
+  label: string;
+}) {
+  const styles = {
+    approve: "bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white shadow-emerald-500/20",
+    resolve: "bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white shadow-emerald-500/20",
+    reject: "bg-white hover:bg-red-50 dark:bg-neutral-700 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 ring-1 ring-red-200 dark:ring-red-800",
+    email: "bg-white hover:bg-blue-50 dark:bg-neutral-700 dark:hover:bg-blue-900/20 text-blue-600 dark:text-blue-400 ring-1 ring-blue-200 dark:ring-blue-800",
+    neutral: "bg-white hover:bg-neutral-100 dark:bg-neutral-700 dark:hover:bg-neutral-600 text-neutral-600 dark:text-neutral-300 ring-1 ring-neutral-200 dark:ring-neutral-600",
+  };
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all shadow-sm disabled:opacity-40 disabled:cursor-not-allowed ${styles[variant]}`}
+    >
+      {disabled ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Icon className="w-3.5 h-3.5" />}
+      <span>{label}</span>
+    </button>
+  );
+}
 
-              <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-neutral-400" />
-                <div>
-                  <span className="text-sm text-neutral-500 dark:text-neutral-400">
-                    Дата на добавяне:
-                  </span>
-                  <p className="text-neutral-700 dark:text-neutral-300">
-                    {bin.created_at
-                      ? new Date(bin.created_at).toLocaleDateString("bg-BG", {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })
-                      : "—"}
-                  </p>
-                </div>
-              </div>
-
-              {formData.operator && (
-                <div className="flex items-center gap-2">
-                  <Building className="w-4 h-4 text-neutral-400" />
-                  <div>
-                    <span className="text-sm text-neutral-500 dark:text-neutral-400">
-                      Оператор:
-                    </span>
-                    <p className="text-neutral-700 dark:text-neutral-300">
-                      {formData.operator}
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-3">
-              {formData.recycling_type && (
-                <div className="flex items-center gap-2">
-                  <Package className="w-4 h-4 text-neutral-400" />
-                  <div>
-                    <span className="text-sm text-neutral-500 dark:text-neutral-400">
-                      Тип рециклиране:
-                    </span>
-                    <p className="text-neutral-700 dark:text-neutral-300">
-                      {formData.recycling_type}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              <div className="flex items-center gap-2">
-                <Hash className="w-4 h-4 text-neutral-400" />
-                <div>
-                  <span className="text-sm text-neutral-500 dark:text-neutral-400">
-                    Брой контейнери:
-                  </span>
-                  <p className="text-neutral-700 dark:text-neutral-300">
-                    {formData.count}
-                  </p>
-                </div>
-              </div>
-
-              {bin.code && (
-                <div className="flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-green-500" />
-                  <div>
-                    <span className="text-sm text-neutral-500 dark:text-neutral-400">
-                      Код:
-                    </span>
-                    <p className="text-neutral-700 dark:text-neutral-300 font-mono text-sm">
-                      {bin.code}
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {(formData.recycling_clothes ||
-            formData.recycling_shoes ||
-            formData.recycling_type) && (
-            <div className="mb-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Trash2 className="w-4 h-4 text-green-500" />
-                <span className="font-medium text-neutral-700 dark:text-neutral-300">
-                  Приема:
-                </span>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {formData.recycling_type && (
-                  <span className="px-3 py-1 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 rounded-full text-sm">
-                    {formData.recycling_type}
-                  </span>
-                )}
-                {formData.recycling_clothes && (
-                  <span className="px-3 py-1 bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300 rounded-full text-sm">
-                    Дрехи
-                  </span>
-                )}
-                {formData.recycling_shoes && (
-                  <span className="px-3 py-1 bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300 rounded-full text-sm">
-                    Обувки
-                  </span>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* снимки на контейнерите */}
-          {bin.image_urls && bin.image_urls.length > 0 ? (
-            <div className="mb-4">
-              <div className="flex items-center gap-2 mb-2">
-                <svg
-                  className="w-4 h-4 text-neutral-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
-                <span className="font-medium text-neutral-700 dark:text-neutral-300">
-                  Снимки на коша:
-                </span>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                {bin.image_urls.map((imageUrl, index) => (
-                  <div
-                    key={index}
-                    className="relative group cursor-pointer overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-700"
-                    onClick={() => setSelectedImage(imageUrl)}
-                  >
-                    <img
-                      src={imageUrl}
-                      alt={`Bin ${index + 1}`}
-                      className="w-full h-32 object-cover group-hover:scale-110 transition-transform duration-200"
-                      onError={(e) => {
-                        e.currentTarget.src = "/placeholder.svg";
-                        e.currentTarget.classList.add("opacity-50");
-                        setImageError((prev) => ({
-                          ...prev,
-                          [imageUrl]: true,
-                        }));
-                      }}
-                      loading="lazy"
-                    />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-200 flex items-center justify-center">
-                      <Eye className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="mb-4 p-4 bg-neutral-50 dark:bg-neutral-800/30 rounded-lg border border-neutral-200 dark:border-neutral-700">
-              <div className="flex items-center gap-2 text-neutral-500 dark:text-neutral-400">
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
-                <span>Няма прикачени снимки</span>
-              </div>
-            </div>
-          )}
-
-          {typeof window !== "undefined" && <MapPreview />}
-        </div>
-
-        <div className="flex lg:flex-col gap-2">
-          <button
-            onClick={handleApprove}
-            disabled={isProcessing}
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 disabled:bg-neutral-400 text-white rounded-lg font-medium transition-colors"
-          >
-            {isProcessing ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <CheckCircle className="w-4 h-4" />
-            )}
-            Одобри
-          </button>
-          <button
-            onClick={handleReject}
-            disabled={isProcessing}
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 disabled:bg-neutral-400 text-white rounded-lg font-medium transition-colors"
-          >
-            {isProcessing ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <XCircle className="w-4 h-4" />
-            )}
-            Откажи
-          </button>
-        </div>
+function MetaRow({ icon: Icon, label, value, className }: { icon: any; label: string; value: string | ReactNode; className?: string }) {
+  return (
+    <div className="flex items-start gap-2.5">
+      <Icon className="w-3.5 h-3.5 text-neutral-400 mt-0.5 shrink-0" />
+      <div>
+        <span className="text-xs text-neutral-500 dark:text-neutral-400 block">{label}</span>
+        <span className={`text-sm font-medium text-neutral-800 dark:text-neutral-200 ${className || ""}`}>{value}</span>
       </div>
-
-      {/* Рендиране модала за картата тук */}
-      <LeafletMapModal />
-      <ImageModal />
     </div>
   );
 }
 
-function SuggestionDetails({
-  suggestion,
-  onApprove,
-  onReject,
-}: {
-  suggestion: EditSuggestion;
-  onApprove: (id: string, data: EditSuggestion) => Promise<void>;
-  onReject: (id: string) => Promise<void>;
-}) {
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [reviewNotes, setReviewNotes] = useState("");
+function ImageGallery({ images, onSelect }: { images: string[]; onSelect: (url: string) => void }) {
+  if (images.length === 0)
+    return (
+      <div className="flex items-center gap-2 p-3 rounded-lg bg-neutral-50 dark:bg-neutral-800/50 border border-dashed border-neutral-200 dark:border-neutral-700">
+        <Eye className="w-4 h-4 text-neutral-400" />
+        <span className="text-xs text-neutral-400">Няма прикачени снимки</span>
+      </div>
+    );
+  return (
+    <div className="grid grid-cols-3 gap-1.5">
+      {images.map((url, i) => (
+        <button key={i} onClick={() => onSelect(url)} className="relative group aspect-square overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-700">
+          <img src={url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" onError={(e) => { e.currentTarget.src = "/placeholder.svg"; }} />
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+            <Eye className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+          </div>
+        </button>
+      ))}
+    </div>
+  );
+}
 
-  const handleApprove = async () => {
-    setIsProcessing(true);
-    await onApprove(suggestion.id, suggestion);
-    setIsProcessing(false);
-  };
+function LightboxModal({ url, onClose }: { url: string; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onClick={onClose}>
+      <div className="relative max-w-3xl max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+        <button onClick={onClose} className="absolute -top-3 -right-3 z-10 p-1.5 bg-white dark:bg-neutral-800 rounded-full shadow-lg hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors">
+          <X className="w-4 h-4 text-neutral-700 dark:text-neutral-300" />
+        </button>
+        <img src={url} alt="" className="max-w-full max-h-[90vh] rounded-xl object-contain shadow-2xl" onError={(e) => { e.currentTarget.src = "/placeholder.svg"; }} />
+      </div>
+    </div>
+  );
+}
 
-  const handleReject = async () => {
-    setIsProcessing(true);
-    await onReject(suggestion.id);
-    setIsProcessing(false);
+function MapModal({ lat, lon, onClose }: { lat: number; lon: number; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
+      <div className="bg-white dark:bg-neutral-900 rounded-2xl max-w-3xl w-full overflow-hidden shadow-2xl border border-neutral-200 dark:border-neutral-700" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-200 dark:border-neutral-700">
+          <div className="flex items-center gap-2">
+            <MapPin className="w-4 h-4 text-emerald-500" />
+            <span className="font-semibold text-neutral-900 dark:text-white text-sm">Местоположение</span>
+            <span className="text-xs text-neutral-400 font-mono">{lat.toFixed(5)}, {lon.toFixed(5)}</span>
+          </div>
+          <button onClick={onClose} className="p-1.5 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors">
+            <X className="w-4 h-4 text-neutral-500" />
+          </button>
+        </div>
+        <div className="p-4">
+          <LeafletMap lat={lat} lon={lon} zoom={16} height={400} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Card({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <div className={`bg-white dark:bg-neutral-800/60 border border-neutral-200 dark:border-neutral-700/60 rounded-xl shadow-sm ${className || ""}`}>
+      {children}
+    </div>
+  );
+}
+
+// детайли за контейнери чакащи одобрение
+function BinDetails({ bin, onApprove, onReject }: { bin: Bin; onApprove: (binId: string, binData: Bin) => Promise<void>; onReject: (binId: string) => Promise<void> }) {
+  const [processing, setProcessing] = useState<"approve" | "reject" | null>(null);
+  const [showMap, setShowMap] = useState(false);
+  const [lightbox, setLightbox] = useState<string | null>(null);
+  const formData = parseTagsObject(bin.tags);
+
+  const handle = async (action: "approve" | "reject") => {
+    setProcessing(action);
+    if (action === "approve") await onApprove(bin.id, bin);
+    else await onReject(bin.id);
+    setProcessing(null);
   };
 
   return (
-    <div className="border border-neutral-200 dark:border-neutral-700 rounded-lg p-4 bg-white dark:bg-neutral-900">
-      <div className="flex flex-col lg:flex-row gap-4">
-        <div className="flex-1">
-          {/* Заглавие на предложението за промяна */}
-          <h3 className="font-semibold text-neutral-900 dark:text-neutral-50 mb-2">
-            Предложение за промяна
-          </h3>
-
-          {/* Информационен панел с идентификатор на коша */}
-          <div className="mb-4 p-3 bg-neutral-50 dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                  Идентификатор на кош:
-                </p>
-                <p className="text-2xl font-bold text-neutral-900 dark:text-white">
-                  {suggestion.bin_id}
-                </p>
-              </div>
-              <Shield className="w-8 h-8 text-neutral-500 dark:text-neutral-400" />
-            </div>
-          </div>
-
-          {/* Предложени промени */}
-          <div className="space-y-3">
-            {suggestion.field_name && (
-              <div className="p-3 bg-neutral-50 dark:bg-neutral-800 rounded border border-neutral-200 dark:border-neutral-700">
-                <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-1">
-                  Поле
-                </p>
-                <p className="text-sm font-medium text-neutral-900 dark:text-neutral-50">
-                  {suggestion.field_name}
-                </p>
-              </div>
-            )}
-
-            {suggestion.name && (
-              <div className="p-3 bg-neutral-50 dark:bg-neutral-800 rounded border border-neutral-200 dark:border-neutral-700">
-                <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-1">
-                  Име
-                </p>
-                <p className="text-sm font-medium text-neutral-900 dark:text-neutral-50">
-                  {suggestion.name}
-                </p>
-              </div>
-            )}
-
-            {suggestion.opening_hours && (
-              <div className="p-3 bg-neutral-50 dark:bg-neutral-800 rounded border border-neutral-200 dark:border-neutral-700">
-                <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-1">
-                  Работно време
-                </p>
-                <p className="text-sm font-medium text-neutral-900 dark:text-neutral-50">
-                  {suggestion.opening_hours}
-                </p>
-              </div>
-            )}
-
-            {suggestion.materials && (
-              <div className="p-3 bg-neutral-50 dark:bg-neutral-800 rounded border border-neutral-200 dark:border-neutral-700">
-                <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-1">
-                  Материали
-                </p>
-                <p className="text-sm font-medium text-neutral-900 dark:text-neutral-50">
-                  {suggestion.materials}
-                </p>
-              </div>
-            )}
-
-            {suggestion.notes && (
-              <div className="p-3 bg-neutral-50 dark:bg-neutral-800 rounded border border-neutral-200 dark:border-neutral-700">
-                <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-1">
-                  Бележки
-                </p>
-                <p className="text-sm text-neutral-700 dark:text-neutral-300">
-                  {suggestion.notes}
-                </p>
-              </div>
-            )}
-          </div>
-
-          {(suggestion.old_value !== undefined ||
-            suggestion.new_value !== undefined) && (
-            <div className="mt-4 p-3 bg-neutral-50 dark:bg-neutral-800 rounded border border-neutral-200 dark:border-neutral-700">
-              <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-2">
-                Сравнение на стойности
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                <div>
-                  <p className="text-neutral-500 dark:text-neutral-400 mb-1">
-                    Стара стойност
-                  </p>
-                  <p className="text-neutral-900 dark:text-neutral-50 font-mono">
-                    {suggestion.old_value !== undefined
-                      ? String(suggestion.old_value)
-                      : "—"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-neutral-500 dark:text-neutral-400 mb-1">
-                    Нова стойност
-                  </p>
-                  <p className="text-neutral-900 dark:text-neutral-50 font-mono">
-                    {suggestion.new_value !== undefined
-                      ? String(suggestion.new_value)
-                      : "—"}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Метаданни */}
-          <div className="mt-4 pt-4 border-t border-neutral-200 dark:border-neutral-700">
-            <div className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
-              <User className="w-4 h-4" />
-              <span>{suggestion.user_email || "Неизвестен потребител"}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400 mt-2">
-              <Calendar className="w-4 h-4" />
-              <span>
-                {new Date(suggestion.created_at).toLocaleString("bg-BG")}
+    <Card>
+      <div className="p-5">
+        <div className="flex items-start justify-between gap-4 mb-4">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium ${formData.amenity === "recycling" ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" : "bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"}`}>
+                <Recycle className="w-3 h-3" />
+                {formData.amenity}
               </span>
+              {bin.code && <span className="text-xs font-mono text-neutral-400 bg-neutral-100 dark:bg-neutral-700 px-2 py-0.5 rounded">{bin.code}</span>}
             </div>
-            <div className="flex items-center gap-2 mt-2">
-              <span
-                className={`px-2 py-1 text-xs font-medium rounded ${
-                  suggestion.status === "pending"
-                    ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-                    : suggestion.status === "approved"
-                      ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                      : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                }`}
-              >
-                {suggestion.status === "pending"
-                  ? "Чакащо"
-                  : suggestion.status === "approved"
-                    ? "Одобрено"
-                    : "Отхвърлено"}
-              </span>
-            </div>
+            <h3 className="text-base font-semibold text-neutral-900 dark:text-white">
+              {formData.amenity === "recycling" ? "Контейнер за рециклиране" : "Кошче за отпадъци"}
+              {formData.operator && <span className="text-neutral-400 font-normal"> — {formData.operator}</span>}
+            </h3>
           </div>
-
-          {/* Информация за преглед (ако има) */}
-          {suggestion.reviewed_by && (
-            <div className="mt-4 p-3 bg-neutral-100 dark:bg-neutral-800 rounded border border-neutral-300 dark:border-neutral-600">
-              <p className="text-xs font-medium text-neutral-600 dark:text-neutral-400 uppercase tracking-wide mb-2">
-                Информация за преглед
-              </p>
-              <div className="space-y-1 text-sm text-neutral-700 dark:text-neutral-300">
-                <p>Прегледано от: {suggestion.reviewed_by}</p>
-                {suggestion.reviewed_at && (
-                  <p>
-                    Дата:{" "}
-                    {new Date(suggestion.reviewed_at).toLocaleString("bg-BG")}
-                  </p>
-                )}
-                {suggestion.review_notes && (
-                  <p>Бележки: {suggestion.review_notes}</p>
-                )}
-              </div>
-            </div>
-          )}
+          <StatusBadge status="pending" labels={{ pending: "Чакащ" }} />
         </div>
 
-        {/* Бутони за действие */}
-        {suggestion.status === "pending" && (
-          <div className="flex lg:flex-col gap-2 lg:w-32">
-            <button
-              onClick={handleApprove}
-              disabled={isProcessing}
-              className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-neutral-400 text-white rounded-lg transition-colors"
-            >
-              {isProcessing ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <CheckCircle className="w-4 h-4" />
-              )}
-              <span>Одобри</span>
-            </button>
-            <div className="flex flex-col gap-2">
-              <input
-                type="text"
-                placeholder="Бележки за отхвърляне (опционално)..."
-                value={reviewNotes}
-                onChange={(e) => setReviewNotes(e.target.value)}
-                className="p-2 border border-neutral-300 dark:border-neutral-600 rounded-lg text-sm bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white"
-              />
-              <button
-                onClick={handleReject}
-                disabled={isProcessing}
-                className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-neutral-400 text-white rounded-lg transition-colors"
-              >
-                {isProcessing ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <XCircle className="w-4 h-4" />
-                )}
-                <span>Отхвърли</span>
-              </button>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-4">
+          <div className="space-y-3">
+            <MetaRow icon={User} label="Добавен от" value={<>{bin.user_username || "Анонимен"}{bin.user_email && bin.user_email !== "Анонимен" && <span className="block text-xs text-neutral-400 font-normal">{bin.user_email}</span>}</>} />
+            <MetaRow icon={Calendar} label="Дата" value={bin.created_at ? new Date(bin.created_at).toLocaleDateString("bg-BG", { year: "numeric", month: "long", day: "numeric" }) : "—"} />
+            {formData.operator && <MetaRow icon={Building} label="Оператор" value={formData.operator} />}
+          </div>
+          <div className="space-y-3">
+            {formData.recycling_type && <MetaRow icon={Package} label="Тип рециклиране" value={formData.recycling_type} />}
+            <MetaRow icon={Hash} label="Брой контейнери" value={String(formData.count)} />
+            {bin.lat && bin.lon && (
+              <div className="flex items-start gap-2.5">
+                <MapPin className="w-3.5 h-3.5 text-neutral-400 mt-0.5 shrink-0" />
+                <div>
+                  <span className="text-xs text-neutral-500 dark:text-neutral-400 block">Координати</span>
+                  <button onClick={() => setShowMap(true)} className="text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:underline font-mono">
+                    {bin.lat.toFixed(5)}, {bin.lon.toFixed(5)}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {(formData.recycling_clothes || formData.recycling_shoes || formData.recycling_type) && (
+          <div className="flex flex-wrap gap-1.5 mb-4">
+            {formData.recycling_type && <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400 rounded-full text-xs font-medium">{formData.recycling_type}</span>}
+            {formData.recycling_clothes && <span className="px-2.5 py-1 bg-pink-50 text-pink-700 dark:bg-pink-900/20 dark:text-pink-400 rounded-full text-xs font-medium">Дрехи</span>}
+            {formData.recycling_shoes && <span className="px-2.5 py-1 bg-pink-50 text-pink-700 dark:bg-pink-900/20 dark:text-pink-400 rounded-full text-xs font-medium">Обувки</span>}
+          </div>
+        )}
+
+        <ImageGallery images={bin.image_urls || []} onSelect={setLightbox} />
+      </div>
+
+      <div className="flex items-center justify-end gap-2 px-5 py-3 border-t border-neutral-100 dark:border-neutral-700/60 bg-neutral-50/50 dark:bg-neutral-800/30 rounded-b-xl">
+        <ActionButton onClick={() => handle("reject")} disabled={!!processing} variant="neutral" icon={XCircle} label="Откажи" />
+        <ActionButton onClick={() => handle("approve")} disabled={!!processing} variant="approve" icon={CheckCircle} label="Одобри" />
+      </div>
+
+      {showMap && bin.lat && bin.lon && <MapModal lat={bin.lat} lon={bin.lon} onClose={() => setShowMap(false)} />}
+      {lightbox && <LightboxModal url={lightbox} onClose={() => setLightbox(null)} />}
+    </Card>
+  );
+}
+
+// за предложени промени по съществуващи контейнери
+function SuggestionDetails({ suggestion, onApprove, onReject }: { suggestion: EditSuggestion; onApprove: (id: string, data: EditSuggestion) => Promise<void>; onReject: (id: string) => Promise<void> }) {
+  const [processing, setProcessing] = useState<"approve" | "reject" | null>(null);
+  const [reviewNotes, setReviewNotes] = useState("");
+
+  const handle = async (action: "approve" | "reject") => {
+    setProcessing(action);
+    if (action === "approve") await onApprove(suggestion.id, suggestion);
+    else await onReject(suggestion.id);
+    setProcessing(null);
+  };
+
+  const changedFields = [
+    suggestion.field_name && { label: "Поле", value: suggestion.field_name },
+    suggestion.name && { label: "Име", value: suggestion.name },
+    suggestion.opening_hours && { label: "Работно време", value: suggestion.opening_hours },
+    suggestion.materials && { label: "Материали", value: suggestion.materials },
+    suggestion.notes && { label: "Бележки", value: suggestion.notes },
+  ].filter(Boolean) as { label: string; value: string }[];
+
+  return (
+    <Card>
+      <div className="p-5">
+        <div className="flex items-start justify-between gap-4 mb-4">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <PenLine className="w-3.5 h-3.5 text-blue-500" />
+              <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">Предложение за промяна</span>
+              <span className="text-xs font-mono text-neutral-400 bg-neutral-100 dark:bg-neutral-700 px-2 py-0.5 rounded">{suggestion.bin_id}</span>
+            </div>
+          </div>
+          <StatusBadge status={suggestion.status} labels={{ pending: "Чакащо", approved: "Одобрено", rejected: "Отхвърлено" }} />
+        </div>
+
+        {changedFields.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
+            {changedFields.map((field) => (
+              <div key={field.label} className="p-3 rounded-lg bg-neutral-50 dark:bg-neutral-700/40 border border-neutral-200 dark:border-neutral-700">
+                <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-1">{field.label}</p>
+                <p className="text-sm text-neutral-800 dark:text-neutral-200 font-medium">{field.value}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {(suggestion.old_value !== undefined || suggestion.new_value !== undefined) && (
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30">
+              <p className="text-xs font-medium text-red-400 uppercase tracking-wider mb-1">Преди</p>
+              <p className="text-sm font-mono text-red-700 dark:text-red-400">{suggestion.old_value !== undefined ? String(suggestion.old_value) : "—"}</p>
+            </div>
+            <div className="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/30">
+              <p className="text-xs font-medium text-emerald-500 uppercase tracking-wider mb-1">След</p>
+              <p className="text-sm font-mono text-emerald-700 dark:text-emerald-400">{suggestion.new_value !== undefined ? String(suggestion.new_value) : "—"}</p>
             </div>
           </div>
         )}
+
+        <div className="flex items-center gap-4 text-xs text-neutral-500 dark:text-neutral-400">
+          <div className="flex items-center gap-1.5"><User className="w-3 h-3" />{suggestion.user_email || "Неизвестен"}</div>
+          <div className="flex items-center gap-1.5"><Calendar className="w-3 h-3" />{new Date(suggestion.created_at).toLocaleDateString("bg-BG")}</div>
+        </div>
       </div>
-    </div>
+
+      {suggestion.status === "pending" && (
+        <div className="flex flex-col sm:flex-row items-center gap-2 px-5 py-3 border-t border-neutral-100 dark:border-neutral-700/60 bg-neutral-50/50 dark:bg-neutral-800/30 rounded-b-xl">
+          <input
+            type="text"
+            placeholder="Бележки при отхвърляне (по избор)"
+            value={reviewNotes}
+            onChange={(e) => setReviewNotes(e.target.value)}
+            className="flex-1 text-xs px-3 py-2 rounded-lg border border-neutral-200 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-neutral-800 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+          />
+          <div className="flex gap-2">
+            <ActionButton onClick={() => handle("reject")} disabled={!!processing} variant="reject" icon={XCircle} label="Отхвърли" />
+            <ActionButton onClick={() => handle("approve")} disabled={!!processing} variant="approve" icon={CheckCircle} label="Одобри" />
+          </div>
+        </div>
+      )}
+    </Card>
   );
 }
 
-// Компонент за показване на детайли за отчет
-function ReportDetails({
-  report,
-  onResolve,
-  onDelete,
-}: {
-  report: Report;
-  onResolve: (reportId: string) => Promise<void>;
-  onDelete: (reportId: string) => Promise<void>;
-}) {
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [showDetails, setShowDetails] = useState(false);
-  const [showMapModal, setShowMapModal] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+// при доклади за проблем с контейнери
+function ReportDetails({ report, onResolve, onDelete }: { report: Report; onResolve: (id: string) => Promise<void>; onDelete: (id: string) => Promise<void> }) {
+  const [processing, setProcessing] = useState<"resolve" | "delete" | null>(null);
+  const [showMap, setShowMap] = useState(false);
+  const [lightbox, setLightbox] = useState<string | null>(null);
 
-  const handleResolve = async () => {
-    setIsProcessing(true);
-    await onResolve(report.id);
-    setIsProcessing(false);
+  const handle = async (action: "resolve" | "delete") => {
+    setProcessing(action);
+    if (action === "resolve") await onResolve(report.id);
+    else await onDelete(report.id);
+    setProcessing(null);
   };
 
-  const handleDelete = async () => {
-    setIsProcessing(true);
-    await onDelete(report.id);
-    setIsProcessing(false);
-  };
+  const getReportTypeLabel = (type: string) =>
+    ({ incorrect_location: "Грешна локация", bin_missing: "Липсващ кош", bin_damaged: "Повреден кош", wrong_materials: "Грешни материали", overflowing: "Препълнен", duplicate: "Дубликат", other: "Друг проблем" })[type] || type;
 
-  const getReportTypeLabel = (type: string): string => {
-    const typeMap: Record<string, string> = {
-      incorrect_location: "Грешна локация",
-      bin_missing: "Липсващ кош",
-      bin_damaged: "Повреден кош",
-      wrong_materials: "Грешни материали",
-      overflowing: "Препълнен",
-      duplicate: "Дубликат",
-      other: "Друг проблем",
-    };
-    return typeMap[type] || type;
-  };
-
-  // Функция за получаване на URL на снимка - ОПРАВЕНА
-  const getImageUrl = (photoUrl: string | undefined): string => {
+  const getImageUrl = (photoUrl: string) => {
     if (!photoUrl) return "/placeholder.svg";
-
-    console.log("Обработване на photo_url:", photoUrl);
-
-    // Ако вече е пълен URL
-    if (photoUrl.startsWith("http")) {
-      console.log("Вече е пълен URL, връщам:", photoUrl);
-      return photoUrl;
-    }
-
-    // Ако е име на файл (без път)
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-
-    // Проверка за обикновено име на файл
-    if (photoUrl.includes(".") && !photoUrl.includes("/")) {
-      const url = `${supabaseUrl}/storage/v1/object/public/report-photos/${photoUrl}`;
-      return url;
-    }
-
-    // Ако е път, изчисти го
-    if (photoUrl.includes("/")) {
-      // Извличане само на името на файла
-      const fileName = photoUrl.split("/").pop() || photoUrl;
-      const url = `${supabaseUrl}/storage/v1/object/public/report-photos/${fileName}`;
-      return url;
-    }
-
-    console.log("Неразпознат формат, връщам placeholder");
-    return "/placeholder.svg";
+    if (photoUrl.startsWith("http")) return photoUrl;
+    const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const fileName = photoUrl.includes("/") ? photoUrl.split("/").pop() : photoUrl;
+    return `${base}/storage/v1/object/public/report-photos/${fileName}`;
   };
 
-  // Събираме всички снимки
-  const allImages: string[] = [];
+  const allImages = [
+    ...(report.photo_url ? [getImageUrl(report.photo_url)] : []),
+    ...(report.images || []).map((img) => getImageUrl(img.photo_url)),
+  ];
 
-  // Добавяме директната снимка от reports таблицата
-  if (report.photo_url) {
-    const url = getImageUrl(report.photo_url);
-    allImages.push(url);
-  }
-
-  // Добавяме снимките от report_photos таблицата
-  if (report.images && report.images.length > 0) {
-    report.images.forEach((img) => {
-      const url = getImageUrl(img.photo_url);
-      allImages.push(url);
-    });
-  }
-
-  const LeafletMapModal = () => {
-    if (!report.bin_lat || !report.bin_lon || !showMapModal) return null;
-
-    return (
-      <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-        onClick={() => setShowMapModal(false)}
-      >
-        <div
-          className="bg-white dark:bg-neutral-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="flex items-center justify-between p-4 border-b border-neutral-200 dark:border-neutral-700">
-            <h3 className="text-lg font-semibold text-neutral-900 dark:text-white">
-              Местоположение на коша
-            </h3>
-            <button
-              onClick={() => setShowMapModal(false)}
-              className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-lg"
-            >
-              <XCircle className="w-5 h-5 text-neutral-500" />
-            </button>
-          </div>
-
-          <div className="p-4">
-            <LeafletMap lat={report.bin_lat} lon={report.bin_lon} />
-
-            <div className="mt-3 text-sm text-neutral-600 dark:text-neutral-400 flex items-center justify-center gap-2">
-              <Navigation className="w-4 h-4" />
-              <span>
-                Координати: {report.bin_lat?.toFixed(6)},{" "}
-                {report.bin_lon?.toFixed(6)}
-              </span>
+  return (
+    <Card>
+      <div className="p-5">
+        <div className="flex items-start justify-between gap-4 mb-4">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <Flag className="w-3.5 h-3.5 text-red-500" />
+              <span className="text-xs text-red-600 dark:text-red-400 font-medium">{getReportTypeLabel(report.type)}</span>
+              {report.bin_code && <span className="text-xs font-mono text-neutral-400 bg-neutral-100 dark:bg-neutral-700 px-2 py-0.5 rounded">{report.bin_code}</span>}
             </div>
+            <h3 className="text-base font-semibold text-neutral-900 dark:text-white">{report.title}</h3>
+          </div>
+          <StatusBadge status={report.resolved ? "resolved" : "active"} labels={{ resolved: "Разрешен", active: "Активен" }} />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-4">
+          <div className="space-y-3">
+            <MetaRow icon={User} label="Докладван от" value={<>{report.user_username || "Анонимен"}{report.user_email && report.user_email !== "Анонимен" && <span className="block text-xs text-neutral-400 font-normal">{report.user_email}</span>}</>} />
+            <MetaRow icon={Calendar} label="Дата" value={report.created_at ? new Date(report.created_at).toLocaleDateString("bg-BG", { year: "numeric", month: "long", day: "numeric" }) : "—"} />
+          </div>
+          <div className="space-y-3">
+            {report.bin_lat && report.bin_lon && (
+              <div className="flex items-start gap-2.5">
+                <MapPin className="w-3.5 h-3.5 text-neutral-400 mt-0.5 shrink-0" />
+                <div>
+                  <span className="text-xs text-neutral-500 dark:text-neutral-400 block">Локация</span>
+                  <button onClick={() => setShowMap(true)} className="text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:underline font-mono">
+                    {report.bin_lat.toFixed(4)}, {report.bin_lon.toFixed(4)}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
+
+        {report.description && (
+          <div className="p-3 rounded-lg bg-neutral-50 dark:bg-neutral-700/40 border border-neutral-200 dark:border-neutral-700 mb-4">
+            <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-1.5">Описание</p>
+            <p className="text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed">{report.description}</p>
+          </div>
+        )}
+
+        <ImageGallery images={allImages} onSelect={setLightbox} />
       </div>
-    );
+
+      <div className="flex items-center justify-end gap-2 px-5 py-3 border-t border-neutral-100 dark:border-neutral-700/60 bg-neutral-50/50 dark:bg-neutral-800/30 rounded-b-xl">
+        <ActionButton onClick={() => handle("delete")} disabled={!!processing} variant="reject" icon={Trash2} label="Изтрий" />
+        {!report.resolved && <ActionButton onClick={() => handle("resolve")} disabled={!!processing} variant="resolve" icon={CheckCircle} label="Разреши" />}
+      </div>
+
+      {showMap && report.bin_lat && report.bin_lon && <MapModal lat={report.bin_lat} lon={report.bin_lon} onClose={() => setShowMap(false)} />}
+      {lightbox && <LightboxModal url={lightbox} onClose={() => setLightbox(null)} />}
+    </Card>
+  );
+}
+
+// при заявки от организации за получаване на кошове за рециклиране
+function OrganizationRequestDetails({ request, onApprove, onReject }: { request: OrganizationRequest; onApprove: (id: string) => Promise<void>; onReject: (id: string) => Promise<void> }) {
+  const [processing, setProcessing] = useState<"approve" | "reject" | "email" | null>(null);
+
+  const openEmail = (subject: string, body: string) => {
+    const link = `https://mail.google.com/mail/u/0/?view=cm&fs=1&to=${encodeURIComponent(request.contact_email)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.open(link, "_blank");
   };
 
-  const ImageModal = () => {
-    if (!selectedImage) return null;
-
-    return (
-      <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
-        onClick={() => setSelectedImage(null)}
-      >
-        <div className="relative max-w-4xl max-h-[90vh]">
-          <button
-            onClick={() => setSelectedImage(null)}
-            className="absolute top-2 right-2 p-2 bg-white rounded-full hover:bg-neutral-100"
-          >
-            <X className="w-5 h-5 text-neutral-900" />
-          </button>
-          <img
-            src={selectedImage || "/placeholder.svg"}
-            alt="Report"
-            className="max-w-full max-h-[90vh] rounded-lg"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </div>
-      </div>
-    );
+  const handle = async (action: "approve" | "reject") => {
+    if (!window.confirm(`Сигурни ли сте, че искате да ${action === "approve" ? "одобрите" : "отхвърлите"} заявката от "${request.organization_name}"?`)) return;
+    setProcessing(action);
+    const subject = `Заявка за кошове от ${request.organization_name} - ${action === "approve" ? "ОДОБРЕНО" : "ОТХВЪРЛЕНА"}`;
+    const body = `Уважаеми/а ${request.contact_name},\n\nВашата заявка за получаване на ${request.intended_bin_count} кош${request.intended_bin_count > 1 ? "а" : ""} е ${action === "approve" ? "одобрена" : "отхвърлена"}.\n\nС уважение,\nЕкипът на Recyclix`;
+    openEmail(subject, body);
+    await new Promise((r) => setTimeout(r, 500));
+    if (action === "approve") await onApprove(request.id);
+    else await onReject(request.id);
+    setProcessing(null);
   };
 
   return (
-    <div className="border border-neutral-200 dark:border-neutral-700 rounded-lg p-4 bg-white dark:bg-neutral-800">
-      <div className="flex flex-col lg:flex-row gap-4">
-        <div className="flex-1">
-          <div className="flex items-start justify-between mb-3">
-            <div>
-              <h3 className="font-semibold text-3xl mb-3 text-neutral-900 dark:text-white">
-                {report.title}
-              </h3>
-              <div className="flex items-center justify-items-center gap-2 mt-1">
-                <Flag className="w-4 h-4 text-red-500 translate-y-[1px]" />
-                <span className="text-red-600 dark:text-red-500">
-                  {getReportTypeLabel(report.type)}
-                </span>
-              </div>
+    <Card>
+      <div className="p-5">
+        <div className="flex items-start justify-between gap-4 mb-4">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <Building className="w-3.5 h-3.5 text-purple-500" />
+              <span className="text-xs text-purple-600 dark:text-purple-400 font-medium capitalize">{request.organization_type}</span>
             </div>
-            <span
-              className={`px-3 py-1 rounded-full text-sm font-medium ${
-                report.resolved
-                  ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-500"
-                  : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-500"
-              }`}
-            >
-              {report.resolved ? "Разрешен" : "Активен"}
-            </span>
+            <h3 className="text-base font-semibold text-neutral-900 dark:text-white">{request.organization_name}</h3>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <User className="w-4 h-4 text-neutral-400" />
-                <div>
-                  <span className="text-sm text-neutral-500 dark:text-neutral-400">
-                    Докладван от:
-                  </span>
-                  <p className="text-blue-600 dark:text-blue-400 font-medium">
-                    {report.user_username || "Анонимен"}
-                  </p>
-                  {report.user_email && report.user_email !== "Анонимен" && (
-                    <p className="text-xs text-blue-600 dark:text-blue-400">
-                      {report.user_email}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-neutral-400" />
-                <div>
-                  <span className="text-sm text-neutral-500 dark:text-neutral-400">
-                    Дата на докладване:
-                  </span>
-                  <p className="text-blue-600 dark:text-blue-400">
-                    {report.created_at
-                      ? new Date(report.created_at).toLocaleDateString(
-                          "bg-BG",
-                          {
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          },
-                        )
-                      : "—"}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              {report.bin_code && (
-                <div className="flex items-center gap-2">
-                  <Hash className="w-4 h-4 text-neutral-400" />
-                  <div>
-                    <span className="text-sm text-neutral-500 dark:text-neutral-400">
-                      Код на кош:
-                    </span>
-                    <p className="text-blue-600 dark:text-blue-400 font-mono text-sm">
-                      {report.bin_code}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {report.bin_lat && report.bin_lon && (
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-neutral-400" />
-                  <div>
-                    <span className="text-sm text-neutral-500 dark:text-neutral-400">
-                      Локация:
-                    </span>
-                    <div>
-                      <button
-                        onClick={() => setShowMapModal(true)}
-                        className="text-blue-600 dark:text-blue-400 hover:underline text-sm"
-                      >
-                        {report.bin_lat.toFixed(4)}, {report.bin_lon.toFixed(4)}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {report.description && (
-            <div className="mb-4">
-              <div className="flex items-center gap-2 mb-2">
-                <MessageCircle className="w-4 h-4 text-neutral-400" />
-                <span className="font-medium text-neutral-700 dark:text-neutral-300">
-                  Описание на проблема:
-                </span>
-              </div>
-              <div className="px- bg-neutral-50 dark:bg-neutral-800/50 rounded-lg">
-                <p className="text-neutral-700 dark:text-neutral-300">
-                  {report.description}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {allImages.length > 0 ? (
-            <div className="mb-4">
-              <div className="flex items-center gap-2 mb-2">
-                <svg
-                  className="w-4 h-4 text-neutral-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
-                <span className="font-medium text-neutral-700 dark:text-neutral-300">
-                  Прикачена снимка:
-                </span>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                {allImages.map((imageUrl, index) => (
-                  <div
-                    key={index}
-                    className="relative group cursor-pointer overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-700"
-                    onClick={() => setSelectedImage(imageUrl)}
-                  >
-                    <img
-                      src={imageUrl}
-                      alt={`Report ${index + 1}`}
-                      className="w-full h-32 object-cover group-hover:scale-110 transition-transform duration-200"
-                      onError={(e) => {
-                        e.currentTarget.src = "/placeholder.svg";
-                        e.currentTarget.classList.add("opacity-50");
-
-                        fetch(imageUrl, { method: "HEAD" })
-                          .then((res) =>
-                            console.log("HTTP статус:", res.status),
-                          )
-                          .catch((err) => console.log("Fetch грешка:", err));
-                      }}
-                    />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-200 flex items-center justify-center">
-                      <Eye className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="mb-4 p-4 bg-neutral-50 dark:bg-neutral-800/30 rounded-lg border border-neutral-200 dark:border-neutral-700">
-              <div className="flex items-center gap-2 text-neutral-500 dark:text-neutral-400">
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
-                <span>Няма прикачени снимки</span>
-              </div>
-            </div>
-          )}
+          <StatusBadge status={request.status} labels={{ pending: "Чакаща", approved: "Одобрена", rejected: "Отхвърлена" }} />
         </div>
 
-        <div className="flex lg:flex-col gap-2">
-          {!report.resolved && (
-            <button
-              onClick={handleResolve}
-              disabled={isProcessing}
-              className="flex items-center justify-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 disabled:bg-neutral-400 text-white rounded-lg font-medium transition-colors"
-            >
-              {isProcessing ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <CheckCircle className="w-4 h-4" />
-              )}
-              Разреши
-            </button>
-          )}
-          <button
-            onClick={handleDelete}
-            disabled={isProcessing}
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 disabled:bg-neutral-400 text-white rounded-lg font-medium transition-colors"
-          >
-            {isProcessing ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <XCircle className="w-4 h-4" />
-            )}
-            Изтрий
-          </button>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-4">
+          <div className="space-y-3">
+            <MetaRow icon={User} label="Контактно лице" value={<>{request.contact_name}<span className="block text-xs font-normal"><a href={`mailto:${request.contact_email}`} className="text-emerald-600 dark:text-emerald-400 hover:underline">{request.contact_email}</a></span></>} />
+            <MetaRow icon={Package} label="Брой кошове" value={String(request.intended_bin_count)} />
+          </div>
+          <div className="space-y-3">
+            {(request.city || request.country) && <MetaRow icon={MapPin} label="Локация" value={[request.city, request.country].filter(Boolean).join(", ")} />}
+            <MetaRow icon={Calendar} label="Дата на заявка" value={new Date(request.created_at).toLocaleDateString("bg-BG")} />
+          </div>
         </div>
+
+        {request.message && (
+          <div className="p-3 rounded-lg bg-neutral-50 dark:bg-neutral-700/40 border border-neutral-200 dark:border-neutral-700">
+            <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-1.5">Съобщение</p>
+            <p className="text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed">{request.message}</p>
+          </div>
+        )}
       </div>
 
-      {showMapModal && <LeafletMapModal />}
-      {selectedImage && <ImageModal />}
+      {request.status === "pending" && (
+        <div className="flex items-center justify-end gap-2 px-5 py-3 border-t border-neutral-100 dark:border-neutral-700/60 bg-neutral-50/50 dark:bg-neutral-800/30 rounded-b-xl">
+          <ActionButton
+            onClick={() => openEmail(`Заявка за кошове от ${request.organization_name}`, `Уважаеми/а ${request.contact_name},\n\nОтносно Вашата заявка...\n\nС уважение,\nЕкипът на Recyclix`)}
+            disabled={!!processing} variant="email" icon={Mail} label="Имейл"
+          />
+          <ActionButton onClick={() => handle("reject")} disabled={!!processing} variant="neutral" icon={XCircle} label="Откажи" />
+          <ActionButton onClick={() => handle("approve")} disabled={!!processing} variant="approve" icon={CheckCircle} label="Одобри" />
+        </div>
+      )}
+    </Card>
+  );
+}
+
+function StatCard({ label, value, icon: Icon, color }: { label: string; value: number; icon: any; color: string }) {
+  const colorMap: Record<string, string> = {
+    emerald: "text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20",
+    green: "text-green-500 bg-green-50 dark:bg-green-900/20",
+    amber: "text-amber-500 bg-amber-50 dark:bg-amber-900/20",
+    blue: "text-blue-500 bg-blue-50 dark:bg-blue-900/20",
+    red: "text-red-500 bg-red-50 dark:bg-red-900/20",
+    purple: "text-purple-500 bg-purple-50 dark:bg-purple-900/20",
+  };
+  return (
+    <div className="bg-white dark:bg-neutral-800/60 border border-neutral-200 dark:border-neutral-700/60 rounded-xl p-4 shadow-sm flex items-center gap-3">
+      <div className={`p-2.5 rounded-lg ${colorMap[color]}`}>
+        <Icon className={`w-5 h-5 ${colorMap[color].split(" ")[0]}`} />
+      </div>
+      <div>
+        <p className="text-2xl font-bold text-neutral-900 dark:text-white leading-none">{value}</p>
+        <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">{label}</p>
+      </div>
     </div>
   );
 }
 
+// административно табло
 export function AdminPanel() {
   const [bins, setBins] = useState<Bin[]>([]);
   const [suggestions, setSuggestions] = useState<EditSuggestion[]>([]);
   const [reports, setReports] = useState<Report[]>([]);
   const [orgRequests, setOrgRequests] = useState<OrganizationRequest[]>([]);
-  const [stats, setStats] = useState({
-    pending: 0,
-    approved: 0,
-    total: 0,
-    suggestions: 0,
-    reports: 0,
-    orgRequests: 0,
-  });
+  const [stats, setStats] = useState({ pending: 0, approved: 0, total: 0, suggestions: 0, reports: 0, orgRequests: 0 });
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<
-    "bins" | "suggestions" | "reports" | "orgRequests"
-  >("bins");
+  const [activeTab, setActiveTab] = useState<"bins" | "suggestions" | "reports" | "orgRequests">("bins");
   const [searchQuery, setSearchQuery] = useState("");
   const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
     loadData();
-    const isDark =
-      localStorage.getItem("darkMode") === "true" ||
-      window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const isDark = localStorage.getItem("darkMode") === "true" || window.matchMedia("(prefers-color-scheme: dark)").matches;
     setDarkMode(isDark);
     if (isDark) document.documentElement.classList.add("dark");
   }, []);
 
   const toggleDarkMode = () => {
-    const newDarkMode = !darkMode;
-    setDarkMode(newDarkMode);
-    localStorage.setItem("darkMode", newDarkMode.toString());
-    if (newDarkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
+    const next = !darkMode;
+    setDarkMode(next);
+    localStorage.setItem("darkMode", String(next));
+    document.documentElement.classList.toggle("dark", next);
   };
 
   const loadData = async () => {
     setLoading(true);
     try {
-      const [
-        binsData,
-        suggestionsData,
-        reportsData,
-        orgRequestsData,
-        statsData,
-      ] = await Promise.all([
-        getPendingBins(),
-        getEditSuggestions(),
-        getReports(),
-        getOrganizationRequests(),
-        getStats(),
+      const [binsData, suggestionsData, reportsData, orgRequestsData, statsData] = await Promise.all([
+        getPendingBins(), getEditSuggestions(), getReports(), getOrganizationRequests(), getStats(),
       ]);
-      setBins(binsData);
-      setSuggestions(suggestionsData);
-      setReports(reportsData);
-      setOrgRequests(orgRequestsData);
-      setStats(statsData);
-    } catch (error) {
-      console.error("Грешка при зареждане:", error);
-    } finally {
-      setLoading(false);
-    }
+      setBins(binsData); setSuggestions(suggestionsData); setReports(reportsData); setOrgRequests(orgRequestsData); setStats(statsData);
+    } catch (e) { console.error(e); } finally { setLoading(false); }
   };
 
-  const handleApproveBin = async (binId: string, binData: Bin) => {
-    const success = await approveBin(binId, binData);
-    if (success) loadData();
-  };
+  const handleApproveBin = async (id: string, data: Bin) => { if (await approveBin(id, data)) loadData(); };
+  const handleRejectBin = async (id: string) => { if (await rejectBin(id)) loadData(); };
+  const handleApproveSuggestion = async (id: string, data: EditSuggestion) => { if (await approveSuggestion(id, data)) loadData(); };
+  const handleRejectSuggestion = async (id: string) => { if (await rejectSuggestion(id)) loadData(); };
+  const handleResolveReport = async (id: string) => { if (await resolveReport(id)) loadData(); };
+  const handleDeleteReport = async (id: string) => { if (await deleteReport(id)) loadData(); };
+  const handleApproveOrgRequest = async (id: string) => { if (await approveOrganizationRequest(id)) loadData(); };
+  const handleRejectOrgRequest = async (id: string) => { if (await rejectOrganizationRequest(id)) loadData(); };
 
-  const handleRejectBin = async (binId: string) => {
-    const success = await rejectBin(binId);
-    if (success) loadData();
-  };
+  const q = searchQuery.toLowerCase();
+  const filteredBins = bins.filter((b) => [b.user_username, b.user_email, b.code, ...Object.values(parseTagsObject(b.tags ?? {})).map(String)].some((f) => String(f).toLowerCase().includes(q)));
+  const filteredSuggestions = suggestions.filter((s) => [s.user_email, s.bin_id, s.name, s.materials].some((f) => String(f ?? "").toLowerCase().includes(q)));
+  const filteredReports = reports.filter((r) => [r.user_email, r.user_username, r.title, r.type, r.description, r.bin_code].some((f) => String(f ?? "").toLowerCase().includes(q)));
+  const filteredOrgRequests = orgRequests.filter((r) => [r.organization_name, r.contact_name, r.contact_email, r.city, r.country].some((f) => String(f ?? "").toLowerCase().includes(q)));
 
-  const handleApproveSuggestion = async (
-    suggestionId: string,
-    suggestionData: EditSuggestion,
-  ) => {
-    const success = await approveSuggestion(suggestionId, suggestionData);
-    if (success) loadData();
-  };
+  const tabs: { key: typeof activeTab; label: string; count: number; icon: any; emptyIcon: any; emptyMsg: string }[] = [
+    { key: "bins", label: "Кошове", count: bins.length, icon: Recycle, emptyIcon: Trash, emptyMsg: "Няма чакащи кошове" },
+    { key: "suggestions", label: "Предложения", count: suggestions.length, icon: PenLine, emptyIcon: PenLine, emptyMsg: "Няма чакащи предложения" },
+    { key: "reports", label: "Отчети", count: reports.length, icon: Flag, emptyIcon: Flag, emptyMsg: "Няма активни отчети" },
+    { key: "orgRequests", label: "Заявки", count: orgRequests.length, icon: Building, emptyIcon: Building, emptyMsg: "Няма чакащи заявки" },
+  ];
 
-  const handleRejectSuggestion = async (suggestionId: string) => {
-    const success = await rejectSuggestion(suggestionId);
-    if (success) loadData();
-  };
-
-  const handleResolveReport = async (reportId: string) => {
-    const success = await resolveReport(reportId);
-    if (success) loadData();
-  };
-
-  const handleDeleteReport = async (reportId: string) => {
-    const success = await deleteReport(reportId);
-    if (success) loadData();
-  };
-
-  const handleApproveOrgRequest = async (requestId: string) => {
-    const success = await approveOrganizationRequest(requestId);
-    if (success) loadData();
-  };
-
-  const handleRejectOrgRequest = async (requestId: string) => {
-    const success = await rejectOrganizationRequest(requestId);
-    if (success) loadData();
-  };
-
-  const filteredBins = bins.filter((bin) => {
-    const searchLower = searchQuery.toLowerCase();
-    const fields = [
-      bin.user_username ?? "",
-      bin.user_email ?? "",
-      bin.code ?? "",
-      ...Object.values(parseTagsObject(bin.tags ?? {})).map(String),
-    ];
-    return fields.some((field) => field.toLowerCase().includes(searchLower));
-  });
-
-  const filteredSuggestions = suggestions.filter((suggestion) => {
-    const searchLower = searchQuery.toLowerCase();
-    const fields = [
-      suggestion.user_email ?? "",
-      suggestion.bin_id ?? "",
-      suggestion.name ?? "",
-      suggestion.materials ?? "",
-    ];
-    return fields.some((field) => field.toLowerCase().includes(searchLower));
-  });
-
-  const filteredReports = reports.filter((report) => {
-    const searchLower = searchQuery.toLowerCase();
-    const fields = [
-      report.user_email ?? "",
-      report.user_username ?? "",
-      report.title ?? "",
-      report.type ?? "",
-      report.description ?? "",
-      report.bin_code ?? "",
-    ];
-    return fields.some((field) => field.toLowerCase().includes(searchLower));
-  });
-
-  const filteredOrgRequests = orgRequests.filter((request) => {
-    const searchLower = searchQuery.toLowerCase();
-    const fields = [
-      request.organization_name ?? "",
-      request.contact_name ?? "",
-      request.contact_email ?? "",
-      request.city ?? "",
-      request.country ?? "",
-    ];
-    return fields.some((field) => field.toLowerCase().includes(searchLower));
-  });
+  const activeConfig = tabs.find((t) => t.key === activeTab)!;
+  const filtered = { bins: filteredBins, suggestions: filteredSuggestions, reports: filteredReports, orgRequests: filteredOrgRequests }[activeTab];
 
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900">
-      <header className="bg-white dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-neutral-100 dark:bg-neutral-700">
-                <Shield className="w-6 h-6 text-neutral-600 dark:text-neutral-300" />
+      <header className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md border-b border-neutral-200 dark:border-neutral-800 sticky top-0 z-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-green-600 flex items-center justify-center shadow-sm shadow-emerald-500/30">
+                <Shield className="w-4 h-4 text-white" />
               </div>
-              <div>
-                <h1 className="text-xl font-bold text-neutral-900 dark:text-white">
-                  Администраторско табло
-                </h1>
-                <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                  Управление
-                </p>
-              </div>
+              <span className="font-semibold text-neutral-900 dark:text-white text-lg ml-1">Администратор</span>
             </div>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={toggleDarkMode}
-                className="p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-700"
-              >
-                {darkMode ? (
-                  <Sun className="w-5 h-5 text-yellow-500" />
-                ) : (
-                  <Moon className="w-5 h-5 text-neutral-600" />
-                )}
-              </button>
-              <button
-                onClick={loadData}
-                className="p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-700"
-              >
-                <RefreshCw className="w-5 h-5 text-neutral-600 dark:text-neutral-400" />
-              </button>
-              <LogoutButtonAlt />
-            </div>
+            <span className="hidden sm:block text-neutral-300 dark:text-neutral-600">|</span>
+            <span className="hidden sm:block text-xs text-neutral-400">Recyclix управление</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <button onClick={toggleDarkMode} className="p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors">
+              {darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-neutral-500" />}
+            </button>
+            <button onClick={loadData} className="p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors">
+              <RefreshCw className="w-4 h-4 text-neutral-500 dark:text-neutral-400" />
+            </button>
+            <LogoutButtonAlt />
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-            <div className="bg-white dark:bg-neutral-800 rounded-lg p-4 border border-neutral-200 dark:border-neutral-700 shadow-sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                    Общо кошове
-                  </p>
-                  <p className="text-2xl font-bold text-neutral-900 dark:text-white">
-                    {stats.total}
-                  </p>
-                </div>
-                <Recycle className="w-8 h-8 text-green-500" />
-              </div>
-            </div>
-            <div className="bg-white dark:bg-neutral-800 rounded-lg p-4 border border-neutral-200 dark:border-neutral-700 shadow-sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                    Одобрени
-                  </p>
-                  <p className="text-2xl font-bold text-neutral-900 dark:text-white">
-                    {stats.approved}
-                  </p>
-                </div>
-                <CircleCheck className="w-8 h-8 text-green-500" />
-              </div>
-            </div>
-            <div className="bg-white dark:bg-neutral-800 rounded-lg p-4 border border-neutral-200 dark:border-neutral-700 shadow-sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                    Чакащи одобрение
-                  </p>
-                  <p className="text-2xl font-bold text-neutral-900 dark:text-white">
-                    {stats.pending}
-                  </p>
-                </div>
-                <List className="w-8 h-8 text-orange-500" />
-              </div>
-            </div>
-            <div className="bg-white dark:bg-neutral-800 rounded-lg p-4 border border-neutral-200 dark:border-neutral-700 shadow-sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                    Предложения
-                  </p>
-                  <p className="text-2xl font-bold text-neutral-900 dark:text-white">
-                    {stats.suggestions}
-                  </p>
-                </div>
-                <PenLine className="w-8 h-8 text-blue-500" />
-              </div>
-            </div>
-            <div className="bg-white dark:bg-neutral-800 rounded-lg p-4 border border-neutral-200 dark:border-neutral-700 shadow-sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                    Активни отчети
-                  </p>
-                  <p className="text-2xl font-bold text-neutral-900 dark:text-white">
-                    {stats.reports}
-                  </p>
-                </div>
-                <Flag className="w-8 h-8 text-red-500" />
-              </div>
-            </div>
-            <div className="bg-white dark:bg-neutral-800 rounded-lg p-4 border border-neutral-200 dark:border-neutral-700 shadow-sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                    Заявки
-                  </p>
-                  <p className="text-2xl font-bold text-neutral-900 dark:text-white">
-                    {stats.orgRequests}
-                  </p>
-                </div>
-                <Building className="w-8 h-8 text-purple-500" />
-              </div>
-            </div>
-          </div>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          <StatCard label="Общо кошове" value={stats.total} icon={Recycle} color="emerald" />
+          <StatCard label="Одобрени" value={stats.approved} icon={CircleCheck} color="green" />
+          <StatCard label="Чакащи" value={stats.pending} icon={List} color="amber" />
+          <StatCard label="Предложения" value={stats.suggestions} icon={PenLine} color="blue" />
+          <StatCard label="Активни отчети" value={stats.reports} icon={Flag} color="red" />
+          <StatCard label="Заявки" value={stats.orgRequests} icon={Building} color="purple" />
         </div>
 
-        <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 shadow-sm">
-          <div className="border-b border-neutral-200 dark:border-neutral-700">
-            <div className="px-6 py-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => setActiveTab("bins")}
-                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                      activeTab === "bins"
-                        ? "bg-neutral-600 dark:bg-neutral-600 text-white"
-                        : "text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700"
-                    }`}
-                  >
-                    Кошове ({bins.length})
-                  </button>
-                  <button
-                    onClick={() => setActiveTab("suggestions")}
-                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                      activeTab === "suggestions"
-                        ? "bg-neutral-600 dark:bg-neutral-600 text-white"
-                        : "text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700"
-                    }`}
-                  >
-                    Предложения ({suggestions.length})
-                  </button>
-                  <button
-                    onClick={() => setActiveTab("reports")}
-                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                      activeTab === "reports"
-                        ? "bg-neutral-600 dark:bg-neutral-600 text-white"
-                        : "text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700"
-                    }`}
-                  >
-                    Отчети ({reports.length})
-                  </button>
-                  <button
-                    onClick={() => setActiveTab("orgRequests")}
-                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                      activeTab === "orgRequests"
-                        ? "bg-neutral-600 dark:bg-neutral-600 text-white"
-                        : "text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700"
-                    }`}
-                  >
-                    Заявки ({orgRequests.length})
-                  </button>
-                </div>
-                <div className="relative flex-1 sm:w-64">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-400" />
-                  <input
-                    type="text"
-                    placeholder="Търси..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white"
-                  />
-                </div>
+        <div className="bg-white dark:bg-neutral-800/40 border border-neutral-200 dark:border-neutral-700/60 rounded-2xl shadow-sm overflow-hidden">
+          <div className="px-4 sm:px-5 pt-4 pb-0 border-b border-neutral-200 dark:border-neutral-700/60">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 pb-4">
+              <div className="flex gap-1 overflow-x-auto">
+                {tabs.map((tab) => {
+                  const Icon = tab.icon;
+                  const isActive = activeTab === tab.key;
+                  return (
+                    <button
+                      key={tab.key}
+                      onClick={() => setActiveTab(tab.key)}
+                      className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${isActive
+                        ? "bg-emerald-500 text-white shadow-sm shadow-emerald-500/30"
+                        : "text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700 hover:text-neutral-700 dark:hover:text-neutral-200"
+                        }`}
+                    >
+                      <Icon className="w-3.5 h-3.5" />
+                      <span>{tab.label}</span>
+                      <span className={`ml-0.5 px-1.5 py-0.5 rounded-full text-xs font-semibold ${isActive ? "bg-white/20 text-white" : "bg-neutral-200 dark:bg-neutral-600 text-neutral-600 dark:text-neutral-300"}`}>
+                        {tab.count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="sm:ml-auto relative w-full sm:w-56">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-400" />
+                <input
+                  type="text"
+                  placeholder="Търси..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 text-sm border border-neutral-200 dark:border-neutral-600 rounded-lg bg-neutral-50 dark:bg-neutral-700/50 text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500"
+                />
               </div>
             </div>
           </div>
 
-          <div className="p-6">
+          <div className="p-4 sm:p-5">
             {loading ? (
-              <div className="flex justify-center py-12">
-                <SimpleSpinningRecycling />
+              <div className="flex justify-center py-16"><SimpleSpinningRecycling /></div>
+            ) : filtered.length === 0 ? (
+              <div className="text-center py-16">
+                {(() => { const EmptyIcon = activeConfig.emptyIcon; return <EmptyIcon className="w-10 h-10 text-neutral-300 dark:text-neutral-600 mx-auto mb-3" />; })()}
+                <p className="text-sm text-neutral-400">{searchQuery ? "Няма намерени резултати" : activeConfig.emptyMsg}</p>
               </div>
-            ) : activeTab === "bins" ? (
-              filteredBins.length === 0 ? (
-                <div className="text-center py-12">
-                  <Trash className="w-12 h-12 text-neutral-400 mx-auto mb-4" />
-                  <p className="text-neutral-500 dark:text-neutral-400">
-                    {searchQuery
-                      ? "Няма намерени резултати"
-                      : "Няма чакащи кошове"}
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {filteredBins.map((bin) => (
-                    <BinDetails
-                      key={bin.id}
-                      bin={bin}
-                      onApprove={handleApproveBin}
-                      onReject={handleRejectBin}
-                    />
-                  ))}
-                </div>
-              )
-            ) : activeTab === "suggestions" ? (
-              filteredSuggestions.length === 0 ? (
-                <div className="text-center py-12">
-                  <PenLine className="w-12 h-12 text-neutral-400 mx-auto mb-4" />
-                  <p className="text-neutral-500 dark:text-neutral-400">
-                    {searchQuery
-                      ? "Няма намерени резултати"
-                      : "Няма чакащи предложения"}
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {filteredSuggestions.map((suggestion) => (
-                    <SuggestionDetails
-                      key={suggestion.id}
-                      suggestion={suggestion}
-                      onApprove={handleApproveSuggestion}
-                      onReject={handleRejectSuggestion}
-                    />
-                  ))}
-                </div>
-              )
-            ) : activeTab === "reports" ? (
-              filteredReports.length === 0 ? (
-                <div className="text-center py-12">
-                  <Flag className="w-12 h-12 text-neutral-400 mx-auto mb-4" />
-                  <p className="text-neutral-500 dark:text-neutral-400">
-                    {searchQuery
-                      ? "Няма намерени резултати"
-                      : "Няма активни отчети"}
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {filteredReports.map((report) => (
-                    <ReportDetails
-                      key={report.id}
-                      report={report}
-                      onResolve={handleResolveReport}
-                      onDelete={handleDeleteReport}
-                    />
-                  ))}
-                </div>
-              )
-            ) : activeTab === "orgRequests" ? (
-              filteredOrgRequests.length === 0 ? (
-                <div className="text-center py-12">
-                  <Building className="w-12 h-12 text-neutral-400 mx-auto mb-4" />
-                  <p className="text-neutral-500 dark:text-neutral-400">
-                    {searchQuery
-                      ? "Няма намерени резултати"
-                      : "Няма чакащи заявки"}
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {filteredOrgRequests.map((request) => (
-                    <OrganizationRequestDetails
-                      key={request.id}
-                      request={request}
-                      onApprove={handleApproveOrgRequest}
-                      onReject={handleRejectOrgRequest}
-                    />
-                  ))}
-                </div>
-              )
-            ) : null}
+            ) : (
+              <div className="space-y-3">
+                {activeTab === "bins" && filteredBins.map((bin) => <BinDetails key={bin.id} bin={bin} onApprove={handleApproveBin} onReject={handleRejectBin} />)}
+                {activeTab === "suggestions" && filteredSuggestions.map((s) => <SuggestionDetails key={s.id} suggestion={s} onApprove={handleApproveSuggestion} onReject={handleRejectSuggestion} />)}
+                {activeTab === "reports" && filteredReports.map((r) => <ReportDetails key={r.id} report={r} onResolve={handleResolveReport} onDelete={handleDeleteReport} />)}
+                {activeTab === "orgRequests" && filteredOrgRequests.map((r) => <OrganizationRequestDetails key={r.id} request={r} onApprove={handleApproveOrgRequest} onReject={handleRejectOrgRequest} />)}
+              </div>
+            )}
           </div>
         </div>
       </main>
@@ -2704,67 +1087,209 @@ export function AdminPanel() {
 }
 
 export function AdminRoute({ children }: { children: ReactNode }) {
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [status, setStatus] = useState<"loading" | "authorized" | "unauthorized" | "error">("loading");
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [debugInfo, setDebugInfo] = useState<Record<string, any>>({});
 
   useEffect(() => {
-    async function verifyAdmin() {
+    let mounted = true;
+
+    const check = async () => {
       try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
+        const hasLocalStorage = typeof window !== 'undefined' && window.localStorage !== null;
+        const debug: Record<string, any> = { hasLocalStorage };
+
+        if (hasLocalStorage) {
+          const allKeys: string[] = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key) allKeys.push(key);
+          }
+          const supabaseKeys = allKeys.filter(key =>
+            key.includes('supabase') || key.includes('sb-') || key.includes('auth')
+          );
+          const storedToken = localStorage.getItem('supabase.auth.token');
+          debug.allLocalStorageKeys = allKeys;
+          debug.supabaseKeys = supabaseKeys;
+          debug.hasToken = !!storedToken;
+        }
+
+        debug.cookies = document.cookie;
+        debug.hasSessionCookie = document.cookie.includes('sb-') ||
+          document.cookie.includes('supabase') ||
+          document.cookie.includes('auth');
+
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+        if (userError) {
+          if (isDev) {
+            console.error("getUser error", userError);
+          }
+          debug.userError = userError.message;
+          throw userError;
+        }
+
+        debug.hasUser = !!user;
+        debug.userEmail = user?.email;
+        debug.userId = user?.id;
+
         if (!user) {
-          window.location.href = "/auth/login";
+          if (isDev) {
+            console.log("No user found");
+          }
+          if (mounted) {
+            setDebugInfo(debug);
+            setStatus("unauthorized");
+            setDebugInfo(prev => ({ ...prev, reason: "no_session" }));
+          }
           return;
         }
 
-        const adminStatus = await checkAdminStatus(user.id);
-        if (!adminStatus) {
-          window.location.href = "/";
-          return;
+        const { data: profileData, error: profileError } = await supabase
+          .from("user_profiles")
+          .select("app_role")
+          .eq("id", user.id)
+          .single();
+
+        debug.profileCheck = {
+          exists: !profileError,
+          app_role: profileData?.app_role,
+          error: profileError?.message
+        };
+
+        let isAdmin = false;
+
+        if (!profileError && profileData?.app_role === "platform_admin") {
+          isAdmin = true;
         }
 
-        setIsAdmin(true);
-      } catch (error) {
-        window.location.href = "/login";
-      } finally {
-        setIsLoading(false);
+        if (!isAdmin) {
+          try {
+            const { data: rpcData, error: rpcError } = await supabase
+              .rpc("is_platform_admin", { user_id: user.id });
+
+            debug.rpcCheck = {
+              success: !rpcError,
+              result: rpcData,
+              error: rpcError?.message
+            };
+
+            if (!rpcError && rpcData === true) {
+              isAdmin = true;
+            }
+          } catch (rpcErr: any) {
+            debug.rpcCheck = { error: rpcErr.message };
+          }
+        }
+
+        debug.isAdmin = isAdmin;
+
+        if (!isAdmin) {
+          if (mounted) {
+            setDebugInfo(debug);
+            setStatus("unauthorized");
+            setDebugInfo(prev => ({ ...prev, reason: "not_admin" }));
+          }
+          return;
+        }
+        setDebugInfo(debug);
+        if (mounted) setStatus("authorized");
+      } catch (err: any) {
+        if (isDev) {
+          console.error("Unexpected error", err);
+        }
+        if (mounted) {
+          setStatus("error");
+          setErrorMessage(err.message || "Неизвестна грешка");
+          setDebugInfo(prev => ({ ...prev, error: err.message }));
+        }
       }
-    }
+    };
 
-    verifyAdmin();
+    check();
   }, []);
 
-  if (isLoading) {
+  if (status === "loading") {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-neutral-500" />
-      </div>
-    );
-  }
-
-  if (!isAdmin) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <Shield className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold mb-2">Достъп отказан</h2>
-          <p className="text-neutral-600 mb-4">Нямате администраторски права</p>
-          <a href="/" className="text-blue-500 hover:underline">
-            Върни се в началото
-          </a>
+      <div className="min-h-screen flex items-center justify-center bg-neutral-50 dark:bg-neutral-900">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-green-600 flex items-center justify-center shadow-lg shadow-emerald-500/30 animate-pulse">
+            <Shield className="w-5 h-5 text-white" />
+          </div>
+          <p className="text-sm text-neutral-400">Проверка на права...</p>
         </div>
       </div>
     );
   }
 
+  // при грешка
+  if (status === "error") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-neutral-50 dark:bg-neutral-900 p-4">
+        <div className="text-center max-w-md mx-auto p-8 bg-white dark:bg-neutral-800 rounded-2xl shadow-xl border border-neutral-200 dark:border-neutral-700">
+          <div className="w-16 h-16 rounded-2xl bg-red-50 dark:bg-red-900/20 flex items-center justify-center mx-auto mb-4 border border-red-100 dark:border-red-900/30">
+            <Shield className="w-8 h-8 text-red-500" />
+          </div>
+          <h2 className="text-xl font-bold text-neutral-900 dark:text-white mb-2">Възникна грешка</h2>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-4">{errorMessage}</p>
+
+          <div className="mt-4 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg text-xs font-mono text-left overflow-auto max-h-60">
+            <p className="font-bold mb-2">Debug Info:</p>
+            <pre>{JSON.stringify(debugInfo, null, 2)}</pre>
+          </div>
+
+          <button
+            onClick={() => window.location.reload()}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-sm font-medium transition-colors shadow-sm shadow-emerald-500/30 mt-4"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Опитай отново
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // при неавторизиран достъп
+  if (status === "unauthorized") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-neutral-50 dark:bg-neutral-900">
+        <div className="text-center max-w-sm mx-auto p-8">
+          <div className="w-14 h-14 rounded-2xl bg-red-50 dark:bg-red-900/20 flex items-center justify-center mx-auto mb-4 border border-red-100 dark:border-red-900/30">
+            <Shield className="w-7 h-7 text-red-500" />
+          </div>
+          <h2 className="text-lg font-bold text-neutral-900 dark:text-white mb-2">Достъп отказан</h2>
+          <p className="text-sm text-neutral-500 mb-5">
+            {debugInfo.reason === "no_session"
+              ? "Няма активна сесия. Моля, влезте в профила си."
+              : "Нямате администраторски права за тази страница."}
+          </p>
+
+          {debugInfo.reason === "no_session" && (
+            <a
+              href="/auth/login"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-sm font-medium transition-colors shadow-sm shadow-emerald-500/30"
+            >
+              Отиди на вход
+            </a>
+          )}
+          {debugInfo.reason === "not_admin" && (
+            <a
+              href="/"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-sm font-medium transition-colors shadow-sm shadow-emerald-500/30"
+            >
+              Върни се начало
+            </a>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // при успешна автентикация
   return <>{children}</>;
 }
 
 export default function AdminPage() {
-  return (
-    <AdminRoute>
-      <AdminPanel />
-    </AdminRoute>
-  );
+  return <AdminRoute><AdminPanel /></AdminRoute>;
 }
