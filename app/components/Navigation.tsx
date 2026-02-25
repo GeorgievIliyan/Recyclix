@@ -3,11 +3,11 @@
 import { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { LayoutDashboard, MapPin, ListTodo, User } from "lucide-react";
+import { LayoutDashboard, MapPin, ListTodo, User, Gift } from "lucide-react";
 import { motion, LayoutGroup } from "framer-motion";
 import { cn } from "@/lib/utils";
 
-type Module = "dashboard" | "map" | "tasks" | "account";
+type Module = "dashboard" | "map" | "tasks" | "rewards" | "account";
 
 interface ModuleItem {
   id: Module;
@@ -25,6 +25,7 @@ const modules: ModuleItem[] = [
   },
   { id: "map", label: "Карта", icon: MapPin, path: "/app/map" },
   { id: "tasks", label: "Задачи", icon: ListTodo, path: "/app/tasks" },
+  { id: "rewards", label: "Награди", icon: Gift, path: "/app/rewards" },
   { id: "account", label: "Акаунт", icon: User, path: "/auth/account" },
 ];
 

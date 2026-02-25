@@ -5,7 +5,7 @@ interface GamificationProgressProps {
 }
 
 // Формула за нива, ниво n+1 = 120% от ниво n
-function computeLevelFromXp(totalXp: number) {
+export function computeLevelFromXp(totalXp: number) {
   let level = 1;
   let currentXp = totalXp;
   let xpForNextLevel = Math.floor(100 * Math.pow(1.25, level - 1));
