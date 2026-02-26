@@ -73,10 +73,10 @@ type DefaultIconProps<T = string> = {
 
 type AnimateIconProps<T = string> = WithAsChild<
   HTMLMotionProps<'span'> &
-    DefaultIconProps<T> & {
-      children: React.ReactNode;
-      asChild?: boolean;
-    }
+  DefaultIconProps<T> & {
+    children: React.ReactNode;
+    asChild?: boolean;
+  }
 >;
 
 type IconProps<T> = DefaultIconProps<T> &
@@ -262,9 +262,7 @@ function AnimateIcon({
         ) {
           try {
             await animateEndPromiseRef.current;
-          } catch {
-            // noop
-          }
+          } catch { }
         }
         if (!persistOnAnimateEnd) {
           if (cancelledRef.current || gen !== runGenRef.current) {
@@ -527,7 +525,7 @@ function IconWrapper<T extends string>({
               className,
               ((animationProp ?? parentAnimation) === 'path' ||
                 (animationProp ?? parentAnimation) === 'path-loop') &&
-                pathClassName,
+              pathClassName,
             )}
             {...props}
           />
@@ -558,7 +556,7 @@ function IconWrapper<T extends string>({
           className={cn(
             className,
             (animationToUse === 'path' || animationToUse === 'path-loop') &&
-              pathClassName,
+            pathClassName,
           )}
           {...props}
         />
@@ -593,7 +591,7 @@ function IconWrapper<T extends string>({
           className={cn(
             className,
             (animationProp === 'path' || animationProp === 'path-loop') &&
-              pathClassName,
+            pathClassName,
           )}
           {...props}
         />
@@ -607,7 +605,7 @@ function IconWrapper<T extends string>({
       className={cn(
         className,
         (animationProp === 'path' || animationProp === 'path-loop') &&
-          pathClassName,
+        pathClassName,
       )}
       {...props}
     />
@@ -615,7 +613,7 @@ function IconWrapper<T extends string>({
 }
 
 function getVariants<
-  V extends { default: T; [key: string]: T },
+  V extends { default: T;[key: string]: T },
   T extends Record<string, Variants>,
 >(animations: V): T {
   // eslint-disable-next-line react-hooks/rules-of-hooks

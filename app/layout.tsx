@@ -4,7 +4,7 @@ import "./globals.css";
 import "leaflet/dist/leaflet.css";
 import { Providers } from "./providers";
 
-// Fonts
+// Шрифтове
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
-// Metadata
+// Метаданни
 export const metadata: Metadata = {
   title: {
     default: "Recyclix",

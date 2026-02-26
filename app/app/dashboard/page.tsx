@@ -7,7 +7,6 @@ import { Recycle, Sparkles, Flame, Calendar } from "lucide-react";
 import { useRouter } from "next/navigation";
 import dynamicImport from "next/dynamic";
 import { RecyclingLoader } from "@/app/components/RecyclingLoader";
-
 import { StatCard } from "@/app/components/StatCard";
 import { GamificationProgress } from "@/app/components/GamificationProgress";
 import { RecentActivity } from "@/app/components/RecentActivity";
@@ -135,7 +134,7 @@ export default function DashboardPage() {
             const currentDate = new Date(sortedDates[i]);
             const diffDays = Math.floor(
               (lastDate.getTime() - currentDate.getTime()) /
-                (1000 * 60 * 60 * 24),
+              (1000 * 60 * 60 * 24),
             );
             if (diffDays === 1) {
               streak++;
@@ -273,7 +272,7 @@ export default function DashboardPage() {
             />
             <StatCard
               title="Точки общо"
-              value={userData.totalPoints}
+              value={userData.xp}
               icon={<Sparkles className="h-6 w-6" />}
               iconColor="text-amber-500"
               iconBg="bg-amber-500/10"
@@ -296,14 +295,14 @@ export default function DashboardPage() {
 
           {/* графика */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6 md:mb-8">
-              <RecyclingActivityChart data={activityData} />
-              <MaterialsBreakdownChart data={materialsData} />
+            <RecyclingActivityChart data={activityData} />
+            <MaterialsBreakdownChart data={materialsData} />
           </div>
 
           {/* прогрес */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6 md:mb-8">
             <div className="lg:col-span-2 backdrop-blur-md bg-white/70 dark:bg-zinc-900/70 rounded-2xl sm:rounded-3xl border border-white/20 dark:border-zinc-800/50 shadow-2xl overflow-hidden">
-              <GamificationProgress totalXp={userData.totalPoints} />
+              <GamificationProgress totalXp={userData.xp} />
             </div>
             <RecentActivity activities={recentActivities} />
           </div>

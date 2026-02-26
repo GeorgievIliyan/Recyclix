@@ -13,7 +13,20 @@ import {
 import { QRCodeSVG } from "qrcode.react";
 import { SpinningRecyclingLoader } from "./RecyclingLoader";
 import { isDev } from "@/lib/isDev";
+import { createClient } from "@supabase/supabase-js";
 
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  {
+    auth: {
+      storage: typeof window !== "undefined" ? window.localStorage : undefined,
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true,
+    },
+  },
+);
 type ScanResult = {
   material?: string;
   count: number;
@@ -67,9 +80,17 @@ export function FreeCamera({ task }: { task: string }) {
 
   async function logToSchema(data: ScanResult) {
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log("[FreeCamera] Session user:", session?.user?.id ?? "NULL");
+      console.log("[FreeCamera] Access token:", session?.access_token ? "присъства" : "NULL");
+      if (!session) return;
+
       await fetch("/api/recycling/log", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.access_token}`,
+        },
         body: JSON.stringify({
           material: data.material || "Unknown",
           points: data.points,
@@ -131,11 +152,16 @@ export function FreeCamera({ task }: { task: string }) {
   async function generateQRCode(points: number) {
     setGeneratingQR(true);
     try {
+      // Взимаме сесията за да пратим user_id при генерирането на QR-а
+      const { data: { session } } = await supabase.auth.getSession();
+
       const res = await fetch("/api/temporary-qr", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "x-api-token": process.env.NEXT_PUBLIC_SECURE_API_KEY!,
+          // Пращаме Bearer токена за да се запише user_id в QR записа
+          ...(session ? { "Authorization": `Bearer ${session.access_token}` } : {}),
         },
         body: JSON.stringify({ points }),
       });

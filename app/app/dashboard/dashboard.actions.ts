@@ -82,7 +82,7 @@ export async function getDashboardData(): Promise<{
 
     if (profileError) {
       console.error("Profile error:", profileError);
-      // Don't throw if no profile exists yet
+      // без грешка ако не съществува профил
       if (profileError.code === "PGRST116") {
         console.log("No profile found for user");
       }

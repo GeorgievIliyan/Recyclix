@@ -28,16 +28,35 @@ export async function POST(req: NextRequest) {
 
     if (isDev) console.log("API /recycling/log получи заявка:", body);
 
-    const { material, points, co2_saved, user_id, count, weight_kg } = body;
-
-    // Проверка дали всички задължителни полета са подадени
-    if (!material || points === undefined || co2_saved === undefined || !user_id) {
-      const errorMsg = `Липсват задължителни полета. Получено: ${JSON.stringify(body)}`;
-      if (isDev) console.error("Грешка при валидация:", errorMsg);
-      return NextResponse.json({ error: "Липсват задължителни полета", details: errorMsg }, { status: 400 });
+    const authHeader = req.headers.get("authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return NextResponse.json(
+        { error: "Липсва Authorization хедър" },
+        { status: 401 },
+      );
+    }
+    const userToken = authHeader.replace("Bearer ", "");
+    const {
+      data: { user },
+      error: authError,
+    } = await supabaseAdmin.auth.getUser(userToken);
+    if (authError || !user) {
+      return NextResponse.json({ error: "Невалидна сесия" }, { status: 401 });
     }
 
-    // ── 1. Записване на събитието за рециклиране ──────────────────────────────
+    const { material, points, co2_saved, count, weight_kg } = body;
+    const user_id = user.id;
+
+    if (!material || points === undefined || co2_saved === undefined) {
+      const errorMsg = `Липсват задължителни полета. Получено: ${JSON.stringify(body)}`;
+      if (isDev) console.error("Грешка при валидация:", errorMsg);
+      return NextResponse.json(
+        { error: "Липсват задължителни полета", details: errorMsg },
+        { status: 400 },
+      );
+    }
+
+    // 1. Записване на събитието за рециклиране
     const { data, error: insertError } = await supabaseAdmin
       .from("recycling_events")
       .insert({
@@ -52,12 +71,18 @@ export async function POST(req: NextRequest) {
 
     if (insertError) {
       if (isDev) console.error("Грешка при запис в Supabase:", insertError);
-      return NextResponse.json({ error: "Неуспешен запис в базата данни", details: insertError.message }, { status: 500 });
+      return NextResponse.json(
+        {
+          error: "Неуспешен запис в базата данни",
+          details: insertError.message,
+        },
+        { status: 500 },
+      );
     }
 
     if (isDev) console.log("Успешно записано събитие за рециклиране:", data);
 
-    // ── 2. Обновяване на XP точките на потребителя ────────────────────────────
+    // 2. Обновяване на XP точките на потребителя
     // Взимаме текущия XP преди да добавим новите точки
     const { data: profile, error: profileError } = await supabaseAdmin
       .from("user_profiles")
@@ -67,7 +92,11 @@ export async function POST(req: NextRequest) {
 
     if (profileError) {
       // не спираме заявката — събитието за рециклиране вече е записано успешно
-      if (isDev) console.error("Неуспешно зареждане на потребителски профил за обновяване на XP:", profileError);
+      if (isDev)
+        console.error(
+          "Неуспешно зареждане на потребителски профил за обновяване на XP:",
+          profileError,
+        );
     } else {
       const newXp = (profile?.xp ?? 0) + points;
       const { level: newLevel } = computeLevelFromXp(newXp);
@@ -85,7 +114,10 @@ export async function POST(req: NextRequest) {
         // при грешка
         if (isDev) console.error("Неуспешно обновяване на XP:", xpError);
       } else {
-        if (isDev) console.log(`XP обновен за потребител ${user_id}: +${points} точки → общо ${newXp} XP (ниво ${newLevel})`);
+        if (isDev)
+          console.log(
+            `XP обновен за потребител ${user_id}: +${points} точки → общо ${newXp} XP (ниво ${newLevel})`,
+          );
       }
     }
 
@@ -96,6 +128,9 @@ export async function POST(req: NextRequest) {
     });
   } catch (error: any) {
     if (isDev) console.error("Вътрешна грешка в API:", error);
-    return NextResponse.json({ error: "Вътрешна сървърна грешка", details: error.message }, { status: 500 });
+    return NextResponse.json(
+      { error: "Вътрешна сървърна грешка", details: error.message },
+      { status: 500 },
+    );
   }
 }

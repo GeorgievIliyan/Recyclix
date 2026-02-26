@@ -24,12 +24,12 @@ export default function LoginPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Check if user is already logged in and redirect immediately
+  // Проверка дали потребителят вече е влязъл и преенасочване веднага
   useEffect(() => {
     const checkUser = async () => {
       const { data } = await supabase.auth.getSession();
       if (data.session) {
-        // User is already logged in, redirect back
+        // Потребителят вече е влязъл, преенасочване назад
         if (window.history.length > 1) {
           router.back();
         } else {
@@ -136,18 +136,16 @@ export default function LoginPage() {
 
                 return (
                   <div
-                    className={`mb-6 p-4 rounded-xl border flex items-center justify-between ${
-                      isSuccess
+                    className={`mb-6 p-4 rounded-xl border flex items-center justify-between ${isSuccess
                         ? "bg-[#00CD56]/10 border-[#00CD56]/30 dark:bg-[#00CD56]/20 dark:border-[#00CD56]/40"
                         : "bg-red-50/80 border-red-200/50 dark:bg-red-900/20 dark:border-red-800/50"
-                    }`}
+                      }`}
                   >
                     <div
-                      className={`text-sm font-medium flex flex-row gap-3 items-center ${
-                        isSuccess
+                      className={`text-sm font-medium flex flex-row gap-3 items-center ${isSuccess
                           ? "text-[#00CD56]"
                           : "text-red-600 dark:text-red-400"
-                      }`}
+                        }`}
                     >
                       {isSuccess ? (
                         <CircleCheck className="w-5 h-5 flex-shrink-0" />
@@ -157,9 +155,8 @@ export default function LoginPage() {
                       <span>{translateMessage(message) || message}</span>
                     </div>
                     <X
-                      className={`h-5 w-5 cursor-pointer transition-opacity hover:opacity-70 ${
-                        isSuccess ? "text-[#00CD56]" : "text-red-500"
-                      }`}
+                      className={`h-5 w-5 cursor-pointer transition-opacity hover:opacity-70 ${isSuccess ? "text-[#00CD56]" : "text-red-500"
+                        }`}
                       onClick={() => setMessage("")}
                     />
                   </div>

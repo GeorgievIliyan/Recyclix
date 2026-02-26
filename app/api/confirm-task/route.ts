@@ -54,7 +54,7 @@ export async function OPTIONS() {
 }
 
 export async function POST(req: NextRequest) {
-  // ── 1. Проверка на API токена ─────────────────────────────────────────────
+  // 1. Проверка на API токена
   // Само заявки с валиден x-api-token хедър могат да използват този endpoint
   const token = req.headers.get("x-api-token");
   if (!token || token !== process.env.NEXT_PUBLIC_SECURE_API_KEY) {
@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // ── 2. Rate limiting по IP адрес ─────────────────────────────────────────
+  // 2. Rate limiting по IP адрес
   // Не позволяваме повече от едно сканиране на 5 секунди от един IP
   const ip = req.headers.get("x-forwarded-for") || "unknown";
   const now = Date.now();
@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
   ipLastCalls.set(ip, now);
 
   try {
-    // ── 3. Валидация на входните данни ────────────────────────────────────
+    // 3. Валидация на входните данни
     const { image, userDailyTaskId } = await req.json();
     if (!image || !userDailyTaskId) {
       return NextResponse.json(
@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // ── 4. Зареждане на задачата и потребителя от базата ─────────────────
+    // 4. Зареждане на задачата и потребителя от базата
     const { data: userTask, error: utError } = await supabase
       .from("user_daily_tasks")
       .select(`
@@ -103,7 +103,7 @@ export async function POST(req: NextRequest) {
     const userId = userTask.user_id;
     const taskDetails = userTask.tasks_pool as any;
 
-    // ── 5. Проверка за точно дублирано изображение (SHA-256) ─────────────
+    // 5. Проверка за точно дублирано изображение (SHA-256)
     // Изчисляваме SHA-256 хеш на файла — ако вече съществува, отхвърляме заявката
     const base64Data = image.includes(",") ? image.split(",")[1] : image;
     const imgBuffer = Buffer.from(base64Data, "base64");
@@ -122,7 +122,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // ── 6. Проверка за визуално подобно изображение (perceptual hash) ────
+    // 6. Проверка за визуално подобно изображение (perceptual hash)
     // Намаляваме изображението до 8x8 пиксела в сиво и сравняваме с вече качените
     // Hamming разстояние ≤ 6 означава твърде подобни изображения
     const { data: pixels } = await sharp(imgBuffer)
@@ -154,7 +154,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // ── 7. Анализ на изображението с Gemini AI ────────────────────────────
+    // 7. Анализ на изображението с Gemini AI 
     // Изпращаме изображението към Gemini с точни инструкции за верификация на задачата
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
     const prompt = `
@@ -197,7 +197,7 @@ export async function POST(req: NextRequest) {
     const gData = await geminiRes.json();
     const aiText = gData.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
-    // ── 8. Парсване на отговора от Gemini ─────────────────────────────────
+    // 8. Извличане на данни от отговора от Gemini
     const material = aiText.match(/MATERIAL:\s*(.*)/i)?.[1]?.trim() || "unknown";
     const count = parseInt(aiText.match(/COUNT:\s*(\d+)/i)?.[1] || "0");
     const co2 = parseFloat(aiText.match(/CO2:\s*([\d.]+)/i)?.[1] || "0");
@@ -210,7 +210,7 @@ export async function POST(req: NextRequest) {
       // Точките за задачата се изчисляват като брой артикули × 10
       const pointsEarned = count * 10;
 
-      // ── 9. Запис на изображението за бъдещо засичане на дубликати ────
+      // 9. Запис на изображението за бъдещо засичане на дубликати
       await supabase.from("task_images").insert({
         task_id: taskId,
         user_id: userId,
@@ -230,13 +230,13 @@ export async function POST(req: NextRequest) {
         points: pointsEarned,
       });
 
-      // ── 11. Маркиране на задачата като изпълнена ──────────────────────
+      // 11. Маркиране на задачата като изпълнена
       await supabase
         .from("user_daily_tasks")
         .update({ completed: true })
         .eq("id", userDailyTaskId);
 
-      // ── 12. Обновяване на XP и ниво в потребителския профил ───────────
+      // 12. Обновяване на XP и ниво в потребителския профил
       // Взимаме текущия XP и добавяме спечелените точки от задачата
       const { data: profile, error: profileError } = await supabase
         .from("user_profiles")

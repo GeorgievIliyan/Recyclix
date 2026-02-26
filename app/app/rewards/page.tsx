@@ -2,13 +2,12 @@
 
 import { useState, useCallback, useEffect } from "react";
 import {
-  Gift, Coins, Lock, CheckCircle2, Zap, ShoppingBag,
+  Gift, Sparkles, Lock, CheckCircle2, Zap, ShoppingBag,
   Leaf, Recycle, Star, X, Copy, Check, TrendingUp, AlertCircle,
 } from "lucide-react";
 import { Navigation } from "@/app/components/Navigation";
 import { createClient } from "@supabase/supabase-js";
 
-// ── Types ─────────────────────────────────────────────────────────────────────
 interface Reward {
   id: string;
   title: string;
@@ -26,7 +25,7 @@ interface UserProfile {
   streak: number;
 }
 
-// ── Supabase client ───────────────────────────────────────────────────────────
+// Supabase клиент
 function getSupabase() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
@@ -34,7 +33,7 @@ function getSupabase() {
   );
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// Помощни функции
 function fmt(n: number) {
   return new Intl.NumberFormat("bg-BG").format(n);
 }
@@ -69,7 +68,7 @@ const CATEGORY_ICONS: Record<string, React.ReactNode> = {
   general: <Gift className="h-5 w-5" />,
 };
 
-// ── XP Progress Bar ───────────────────────────────────────────────────────────
+// Лента за прогрес
 function XpProgressBar({ totalXp }: { totalXp: number }) {
   const { level, currentXp, xpForNextLevel } = computeLevelFromXp(totalXp);
   const pct = Math.min(100, (currentXp / xpForNextLevel) * 100);
@@ -103,7 +102,6 @@ function XpProgressBar({ totalXp }: { totalXp: number }) {
   );
 }
 
-// ── Claim Modal ───────────────────────────────────────────────────────────────
 function ClaimModal({ reward, code, onClose }: {
   reward: Reward;
   code: string;
@@ -116,7 +114,7 @@ function ClaimModal({ reward, code, onClose }: {
       await navigator.clipboard.writeText(code);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch (_) {}
+    } catch (_) { }
   }, [code]);
 
   return (
@@ -161,7 +159,7 @@ function ClaimModal({ reward, code, onClose }: {
   );
 }
 
-// ── Reward Card ───────────────────────────────────────────────────────────────
+// карта за награди
 function RewardCard({ reward, userXP, isClaiming, onClaim }: {
   reward: Reward;
   userXP: number;
@@ -172,14 +170,14 @@ function RewardCard({ reward, userXP, isClaiming, onClaim }: {
   const deficit = reward.points_cost - userXP;
 
   return (
-    <article className={`group relative flex flex-col rounded-2xl border overflow-hidden transition-all duration-300 bg-zinc-900/60 backdrop-blur-md ${
-      canAfford ? "border-white/10 hover:border-green-500/40 hover:-translate-y-0.5" : "border-white/5 opacity-50"
-    }`}>
+    <article className={`group relative flex flex-col rounded-2xl border overflow-hidden transition-all duration-300 bg-zinc-900/60 backdrop-blur-md ${canAfford ? "border-white/10 hover:border-green-500/40 hover:-translate-y-0.5" : "border-white/5 opacity-50"
+      }`}>
       <div
         className="absolute inset-x-0 top-0 h-px"
-        style={{ backgroundImage: canAfford
-          ? "linear-gradient(90deg,transparent,#4ade80,#22c55e,transparent)"
-          : "linear-gradient(90deg,transparent,rgba(255,255,255,.07),transparent)"
+        style={{
+          backgroundImage: canAfford
+            ? "linear-gradient(90deg,transparent,#4ade80,#22c55e,transparent)"
+            : "linear-gradient(90deg,transparent,rgba(255,255,255,.07),transparent)"
         }}
       />
       <div className="flex flex-col flex-1 p-6 gap-5">
@@ -191,7 +189,7 @@ function RewardCard({ reward, userXP, isClaiming, onClaim }: {
             {CATEGORY_ICONS[reward.category] ?? <Gift className="h-5 w-5" />}
           </div>
           <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-zinc-800 border border-white/10">
-            <Coins className="h-3 w-3 text-green-400" />
+            <Sparkles className="h-3 w-3 text-green-400" />
             <span className="text-xs font-bold text-green-400">{fmt(reward.points_cost)} XP</span>
           </div>
         </div>
@@ -205,11 +203,10 @@ function RewardCard({ reward, userXP, isClaiming, onClaim }: {
         <button
           onClick={() => onClaim(reward)}
           disabled={!canAfford || isClaiming}
-          className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
-            canAfford
-              ? "text-white hover:opacity-90 active:scale-[0.98]"
-              : "bg-zinc-800 text-zinc-500 cursor-not-allowed border border-white/5"
-          }`}
+          className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${canAfford
+            ? "text-white hover:opacity-90 active:scale-[0.98]"
+            : "bg-zinc-800 text-zinc-500 cursor-not-allowed border border-white/5"
+            }`}
           style={canAfford ? { backgroundImage: "linear-gradient(135deg,#4ade80,#22c55e,#059669)", boxShadow: "0 4px 12px rgba(34,197,94,.15)" } : {}}
         >
           {isClaiming ? (
@@ -225,7 +222,7 @@ function RewardCard({ reward, userXP, isClaiming, onClaim }: {
   );
 }
 
-// ── Page ──────────────────────────────────────────────────────────────────────
+// главна страница
 export default function RewardsPage() {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [rewards, setRewards] = useState<Reward[]>([]);
@@ -241,13 +238,13 @@ export default function RewardsPage() {
     async function load() {
       setDbError(null);
       try {
-        // ── Auth ─────────────────────────────────────────────────────────────
+        // Удостоверяване
         const { data: { session } } = await supabase.auth.getSession();
 
         if (session?.user) {
           setUserId(session.user.id);
 
-          // ── Profile ───────────────────────────────────────────────────────
+          // Профил
           const { data: profile, error: profileError } = await supabase
             .from("user_profiles")
             .select("xp, level, trust_score, streak")
@@ -256,25 +253,9 @@ export default function RewardsPage() {
 
           if (profileError && profileError.code !== "PGRST116") {
             console.error("Profile error:", profileError);
-          } else if (!profile) {
-            // Create profile if missing
-            const { data: newProfile } = await supabase
-              .from("user_profiles")
-              .insert({ id: session.user.id, xp: 0, level: 1, trust_score: 1, streak: 0, badges: [], app_role: "user" })
-              .select("xp, level, trust_score, streak")
-              .single();
-            if (newProfile) {
-              setUserProfile({ ...newProfile, level: 1 });
-            }
-          } else {
-            const { level } = computeLevelFromXp(profile.xp);
-            setUserProfile({ ...profile, level });
           }
         }
-
-        // ── Rewards ───────────────────────────────────────────────────────────
-        // NOTE: If this returns empty, you likely need to add an RLS policy:
-        // CREATE POLICY "public read rewards" ON public.rewards FOR SELECT USING (is_available = true);
+        // Награди
         const { data: rewardsData, error: rewardsError } = await supabase
           .from("rewards")
           .select("id, title, description, points_cost, category, is_available, created_at")
@@ -339,7 +320,7 @@ export default function RewardsPage() {
       <Navigation />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
 
-        {/* Error banner */}
+        {/* при грешки */}
         {dbError && (
           <div className="mb-8 flex items-start gap-3 rounded-xl border border-red-500/30 bg-red-500/10 px-5 py-4">
             <AlertCircle className="h-5 w-5 text-red-400 shrink-0 mt-0.5" />
@@ -355,7 +336,7 @@ export default function RewardsPage() {
           </div>
         )}
 
-        {/* Hero */}
+        {/* начална секция */}
         <div className="relative flex flex-col items-center text-center mb-16 px-4">
           <div
             aria-hidden="true"
@@ -363,7 +344,7 @@ export default function RewardsPage() {
             style={{ background: "radial-gradient(ellipse at center,#4ade80 0%,#16a34a 40%,transparent 70%)", filter: "blur(80px)" }}
           />
           <div className="relative z-10 inline-flex items-center gap-2.5 px-5 py-2 rounded-full border border-green-500/30 bg-green-500/10 backdrop-blur-sm mb-6">
-            <Coins className="h-4 w-4 text-green-400" />
+            <Sparkles className="h-4 w-4 text-green-400" />
             <span className="text-sm font-bold tracking-widest text-green-400 uppercase">{fmt(totalXp)} XP точки</span>
             <span className="text-xs text-zinc-400">Ниво {level}</span>
           </div>
@@ -383,7 +364,7 @@ export default function RewardsPage() {
           )}
         </div>
 
-        {/* Rewards Grid */}
+        {/* награди */}
         <section aria-label="Награди">
           {rewards.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -408,7 +389,7 @@ export default function RewardsPage() {
           )}
         </section>
 
-        {/* Banner */}
+        {/* Банер */}
         <div
           className="mt-14 rounded-2xl border border-white/5 overflow-hidden"
           style={{ backgroundImage: "linear-gradient(135deg,rgba(74,222,128,.15),rgba(16,185,129,.08),rgba(5,150,105,.15))" }}

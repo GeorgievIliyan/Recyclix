@@ -154,19 +154,19 @@ export default function ConfirmCamera({
   };
 
   const retakePhoto = () => {
-    // Clear all states
+    // Очисть всички състояния
     setImage(null);
     setError(null);
     setApiResult(null);
     setIsCameraActive(false);
 
-    // Stop any existing stream
+    // Останови лични токове
     if (stream) {
       stream.getTracks().forEach((t) => t.stop());
       setStream(null);
     }
 
-    // Small delay to ensure cleanup before reopening
+    // Малко эвчане, за да подготовим приди да воторим
     setTimeout(() => {
       setOpen(true);
     }, 100);
