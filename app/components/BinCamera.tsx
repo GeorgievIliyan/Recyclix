@@ -7,10 +7,10 @@ import {
   CheckCircle2,
   X,
   CircleX,
-  Hash,
   Sparkles,
-  Leaf,
+  Wind,
   Weight,
+  Recycle,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import {
@@ -19,20 +19,54 @@ import {
 } from "./RecyclingLoader";
 import { isDev } from "@/lib/isDev";
 import { useRouter } from "next/navigation";
+import { createClient } from "@supabase/supabase-js";
 
-// типове
-type MaterialType =
-  | "plastic"
-  | "textile"
-  | "metal"
-  | "paper"
-  | "glass"
-  | "unknown";
+type MaterialType = "plastic" | "textile" | "metal" | "paper" | "glass" | "unknown";
 type VerifyResult = "YES" | "NO" | null;
 
 interface Props {
-  target: string; // Целеви материал за проверка
-  binId: string; // ID на контейнера/бина
+  target: string;
+  binId: string;
+}
+
+// Брои от 0 до `value` при монтиране
+function CountUp({ value, decimals = 0 }: { value: number; decimals?: number }) {
+  const [display, setDisplay] = useState(0);
+  useEffect(() => {
+    let current = 0;
+    const steps = 40;
+    const increment = value / steps;
+    const interval = setInterval(() => {
+      current += increment;
+      if (current >= value) { setDisplay(value); clearInterval(interval); }
+      else setDisplay(current);
+    }, 18);
+    return () => clearInterval(interval);
+  }, [value]);
+  return <>{display.toFixed(decimals)}</>;
+}
+
+function StatPill({
+  icon, label, value, unit, decimals = 0, border, iconColor,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: number;
+  unit: string;
+  decimals?: number;
+  border: string;
+  iconColor: string;
+}) {
+  return (
+    <div className={`flex-1 flex flex-col items-center gap-1.5 rounded-xl px-3 py-3 bg-muted/30 border ${border}`}>
+      <div className={iconColor}>{icon}</div>
+      <div className="text-lg font-bold text-foreground leading-none tabular-nums">
+        <CountUp value={value} decimals={decimals} />
+        <span className="text-[11px] font-normal ml-0.5 opacity-60">{unit}</span>
+      </div>
+      <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 text-center leading-tight">{label}</p>
+    </div>
+  );
 }
 
 export default function BinCamera({ target, binId }: Props) {
@@ -45,11 +79,7 @@ export default function BinCamera({ target, binId }: Props) {
   const [itemCount, setItemCount] = useState<number>(0);
   const [co2Saved, setCo2Saved] = useState<number>(0);
   const [weightKg, setWeightKg] = useState<number>(0);
-  const [qrData, setQrData] = useState<{
-    qrUrl: string;
-    expiresAt: string;
-    points: number;
-  } | null>(null);
+  const [qrData, setQrData] = useState<{ qrUrl: string; expiresAt: string; points: number } | null>(null);
 
   const showSuccessModal =
     (target && verifyResult === "YES") ||
@@ -59,9 +89,7 @@ export default function BinCamera({ target, binId }: Props) {
     startCamera();
     return () => {
       if (videoRef.current?.srcObject) {
-        (videoRef.current.srcObject as MediaStream)
-          .getTracks()
-          .forEach((t) => t.stop());
+        (videoRef.current.srcObject as MediaStream).getTracks().forEach((t) => t.stop());
       }
     };
   }, []);
@@ -74,8 +102,7 @@ export default function BinCamera({ target, binId }: Props) {
       });
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        videoRef.current.onloadedmetadata = () =>
-          videoRef.current?.play().catch(console.error);
+        videoRef.current.onloadedmetadata = () => videoRef.current?.play().catch(console.error);
       }
       setCameraOn(true);
     } catch (err) {
@@ -86,50 +113,26 @@ export default function BinCamera({ target, binId }: Props) {
   const takePhoto = (): string | null => {
     const video = videoRef.current;
     if (!video || video.videoWidth === 0) return null;
-
     const canvas = document.createElement("canvas");
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-
     const ctx = canvas.getContext("2d");
     if (!ctx) return null;
-
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     return canvas.toDataURL("image/jpeg", 0.6);
   };
 
-  const logRecyclingEvent = async (
-    material: string,
-    points: number,
-    count: number,
-    co2: number,
-    weight: number,
-  ) => {
+  const logRecyclingEvent = async (material: string, points: number, count: number, co2: number, weight: number) => {
     try {
-      const calculatedCo2 = Number(co2);
       setCo2Saved(Number(co2));
       setWeightKg(weight);
-
       const res = await fetch("/api/recycling/log", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          material: material,
-          points: points,
-          count: count,
-          co2_saved: calculatedCo2,
-          weight_kg: weight,
-          created_at: new Date().toISOString(),
-        }),
+        body: JSON.stringify({ material, points, count, co2_saved: Number(co2), weight_kg: weight, created_at: new Date().toISOString() }),
       });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        console.error("Log error:", errorData);
-        return;
-      }
-
-      if (isDev) console.log("Event logged successfully");
+      if (!res.ok && isDev) console.error("Log error:", await res.json());
+      else if (isDev) console.log("Event logged successfully");
     } catch (error) {
       console.error("Failed to log recycling event:", error);
     }
@@ -137,31 +140,14 @@ export default function BinCamera({ target, binId }: Props) {
 
   const classifyPhoto = async (image: string) => {
     setLoading(true);
-    setPrediction(null);
-    setVerifyResult(null);
-    setQrData(null);
-    setItemCount(0);
-    setCo2Saved(0);
-    setWeightKg(0);
+    setPrediction(null); setVerifyResult(null); setQrData(null);
+    setItemCount(0); setCo2Saved(0); setWeightKg(0);
 
     try {
-      let endpoint: string;
-      let requestBody: any;
+      const endpoint = target ? "/api/gemini-verify-material" : "/api/gemini-classify";
+      const requestBody = target ? { image, binId, target } : { image, binId };
 
-      if (target) {
-        endpoint = "/api/gemini-verify-material";
-        requestBody = { image, binId, target };
-      } else {
-        endpoint = "/api/gemini-classify";
-        requestBody = { image, binId };
-      }
-
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(requestBody),
-      });
-
+      const res = await fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(requestBody) });
       if (!res.ok) throw new Error(`API error: ${res.status}`);
 
       const data = await res.json();
@@ -174,33 +160,18 @@ export default function BinCamera({ target, binId }: Props) {
 
       setItemCount(detectedCount);
       setWeightKg(detectedWeight);
+      setCo2Saved(detectedCo2);
 
       if (target) {
         const result = data.result as VerifyResult;
         setVerifyResult(result);
-
         if (result === "YES") {
-          await logRecyclingEvent(
-            target,
-            detectedPoints,
-            detectedCount,
-            detectedCo2,
-            detectedWeight,
-          );
           await generateQR(detectedPoints);
         }
       } else {
         const material = data.material as MaterialType;
         setPrediction(material);
-
         if (material && material !== "unknown") {
-          await logRecyclingEvent(
-            material,
-            detectedPoints,
-            detectedCount,
-            detectedCo2,
-            detectedWeight,
-          );
           await generateQR(detectedPoints);
         }
       }
@@ -215,26 +186,26 @@ export default function BinCamera({ target, binId }: Props) {
 
   const generateQR = async (points: number) => {
     try {
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        { auth: { storage: typeof window !== "undefined" ? window.localStorage : undefined, persistSession: true } }
+      );
+      const { data: { session } } = await supabase.auth.getSession();
+
       const qrRes = await fetch("/api/temporary-qr", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "x-api-token": process.env.NEXT_PUBLIC_SECURE_API_KEY!,
+          ...(session ? { "Authorization": `Bearer ${session.access_token}` } : {}),
         },
-        body: JSON.stringify({
-          points: points,
-          binCode: binId,
-        }),
+        body: JSON.stringify({ points, binCode: binId, user_id: binId }),
       });
 
       const responseData = await qrRes.json();
-
       if (qrRes.ok && responseData.qrUrl) {
-        setQrData({
-          qrUrl: responseData.qrUrl,
-          expiresAt: responseData.expiresAt,
-          points: points,
-        });
+        setQrData({ qrUrl: responseData.qrUrl, expiresAt: responseData.expiresAt, points });
       }
     } catch (error) {
       console.error("Failed to generate QR:", error);
@@ -259,16 +230,12 @@ export default function BinCamera({ target, binId }: Props) {
 
   return (
     <div className="w-full h-full flex flex-col gap-4">
-      {/* Видео контейнер */}
-      <div className="relative flex-1 w-full bg-black rounded-xl overflow-hidden border border-border shadow-2xl group">
+      {/* Контейнер за видео */}
+      <div className="relative flex-1 w-full bg-black rounded-xl overflow-hidden border border-border shadow-2xl">
         <video
           ref={videoRef}
-          autoPlay
-          playsInline
-          muted
-          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
-            cameraOn ? "opacity-100" : "opacity-0"
-          }`}
+          autoPlay playsInline muted
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${cameraOn ? "opacity-100" : "opacity-0"}`}
         />
 
         {!cameraOn && (
@@ -282,107 +249,99 @@ export default function BinCamera({ target, binId }: Props) {
           </div>
         )}
 
+        {/* Наслагване при зареждане */}
         {loading && (
           <div className="absolute inset-0 bg-background/95 backdrop-blur-sm flex items-center justify-center p-4 z-10">
-            <div className="relative bg-card rounded-xl p-10 max-w-md w-full border shadow-lg">
-              <div className="flex flex-col items-center text-center gap-6">
-                <SimpleSpinningRecycling />
-                <div className="space-y-2">
-                  <h3 className="text-2xl font-semibold">Анализиране...</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {target
-                      ? "Проверяваме материала..."
-                      : "Разпознаваме материала..."}
-                  </p>
-                </div>
+            <div className="bg-card rounded-xl p-10 max-w-md w-full border shadow-lg flex flex-col items-center text-center gap-6">
+              <SimpleSpinningRecycling />
+              <div className="space-y-2">
+                <h3 className="text-2xl font-semibold">Анализиране...</h3>
+                <p className="text-sm text-muted-foreground">
+                  {target ? "Проверяваме материала..." : "Разпознаваме материала..."}
+                </p>
               </div>
             </div>
           </div>
         )}
 
-        {/* модал при успех */}
+        {/* Модал за успех */}
         {showSuccessModal && !loading && (
           <div className="absolute inset-0 bg-background/95 backdrop-blur-sm flex items-center justify-center p-4 z-20">
-            <div className="relative bg-card rounded-xl p-8 max-w-md w-full border shadow-lg">
+            <div className="relative bg-card rounded-2xl p-8 max-w-md w-full border shadow-lg">
               <button
-                onClick={() => {
-                  setVerifyResult(null);
-                  setPrediction(null);
-                  setQrData(null);
-                }}
-                className="absolute top-4 right-4 text-foreground/70 hover:text-foreground transition-colors"
+                onClick={() => { setVerifyResult(null); setPrediction(null); setQrData(null); }}
+                className="absolute top-4 right-4 text-foreground/40 hover:text-foreground transition-colors"
               >
-                <X className="w-6 h-6 dark:text-neutral-600" />
+                <X className="w-5 h-5" />
               </button>
 
-              <div className="flex flex-col items-center text-center gap-6">
+              <div className="flex flex-col items-center text-center gap-5">
+                {/* Заглавие */}
                 <div className="flex flex-col items-center gap-2">
-                  <CheckCircle2 className="w-12 h-12 text-green-500" />
-                  <h3 className="text-4xl font-bold">
-                    {target
-                      ? "Правилен контейнер"
-                      : materialLabels[prediction!]}
+                  <CheckCircle2 className="w-10 h-10 text-green-500" />
+                  <h3 className="text-2xl font-bold">
+                    {target ? "Правилен контейнер" : materialLabels[prediction!]}
                   </h3>
                 </div>
 
-                {/* секция със статистики */}
-                <div className="flex flex-wrap gap-2 w-full justify-center">
-                  <div className="bg-primary/10 px-3 py-2 rounded-lg flex items-center gap-2 border border-primary/20">
-                    <Hash className="w-4 h-4 text-primary" />
-                    <span className="text-sm font-semibold text-primary">
-                      {itemCount} бр.
-                    </span>
-                  </div>
-                  <div className="bg-amber-500/10 px-3 py-2 rounded-lg flex items-center gap-2 border border-amber-500/20">
-                    <Sparkles className="w-4 h-4 text-amber-500" />
-                    <span className="text-sm font-semibold text-amber-600">
-                      +{qrData?.points || 0} т.
-                    </span>
-                  </div>
-                  {/* Тегло на боклука */}
-                  <div className="bg-blue-500/10 px-3 py-2 rounded-lg flex items-center gap-2 border border-blue-500/20">
-                    <Weight className="w-4 h-4 text-blue-500" />
-                    <span className="text-sm font-semibold text-blue-600">
-                      {weightKg} кг.
-                    </span>
-                  </div>
-                  {/* CO2 */}
-                  <div className="bg-emerald-500/10 px-3 py-2 rounded-lg flex items-center gap-2 border border-emerald-500/20">
-                    <Leaf className="w-4 h-4 text-emerald-500" />
-                    <span className="text-sm font-semibold text-emerald-600">
-                      {co2Saved} кг. CO₂
-                    </span>
-                  </div>
+                {/* Статистически табелки */}
+                <div className="flex gap-2 w-full">
+                  <StatPill
+                    icon={<Recycle className="w-4 h-4" />}
+                    label="Брой"
+                    value={itemCount}
+                    unit=" бр."
+                    border="border-green-500/20"
+                    iconColor="text-green-500"
+                  />
+                  {weightKg > 0 && (
+                    <StatPill
+                      icon={<Weight className="w-4 h-4" />}
+                      label="Тегло"
+                      value={weightKg}
+                      unit=" кг"
+                      decimals={2}
+                      border="border-sky-500/20"
+                      iconColor="text-sky-500"
+                    />
+                  )}
+                  {co2Saved > 0 && (
+                    <StatPill
+                      icon={<Wind className="w-4 h-4" />}
+                      label="CO₂ спестен"
+                      value={co2Saved}
+                      unit=" кг"
+                      decimals={2}
+                      border="border-emerald-500/20"
+                      iconColor="text-emerald-500"
+                    />
+                  )}
+                  {(qrData?.points ?? 0) > 0 && (
+                    <StatPill
+                      icon={<Sparkles className="w-4 h-4" />}
+                      label="Точки"
+                      value={qrData?.points ?? 0}
+                      unit=" т."
+                      border="border-amber-500/20"
+                      iconColor="text-amber-500"
+                    />
+                  )}
                 </div>
 
+                {/* QR секция */}
                 {qrData ? (
                   <div className="flex flex-col items-center gap-2">
                     <div className="p-5 bg-background/50 dark:bg-[#1D1D1D] rounded-lg">
-                      <QRCodeSVG
-                        value={qrData.qrUrl}
-                        size={180}
-                        fgColor="#00CD56"
-                        bgColor="transparent"
-                      />
+                      <QRCodeSVG value={qrData.qrUrl} size={180} fgColor="#00CD56" bgColor="transparent" />
                     </div>
-                    <p className="text-sm text-muted-foreground dark:text-neutral-400">
-                      Сканирай за точки
-                    </p>
-                    <p className="text-xs text-muted-foreground/60 -mt-1">
-                      или
-                    </p>
-                    <a
-                      href={qrData.qrUrl}
-                      className="hover:text-green-500 -mt-1"
-                    >
+                    <p className="text-sm text-muted-foreground">Сканирай за точки</p>
+                    <p className="text-xs text-muted-foreground/60 -mt-1">или</p>
+                    <a href={qrData.qrUrl} className="text-sm font-semibold text-green-500 hover:text-green-400 transition-colors -mt-1">
                       Вземи тук
                     </a>
                     <p className="text-xs text-muted-foreground/60 mt-0.5">
                       Валиден до:{" "}
-                      {new Date(qrData.expiresAt).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+                      {new Date(qrData.expiresAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                     </p>
                   </div>
                 ) : (
@@ -390,9 +349,7 @@ export default function BinCamera({ target, binId }: Props) {
                     <div className="p-5 bg-background/50 dark:bg-[#1D1D1D] rounded-lg">
                       <SpinningRecyclingLoader />
                     </div>
-                    <p className="text-base text-muted-foreground">
-                      Генериране на награда...
-                    </p>
+                    <p className="text-base text-muted-foreground">Генериране на награда...</p>
                   </div>
                 )}
               </div>
@@ -400,37 +357,34 @@ export default function BinCamera({ target, binId }: Props) {
           </div>
         )}
 
+        {/* Модал за грешен контейнер */}
         {verifyResult === "NO" && !loading && (
           <div className="absolute inset-0 bg-background/95 backdrop-blur-sm flex items-center justify-center p-4 z-20">
-            <div className="relative bg-card rounded-xl p-10 max-w-md w-full border shadow-lg">
+            <div className="relative bg-card rounded-2xl p-10 max-w-md w-full border shadow-lg">
               <button
                 onClick={() => setVerifyResult(null)}
-                className="absolute top-4 right-4 text-foreground/70 hover:text-foreground transition-colors"
+                className="absolute top-4 right-4 text-foreground/40 hover:text-foreground transition-colors"
               >
-                <X className="w-6 h-6 dark:text-neutral-600" />
+                <X className="w-5 h-5" />
               </button>
-
               <div className="flex flex-col items-center text-center gap-3">
                 <div className="flex items-center gap-3">
                   <CircleX className="w-9 h-9 text-red-500" />
-                  <h3 className="text-3xl font-semibold text-red-500">
-                    Грешен контейнер
-                  </h3>
+                  <h3 className="text-3xl font-semibold text-red-500">Грешен контейнер</h3>
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  Този обект не принадлежи към категорията!
-                </p>
+                <p className="text-sm text-muted-foreground">Този обект не принадлежи към категорията!</p>
               </div>
             </div>
           </div>
         )}
       </div>
 
-      <div className="flex-shrink-0 flex flex-col sm:flex-row gap-3">
+      {/* Бутон за сканиране */}
+      <div className="flex-shrink-0">
         {!cameraOn ? (
           <button
             onClick={startCamera}
-            className="flex-1 flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-4 rounded-lg transition-all active:scale-[0.98] shadow-lg"
+            className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-4 rounded-lg transition-all active:scale-[0.98] shadow-lg"
           >
             <CameraIcon className="w-5 h-5" />
             <span>Включи камера</span>
@@ -442,15 +396,9 @@ export default function BinCamera({ target, binId }: Props) {
             className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 disabled:bg-accent disabled:text-foreground/40 text-primary-foreground font-medium px-6 py-4 rounded-lg transition-all active:scale-[0.98] shadow-lg disabled:cursor-not-allowed"
           >
             {loading ? (
-              <>
-                <SimpleSpinningRecycling />
-                <span>Сканиране...</span>
-              </>
+              <><SimpleSpinningRecycling /><span>Сканиране...</span></>
             ) : (
-              <>
-                <Scan className="w-5 h-5" />
-                <span>{target ? "Потвърди" : "Разпознай"}</span>
-              </>
+              <><Scan className="w-5 h-5" /><span>{target ? "Потвърди" : "Разпознай"}</span></>
             )}
           </button>
         )}

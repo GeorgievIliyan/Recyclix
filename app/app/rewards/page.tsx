@@ -26,12 +26,18 @@ interface UserProfile {
 }
 
 // Supabase клиент
-function getSupabase() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ""
-  );
-}
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
+  {
+    auth: {
+      storage: typeof window !== "undefined" ? window.localStorage : undefined,
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true,
+    },
+  }
+);
 
 // Помощни функции
 function fmt(n: number) {
@@ -68,23 +74,23 @@ const CATEGORY_ICONS: Record<string, React.ReactNode> = {
   general: <Gift className="h-5 w-5" />,
 };
 
-// Лента за прогрес
+// Лента за напредък на XP
 function XpProgressBar({ totalXp }: { totalXp: number }) {
   const { level, currentXp, xpForNextLevel } = computeLevelFromXp(totalXp);
   const pct = Math.min(100, (currentXp / xpForNextLevel) * 100);
   return (
-    <div className="w-full max-w-sm mx-auto flex flex-col gap-2">
-      <div className="flex items-center justify-between text-xs text-zinc-400">
-        <span className="flex items-center gap-1">
-          <TrendingUp className="h-3 w-3 text-green-400" />
-          Ниво <strong className="text-white ml-1">{level}</strong>
+    <div className="w-full max-w-lg mx-auto flex flex-col gap-3">
+      <div className="flex items-center justify-between text-sm text-zinc-400">
+        <span className="flex items-center gap-2">
+          <TrendingUp className="h-4 w-4 text-green-400" />
+          Ниво <strong className="text-white ml-1 text-base">{level}</strong>
         </span>
-        <span>
-          <strong className="text-green-400">{fmt(currentXp)}</strong> / {fmt(xpForNextLevel)} XP
+        <span className="text-sm">
+          <strong className="text-green-400 text-base">{fmt(currentXp)}</strong> / {fmt(xpForNextLevel)} XP
         </span>
       </div>
       <div
-        className="relative h-2 w-full rounded-full overflow-hidden bg-white/10"
+        className="relative h-3 w-full rounded-full overflow-hidden bg-white/10"
         role="progressbar"
         aria-valuenow={currentXp}
         aria-valuemin={0}
@@ -95,13 +101,12 @@ function XpProgressBar({ totalXp }: { totalXp: number }) {
           style={{ width: `${pct}%`, backgroundImage: "linear-gradient(90deg,#4ade80,#22c55e,#059669)" }}
         />
       </div>
-      <p className="text-center text-[11px] text-zinc-500">
+      <p className="text-center text-xs text-zinc-500">
         Още <strong className="text-zinc-300">{fmt(xpForNextLevel - currentXp)}</strong> XP до ниво {level + 1}
       </p>
     </div>
   );
 }
-
 function ClaimModal({ reward, code, onClose }: {
   reward: Reward;
   code: string;
@@ -159,7 +164,7 @@ function ClaimModal({ reward, code, onClose }: {
   );
 }
 
-// карта за награди
+// Карта на награда
 function RewardCard({ reward, userXP, isClaiming, onClaim }: {
   reward: Reward;
   userXP: number;
@@ -222,7 +227,7 @@ function RewardCard({ reward, userXP, isClaiming, onClaim }: {
   );
 }
 
-// главна страница
+// Главна страница
 export default function RewardsPage() {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [rewards, setRewards] = useState<Reward[]>([]);
@@ -233,18 +238,16 @@ export default function RewardsPage() {
   const [dbError, setDbError] = useState<string | null>(null);
 
   useEffect(() => {
-    const supabase = getSupabase();
-
     async function load() {
       setDbError(null);
       try {
-        // Удостоверяване
+        // Вземи сесия от споделения клиент (чете от localStorage)
         const { data: { session } } = await supabase.auth.getSession();
 
         if (session?.user) {
           setUserId(session.user.id);
 
-          // Профил
+          // Зареди профил
           const { data: profile, error: profileError } = await supabase
             .from("user_profiles")
             .select("xp, level, trust_score, streak")
@@ -253,9 +256,12 @@ export default function RewardsPage() {
 
           if (profileError && profileError.code !== "PGRST116") {
             console.error("Profile error:", profileError);
+          } else if (profile) {
+            setUserProfile(profile);
           }
         }
-        // Награди
+
+        // Зареди награди
         const { data: rewardsData, error: rewardsError } = await supabase
           .from("rewards")
           .select("id, title, description, points_cost, category, is_available, created_at")
@@ -281,7 +287,6 @@ export default function RewardsPage() {
 
   const handleClaim = useCallback(async (reward: Reward) => {
     if (!userProfile || userProfile.xp < reward.points_cost || claimingId || !userId) return;
-    const supabase = getSupabase();
     setClaimingId(reward.id);
     try {
       const newXp = userProfile.xp - reward.points_cost;
@@ -318,9 +323,9 @@ export default function RewardsPage() {
   return (
     <div className="min-h-screen font-sans bg-gradient-to-br from-zinc-950 via-zinc-900 to-black">
       <Navigation />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-24">
 
-        {/* при грешки */}
+        {/* Банер за грешка */}
         {dbError && (
           <div className="mb-8 flex items-start gap-3 rounded-xl border border-red-500/30 bg-red-500/10 px-5 py-4">
             <AlertCircle className="h-5 w-5 text-red-400 shrink-0 mt-0.5" />
@@ -336,7 +341,7 @@ export default function RewardsPage() {
           </div>
         )}
 
-        {/* начална секция */}
+        {/* Героична секция */}
         <div className="relative flex flex-col items-center text-center mb-16 px-4">
           <div
             aria-hidden="true"
@@ -346,7 +351,6 @@ export default function RewardsPage() {
           <div className="relative z-10 inline-flex items-center gap-2.5 px-5 py-2 rounded-full border border-green-500/30 bg-green-500/10 backdrop-blur-sm mb-6">
             <Sparkles className="h-4 w-4 text-green-400" />
             <span className="text-sm font-bold tracking-widest text-green-400 uppercase">{fmt(totalXp)} XP точки</span>
-            <span className="text-xs text-zinc-400">Ниво {level}</span>
           </div>
           <h1 className="relative z-10 text-4xl md:text-5xl font-bold tracking-tight text-white mb-4">
             Магазин за{" "}
@@ -355,7 +359,7 @@ export default function RewardsPage() {
             </span>
           </h1>
           <p className="relative z-10 max-w-md text-zinc-400 leading-relaxed mb-8">
-            Обмени своите XP точки за продукти, ваучери и преживявания с положителен отпечатък.
+            Обмени своите XP точки за продукти, ваучери и преживявания с по-малък отпечатък върху природата.
           </p>
           {userProfile && (
             <div className="relative z-10 w-full">
@@ -364,7 +368,7 @@ export default function RewardsPage() {
           )}
         </div>
 
-        {/* награди */}
+        {/* Мрежа от награди */}
         <section aria-label="Награди">
           {rewards.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">

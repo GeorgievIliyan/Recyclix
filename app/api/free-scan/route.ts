@@ -68,17 +68,17 @@ export async function POST(req: Request) {
 
     // prompt към изкуствения интелект
     const prompt = `Analyze this image and identify the recycling items.
-    Task: ${task}
-    
-    Return EXACTLY in this format:
-    MATERIAL: [plastic, glass, paper, metal, or unknown]
-    COUNT: [number of items - integer]
-    CO2: [estimated CO2 savings in grams - number]
-    
-    Example:
-    MATERIAL: plastic
-    COUNT: 2
-    CO2: 100`;
+                    Task: ${task}
+
+                    Return EXACTLY in this format:
+                    MATERIAL: [plastic, glass, paper, metal, or unknown]
+                    COUNT: [number of items - integer]
+                    CO2: [estimated CO2 savings in kilograms, formatted as x.xx - e.g. 0.15]
+
+                    Example:
+                    MATERIAL: plastic
+                    COUNT: 2
+                    CO2: 0.15`;
 
     const MODEL = "gemini-2.0-flash";
     const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`;
@@ -129,8 +129,11 @@ export async function POST(req: Request) {
       "wood",
     ];
 
-    const materialRaw = materialMatch ? materialMatch[1].toLowerCase() : "unknown";
-    const material = allowedMaterials.find((m) => materialRaw.includes(m)) || "unknown";
+    const materialRaw = materialMatch
+      ? materialMatch[1].toLowerCase()
+      : "unknown";
+    const material =
+      allowedMaterials.find((m) => materialRaw.includes(m)) || "unknown";
     const count = countMatch ? parseInt(countMatch[1], 10) : 1;
     const co2 = co2Match ? parseFloat(co2Match[1]) : count * 50;
     const points = material !== "unknown" ? count * 10 : 0;

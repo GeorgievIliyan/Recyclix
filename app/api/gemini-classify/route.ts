@@ -102,7 +102,7 @@ export async function POST(req: Request) {
           MATERIAL_BG: [category in bulgarian]
           COUNT: [number]
           CO2: [float]
-          WEIGHT_KG: [float] (x.xxx)
+          WEIGHT_KG: [float] (x.xx) (strictly kilograms and 2 decimal places)
           If unsure, MATERIAL: unknown | MATERIAL_BG: неизвестно`;
 
     const MODEL = "gemini-2.0-flash";

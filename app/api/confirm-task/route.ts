@@ -172,7 +172,7 @@ export async function POST(req: NextRequest) {
     MATERIAL: [category or "unknown"]
     COUNT: [number]
     CO2: [float]
-    WEIGHT_KG: [float] (x.xxx)
+    WEIGHT_KG: [float] (x.xx) (strictly kilograms and 2 decimal places)
   `;
 
     const geminiRes = await fetch(
