@@ -63,7 +63,8 @@ export type RecyclingBin = {
   created_at: string;
   updated_at?: string;
   last_emptied?: string;
-  osm_id?: string;
+  osm_id?: string | null;
+  image_url?: string | null;
 };
 
 interface EditSuggestion {
@@ -334,12 +335,8 @@ export async function getStats() {
 
 export async function approveBin(binId: string, binData: Bin): Promise<boolean> {
   try {
-    const { error: updateError } = await supabase
-      .from("pending_bins")
-      .update({ status: "approved", updated_at: new Date().toISOString() })
-      .eq("id", binId);
-    if (updateError) return false;
     const nowISO = new Date().toISOString();
+
     const recyclingBinData: RecyclingBin = {
       code: binData.code || binId,
       lat: binData.lat,
@@ -349,11 +346,32 @@ export async function approveBin(binId: string, binData: Bin): Promise<boolean> 
       created_at: binData.created_at || nowISO,
       updated_at: nowISO,
       last_emptied: undefined,
-      osm_id: "",
+      osm_id: binData.osm_id || null,
+      image_url: binData.image_url || null,
     };
-    const { error: insertError } = await supabase.from("recycling_bins").insert([recyclingBinData]);
-    return !insertError;
-  } catch {
+
+    const { error: insertError } = await supabase
+      .from("recycling_bins")
+      .insert([recyclingBinData]);
+
+    if (insertError) {
+      console.error("Insert error:", insertError);
+      return false;
+    }
+
+    const { error: updateError } = await supabase
+      .from("pending_bins")
+      .update({ status: "approved", updated_at: nowISO })
+      .eq("id", binId);
+
+    if (updateError) {
+      console.error("Update error:", updateError);
+      return false;
+    }
+
+    return true;
+  } catch (e) {
+    console.error("approveBin exception:", e);
     return false;
   }
 }
@@ -998,10 +1016,10 @@ export function AdminPanel() {
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-green-600 flex items-center justify-center shadow-sm shadow-emerald-500/30">
                 <Shield className="w-4 h-4 text-white" />
               </div>
-              <span className="font-semibold text-neutral-900 dark:text-white text-lg ml-1">Администратор</span>
+              <span className="font-semibold text-neutral-900 dark:text-white text-lg ml-1">Табло</span>
             </div>
             <span className="hidden sm:block text-neutral-300 dark:text-neutral-600">|</span>
-            <span className="hidden sm:block text-xs text-neutral-400">Recyclix управление</span>
+            <span className="hidden sm:block text-xs text-neutral-400">Recyclix</span>
           </div>
           <div className="flex items-center gap-1">
             <button onClick={toggleDarkMode} className="p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors">
