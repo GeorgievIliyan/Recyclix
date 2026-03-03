@@ -13,6 +13,7 @@ import { RecentActivity } from "@/app/components/RecentActivity";
 import { Navigation } from "@/app/components/Navigation";
 import { BadgesGallery } from "@/app/components/BadgesGallery";
 import { supabase } from "@/lib/supabase-browser";
+import { Leaderboard } from "@/app/components/Leaderboard";
 
 const RecyclingActivityChart = dynamicImport(
   () =>
@@ -75,6 +76,20 @@ type UserData = {
   currentStreak: number;
 };
 
+// Matches the UserProfile interface expected by <Leaderboard>
+type UserProfile = {
+  id: string;
+  xp: number;
+  level: number;
+  trust_score: number;
+  streak: number;
+  badges: string[];
+  app_role: "user" | "platform_admin";
+  organization_id?: string;
+  organization_role?: "member" | "org_admin";
+  username?: string;
+};
+
 export default function DashboardPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -82,9 +97,8 @@ export default function DashboardPage() {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [activityData, setActivityData] = useState<ActivityPoint[]>([]);
   const [materialsData, setMaterialsData] = useState<MaterialPoint[]>([]);
-  const [recentActivities, setRecentActivities] = useState<
-    RecentActivityItem[]
-  >([]);
+  const [recentActivities, setRecentActivities] = useState<RecentActivityItem[]>([]);
+  const [userProfiles, setUserProfiles] = useState<UserProfile[]>([]);
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -106,7 +120,7 @@ export default function DashboardPage() {
 
         const { data: profile } = await supabase
           .from("user_profiles")
-          .select("level, xp")
+          .select("level, xp, username")
           .eq("id", userId)
           .single();
 
@@ -117,6 +131,13 @@ export default function DashboardPage() {
           .order("created_at", { ascending: false });
 
         const typedEvents = events as RecyclingEvent[];
+
+        // Fetch all user profiles for the leaderboard
+        const { data: profiles = [] } = await supabase
+          .from("user_profiles")
+          .select("id, xp, level, trust_score, streak, badges, app_role, organization_id, organization_role, username");
+
+        setUserProfiles((profiles ?? []) as UserProfile[]);
 
         // изчисляване на рекорд за поредни дни
         const calculateStreak = () => {
@@ -151,7 +172,7 @@ export default function DashboardPage() {
         const co2Saved = typedEvents.reduce((sum, e) => sum + e.co2_saved, 0);
 
         setUserData({
-          username: userDataResponse.user.email?.split("@")[0] || "Guest",
+          username: profile?.username || userDataResponse.user.email?.split("@")[0] || "Guest",
           level: profile?.level || 0,
           xp: profile?.xp || 0,
           xpForNextLevel: 100,
@@ -307,8 +328,11 @@ export default function DashboardPage() {
             <RecentActivity activities={recentActivities} />
           </div>
 
+          {/* класация */}
+          <Leaderboard users={userProfiles} currentUserId={user?.id} />
+
           {/* значки */}
-          <div className="backdrop-blur-md bg-white/70 dark:bg-zinc-900/70 rounded-2xl sm:rounded-3xl border border-white/20 dark:border-zinc-800/50 shadow-2xl overflow-hidden">
+          <div className="backdrop-blur-md bg-white/70 dark:bg-zinc-900/70 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden mb-4 sm:mb-6 md:mb-8 mt-8">
             <BadgesGallery userId={user?.id} />
           </div>
         </div>

@@ -20,16 +20,13 @@ interface UserProfile {
 export default function ProfilePage() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [lastPasswordChange, setLastPasswordChange] = useState<string | null>(
-    null,
-  );
+  const [lastPasswordChange, setLastPasswordChange] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchUser() {
       setLoading(true);
 
-      const { data: authData, error: authError } =
-        await supabase.auth.getUser();
+      const { data: authData, error: authError } = await supabase.auth.getUser();
       if (authError || !authData.user) {
         console.error(authError);
         setLoading(false);
@@ -50,7 +47,15 @@ export default function ProfilePage() {
             .join("") ?? "",
       });
 
-      setLastPasswordChange(user.updated_at!);
+      // последната промяна на парола
+      const { data: profile } = await supabase
+        .from("user_profiles")
+        .select("password_changed_at")
+        .eq("id", user.id)
+        .single();
+
+      // Ако е null — паролата никога не е сменяна след регистрацията
+      setLastPasswordChange(profile?.password_changed_at ?? null);
 
       setLoading(false);
     }
@@ -149,7 +154,7 @@ export default function ProfilePage() {
                         month: "long",
                         day: "numeric",
                       })
-                    : "—"}
+                    : "Никога не е сменяна"}
                 </p>
               </div>
 

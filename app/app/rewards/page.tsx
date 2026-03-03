@@ -80,17 +80,19 @@ function XpProgressBar({ totalXp }: { totalXp: number }) {
   const pct = Math.min(100, (currentXp / xpForNextLevel) * 100);
   return (
     <div className="w-full max-w-lg mx-auto flex flex-col gap-3">
-      <div className="flex items-center justify-between text-sm text-zinc-400">
+      <div className="flex items-center justify-between text-sm text-zinc-500 dark:text-zinc-400">
         <span className="flex items-center gap-2">
-          <TrendingUp className="h-4 w-4 text-green-400" />
-          Ниво <strong className="text-white ml-1 text-base">{level}</strong>
+          <TrendingUp className="h-4 w-4 text-green-500 dark:text-green-400" />
+          Ниво <strong className="text-zinc-900 dark:text-white ml-1 text-base">{level}</strong>
         </span>
         <span className="text-sm">
-          <strong className="text-green-400 text-base">{fmt(currentXp)}</strong> / {fmt(xpForNextLevel)} XP
+          <strong className="text-green-600 dark:text-green-400 text-base">{fmt(currentXp)}</strong>
+          <span className="text-zinc-400 dark:text-zinc-500"> / {fmt(xpForNextLevel)} XP</span>
         </span>
       </div>
+      {/* Лента за прогрес */}
       <div
-        className="relative h-3 w-full rounded-full overflow-hidden bg-white/10"
+        className="relative h-3 w-full rounded-full overflow-hidden bg-zinc-200 dark:bg-white/10"
         role="progressbar"
         aria-valuenow={currentXp}
         aria-valuemin={0}
@@ -101,12 +103,14 @@ function XpProgressBar({ totalXp }: { totalXp: number }) {
           style={{ width: `${pct}%`, backgroundImage: "linear-gradient(90deg,#4ade80,#22c55e,#059669)" }}
         />
       </div>
-      <p className="text-center text-xs text-zinc-500">
-        Още <strong className="text-zinc-300">{fmt(xpForNextLevel - currentXp)}</strong> XP до ниво {level + 1}
+      <p className="text-center text-xs text-zinc-400 dark:text-zinc-500">
+        Още <strong className="text-zinc-600 dark:text-zinc-300">{fmt(xpForNextLevel - currentXp)}</strong> XP до ниво {level + 1}
       </p>
     </div>
   );
 }
+
+// Модален прозорец за взимане на награда
 function ClaimModal({ reward, code, onClose }: {
   reward: Reward;
   code: string;
@@ -124,11 +128,13 @@ function ClaimModal({ reward, code, onClose }: {
 
   return (
     <div role="dialog" aria-modal="true" className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Затъмнен фон */}
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-md rounded-2xl border border-white/10 bg-zinc-900 p-8 flex flex-col gap-6 shadow-xl">
-        <button onClick={onClose} className="absolute top-4 right-4 text-zinc-400 hover:text-white transition-colors">
+      <div className="relative w-full max-w-md rounded-2xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-zinc-900 p-8 flex flex-col gap-6 shadow-xl">
+        <button onClick={onClose} className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-700 dark:hover:text-white transition-colors">
           <X className="h-5 w-5" />
         </button>
+        {/* Икона за успех */}
         <div className="flex justify-center">
           <div
             className="flex items-center justify-center w-16 h-16 rounded-2xl"
@@ -138,18 +144,19 @@ function ClaimModal({ reward, code, onClose }: {
           </div>
         </div>
         <div className="text-center">
-          <h2 className="text-xl font-bold text-white mb-1">Наградата е твоя!</h2>
-          <p className="text-zinc-400 text-sm">
-            Ето твоя уникален код за <span className="text-white font-medium">{reward.title}</span>.
+          <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-1">Наградата е твоя!</h2>
+          <p className="text-zinc-500 dark:text-zinc-400 text-sm">
+            Ето твоя уникален код за <span className="text-zinc-800 dark:text-white font-medium">{reward.title}</span>.
           </p>
         </div>
-        <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-zinc-800 px-4 py-3">
-          <code className="flex-1 font-mono text-sm text-green-400 tracking-widest select-all break-all">{code}</code>
+        {/* Код за копиране */}
+        <div className="flex items-center gap-3 rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-100 dark:bg-zinc-800 px-4 py-3">
+          <code className="flex-1 font-mono text-sm text-green-600 dark:text-green-400 tracking-widest select-all break-all">{code}</code>
           <button
             onClick={handleCopy}
-            className="shrink-0 flex items-center justify-center w-9 h-9 rounded-lg bg-zinc-700 hover:bg-zinc-600 transition-colors"
+            className="shrink-0 flex items-center justify-center w-9 h-9 rounded-lg bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600 transition-colors"
           >
-            {copied ? <Check className="h-4 w-4 text-green-400" /> : <Copy className="h-4 w-4 text-zinc-300" />}
+            {copied ? <Check className="h-4 w-4 text-green-500 dark:text-green-400" /> : <Copy className="h-4 w-4 text-zinc-500 dark:text-zinc-300" />}
           </button>
         </div>
         <button
@@ -175,42 +182,57 @@ function RewardCard({ reward, userXP, isClaiming, onClaim }: {
   const deficit = reward.points_cost - userXP;
 
   return (
-    <article className={`group relative flex flex-col rounded-2xl border overflow-hidden transition-all duration-300 bg-zinc-900/60 backdrop-blur-md ${canAfford ? "border-white/10 hover:border-green-500/40 hover:-translate-y-0.5" : "border-white/5 opacity-50"
-      }`}>
+    <article className={`group relative flex flex-col rounded-2xl border overflow-hidden transition-all duration-300
+      bg-white/80 dark:bg-zinc-900/60 backdrop-blur-md
+      ${canAfford
+        ? "border-zinc-200 dark:border-white/10 hover:border-green-500/40 hover:-translate-y-0.5 shadow-sm hover:shadow-md dark:shadow-none"
+        : "border-zinc-100 dark:border-white/5 opacity-50"
+      }`}
+    >
+      {/* Горна декоративна линия */}
       <div
         className="absolute inset-x-0 top-0 h-px"
         style={{
           backgroundImage: canAfford
             ? "linear-gradient(90deg,transparent,#4ade80,#22c55e,transparent)"
-            : "linear-gradient(90deg,transparent,rgba(255,255,255,.07),transparent)"
+            : "linear-gradient(90deg,transparent,rgba(0,0,0,.06),transparent)"
         }}
       />
       <div className="flex flex-col flex-1 p-6 gap-5">
         <div className="flex items-start justify-between gap-3">
+          {/* Икона на категория */}
           <div
-            className="flex items-center justify-center w-11 h-11 rounded-xl shrink-0 text-white/90"
-            style={{ backgroundImage: "linear-gradient(135deg,rgba(74,222,128,.15),rgba(16,185,129,.08))", border: "1px solid rgba(74,222,128,.15)" }}
+            className="flex items-center justify-center w-11 h-11 rounded-xl shrink-0 text-green-700 dark:text-white/90"
+            style={{
+              backgroundImage: "linear-gradient(135deg,rgba(74,222,128,.15),rgba(16,185,129,.08))",
+              border: "1px solid rgba(74,222,128,.2)"
+            }}
           >
             {CATEGORY_ICONS[reward.category] ?? <Gift className="h-5 w-5" />}
           </div>
-          <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-zinc-800 border border-white/10">
-            <Sparkles className="h-3 w-3 text-green-400" />
-            <span className="text-xs font-bold text-green-400">{fmt(reward.points_cost)} XP</span>
+          {/* Цена в XP */}
+          <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-white/10">
+            <Sparkles className="h-3 w-3 text-green-500 dark:text-green-400" />
+            <span className="text-xs font-bold text-green-600 dark:text-green-400">{fmt(reward.points_cost)} XP</span>
           </div>
         </div>
         <div className="flex-1 space-y-1.5">
-          <h3 className="font-semibold text-white group-hover:text-green-400 transition-colors">{reward.title}</h3>
-          <p className="text-sm text-zinc-400 leading-relaxed">{reward.description}</p>
+          <h3 className="font-semibold text-zinc-900 dark:text-white group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
+            {reward.title}
+          </h3>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">{reward.description}</p>
         </div>
-        <span className="text-[11px] uppercase tracking-widest text-zinc-500 font-medium">
+        {/* Категория */}
+        <span className="text-[11px] uppercase tracking-widest text-zinc-400 dark:text-zinc-500 font-medium">
           {CATEGORY_LABELS[reward.category] ?? reward.category}
         </span>
+        {/* Бутон за взимане */}
         <button
           onClick={() => onClaim(reward)}
           disabled={!canAfford || isClaiming}
           className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${canAfford
             ? "text-white hover:opacity-90 active:scale-[0.98]"
-            : "bg-zinc-800 text-zinc-500 cursor-not-allowed border border-white/5"
+            : "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 cursor-not-allowed border border-zinc-200 dark:border-white/5"
             }`}
           style={canAfford ? { backgroundImage: "linear-gradient(135deg,#4ade80,#22c55e,#059669)", boxShadow: "0 4px 12px rgba(34,197,94,.15)" } : {}}
         >
@@ -309,9 +331,10 @@ export default function RewardsPage() {
     }
   }, [userProfile, claimingId, userId]);
 
+  // Екран за зареждане
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-black flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-zinc-50 via-white to-zinc-100 dark:from-zinc-950 dark:via-zinc-900 dark:to-black flex items-center justify-center">
         <div className="w-12 h-12 border-4 border-green-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -321,20 +344,20 @@ export default function RewardsPage() {
   const { level } = computeLevelFromXp(totalXp);
 
   return (
-    <div className="min-h-screen font-sans bg-gradient-to-br from-zinc-950 via-zinc-900 to-black">
+    <div className="min-h-screen font-sans bg-gradient-to-br from-zinc-50 via-white to-zinc-100 dark:from-zinc-950 dark:via-zinc-900 dark:to-black">
       <Navigation />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-24">
 
         {/* Банер за грешка */}
         {dbError && (
-          <div className="mb-8 flex items-start gap-3 rounded-xl border border-red-500/30 bg-red-500/10 px-5 py-4">
-            <AlertCircle className="h-5 w-5 text-red-400 shrink-0 mt-0.5" />
+          <div className="mb-8 flex items-start gap-3 rounded-xl border border-red-300 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 px-5 py-4">
+            <AlertCircle className="h-5 w-5 text-red-500 dark:text-red-400 shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-semibold text-red-300">{dbError}</p>
-              <p className="text-xs text-zinc-500 mt-1">
+              <p className="text-sm font-semibold text-red-600 dark:text-red-300">{dbError}</p>
+              <p className="text-xs text-zinc-400 mt-1">
                 Вероятно липсва RLS политика. Изпълни в Supabase SQL Editor:
               </p>
-              <code className="block mt-2 text-xs text-green-400 bg-black/40 rounded-lg px-3 py-2 font-mono">
+              <code className="block mt-2 text-xs text-green-600 dark:text-green-400 bg-zinc-100 dark:bg-black/40 rounded-lg px-3 py-2 font-mono">
                 CREATE POLICY "public read rewards" ON public.rewards FOR SELECT USING (is_available = true);
               </code>
             </div>
@@ -343,22 +366,24 @@ export default function RewardsPage() {
 
         {/* Героична секция */}
         <div className="relative flex flex-col items-center text-center mb-16 px-4">
+          {/* Декоративен градиент зад заглавието */}
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2 w-[600px] h-72 opacity-15"
+            className="pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2 w-[600px] h-72 opacity-10 dark:opacity-15"
             style={{ background: "radial-gradient(ellipse at center,#4ade80 0%,#16a34a 40%,transparent 70%)", filter: "blur(80px)" }}
           />
+          {/* XP значка */}
           <div className="relative z-10 inline-flex items-center gap-2.5 px-5 py-2 rounded-full border border-green-500/30 bg-green-500/10 backdrop-blur-sm mb-6">
-            <Sparkles className="h-4 w-4 text-green-400" />
-            <span className="text-sm font-bold tracking-widest text-green-400 uppercase">{fmt(totalXp)} XP точки</span>
+            <Sparkles className="h-4 w-4 text-green-500 dark:text-green-400" />
+            <span className="text-sm font-bold tracking-widest text-green-600 dark:text-green-400 uppercase">{fmt(totalXp)} XP точки</span>
           </div>
-          <h1 className="relative z-10 text-4xl md:text-5xl font-bold tracking-tight text-white mb-4">
+          <h1 className="relative z-10 text-4xl md:text-5xl font-bold tracking-tight text-zinc-900 dark:text-white mb-4">
             Магазин за{" "}
             <span className="bg-clip-text text-transparent" style={{ backgroundImage: "linear-gradient(135deg,#4ade80 0%,#22c55e 55%,#059669 100%)" }}>
               награди
             </span>
           </h1>
-          <p className="relative z-10 max-w-md text-zinc-400 leading-relaxed mb-8">
+          <p className="relative z-10 max-w-md text-zinc-500 dark:text-zinc-400 leading-relaxed mb-8">
             Обмени своите XP точки за продукти, ваучери и преживявания с по-малък отпечатък върху природата.
           </p>
           {userProfile && (
@@ -383,23 +408,25 @@ export default function RewardsPage() {
               ))}
             </div>
           ) : (
+            // Празно състояние
             <div className="flex flex-col items-center text-center py-20 gap-3">
-              <Gift className="h-12 w-12 text-zinc-700" />
-              <p className="text-zinc-400 font-medium">Все още няма добавени награди.</p>
-              <p className="text-xs text-zinc-600 max-w-xs">
-                Увери се, че таблицата rewards съдържа редове с <code className="text-zinc-400">is_available = true</code> и че има активна RLS политика за четене.
+              <Gift className="h-12 w-12 text-zinc-300 dark:text-zinc-700" />
+              <p className="text-zinc-500 dark:text-zinc-400 font-medium">Все още няма добавени награди.</p>
+              <p className="text-xs text-zinc-400 dark:text-zinc-600 max-w-xs">
+                Увери се, че таблицата rewards съдържа редове с <code className="text-zinc-500 dark:text-zinc-400">is_available = true</code> и че има активна RLS политика за четене.
               </p>
             </div>
           )}
         </section>
 
-        {/* Банер */}
+        {/* Промо банер */}
         <div
-          className="mt-14 rounded-2xl border border-white/5 overflow-hidden"
-          style={{ backgroundImage: "linear-gradient(135deg,rgba(74,222,128,.15),rgba(16,185,129,.08),rgba(5,150,105,.15))" }}
+          className="mt-14 rounded-2xl border border-zinc-200 dark:border-white/5 overflow-hidden shadow-sm dark:shadow-none"
+          style={{ backgroundImage: "linear-gradient(135deg,rgba(74,222,128,.08),rgba(16,185,129,.04),rgba(5,150,105,.08))" }}
         >
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-6 bg-zinc-900/90 backdrop-blur-md px-8 py-6">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-6 bg-white/80 dark:bg-zinc-900/90 backdrop-blur-md px-8 py-6">
             <div className="flex items-center gap-5">
+              {/* Икона за рециклиране */}
               <div
                 className="flex items-center justify-center w-12 h-12 rounded-xl shrink-0 text-white"
                 style={{ backgroundImage: "linear-gradient(135deg,#4ade80,#059669)", boxShadow: "0 0 16px rgba(74,222,128,.18)" }}
@@ -407,8 +434,8 @@ export default function RewardsPage() {
                 <Recycle className="h-6 w-6" />
               </div>
               <div>
-                <p className="font-semibold text-white">Искаш още XP?</p>
-                <p className="text-sm text-zinc-400 mt-0.5">Завършвай дневните задачи и рециклирай редовно.</p>
+                <p className="font-semibold text-zinc-900 dark:text-white">Искаш още XP?</p>
+                <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">Завършвай дневните задачи и рециклирай редовно.</p>
               </div>
             </div>
             <a

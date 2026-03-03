@@ -3,7 +3,7 @@
 import { supabase } from "@/lib/supabase-browser";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, CircleCheck, OctagonAlert, X } from "lucide-react";
+import { Eye, EyeOff, CircleCheck, OctagonAlert, X, LogIn } from "lucide-react";
 
 const translateMessage = (message: string) => {
   if (message.toLowerCase() == "invalid login credentials") {
@@ -217,7 +217,13 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full py-4 px-6 bg-gradient-to-r from-[#00CD56] to-[#00b849] hover:from-[#00b849] hover:to-[#00a341] text-white font-semibold rounded-xl shadow-lg shadow-[#00CD56]/30 dark:shadow-[#00CD56]/20 hover:shadow-xl hover:shadow-[#00CD56]/40 dark:hover:shadow-[#00CD56]/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] mb-4"
             >
-              {loading ? "Влизане..." : "Вход"}
+              {loading ? (
+                "Влизане..."
+              ) : (
+                <span className="flex items-center justify-center gap-2">
+                  Вход <LogIn className="h-4 w-4" />
+                </span>
+              )}
             </button>
 
             {/* Разделител или продължете с друг метод */}

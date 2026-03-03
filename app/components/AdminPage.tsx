@@ -209,7 +209,13 @@ export async function getPendingBins(): Promise<Bin[]> {
               : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/bins/${bin.image_url}`,
           );
         }
-        return { ...bin, user_email: userEmail, user_username: userUsername, image_urls: imageUrls };
+        return {
+          ...bin,
+          user_email: userEmail,
+          user_username: userUsername,
+          image_urls: imageUrls,
+          image_url: bin.image_url || null,
+        };
       }),
     );
     return binsWithEmail;
@@ -337,11 +343,20 @@ export async function approveBin(binId: string, binData: Bin): Promise<boolean> 
   try {
     const nowISO = new Date().toISOString();
 
+    let tags = binData.tags ?? {};
+    if (typeof tags === "string") {
+      try {
+        tags = JSON.parse(tags);
+      } catch {
+        tags = {};
+      }
+    }
+
     const recyclingBinData: RecyclingBin = {
       code: binData.code || binId,
       lat: binData.lat,
       lon: binData.lon,
-      tags: binData.tags ?? {},
+      tags,
       stats_today: {},
       created_at: binData.created_at || nowISO,
       updated_at: nowISO,
@@ -349,6 +364,10 @@ export async function approveBin(binId: string, binData: Bin): Promise<boolean> 
       osm_id: binData.osm_id || null,
       image_url: binData.image_url || null,
     };
+
+    if (isDev) {
+      console.log("Approving bin with image_url:", recyclingBinData.image_url);
+    }
 
     const { error: insertError } = await supabase
       .from("recycling_bins")
