@@ -116,6 +116,24 @@ const sanitize = {
   },
 };
 
+function haversineMetres(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number,
+): number {
+  const R = 6_371_000;
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+type ExistingBin = { osm_id: string; lat: number; lon: number };
+
 export async function GET(req: Request) {
   try {
     const token = req.headers.get("x-api-token");
@@ -144,6 +162,21 @@ export async function GET(req: Request) {
     ) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const { data: existingRows, error: fetchError } = await supabaseServer
+      .from("recycling_bins")
+      .select("osm_id, lat, lon");
+
+    if (fetchError) {
+      console.error("Failed to fetch existing bins:", fetchError.message);
+      return NextResponse.json(
+        { error: "Could not load existing bins from database" },
+        { status: 500 },
+      );
+    }
+
+    const existingBins: ExistingBin[] = existingRows ?? [];
+    const existingOsmIds = new Set(existingBins.map((b) => b.osm_id));
 
     const query = `
       [out:json][timeout:600];
@@ -225,6 +258,11 @@ export async function GET(req: Request) {
       const bins: z.infer<typeof RecyclingBinSchema>[] = [];
       const errors: string[] = [];
 
+      const stagedBins: { lat: number; lon: number }[] = [];
+
+      let skippedExisting = 0;
+      let skippedProximity = 0;
+
       for (const element of data.elements) {
         try {
           const lat = element.lat ?? element.center?.lat;
@@ -235,10 +273,28 @@ export async function GET(req: Request) {
             continue;
           }
 
+          const osmId = element.id.toString();
+
+          if (existingOsmIds.has(osmId)) {
+            skippedExisting++;
+            continue;
+          }
+
+          const tooClose =
+            existingBins.some(
+              (b) => haversineMetres(lat, lon, b.lat, b.lon) < 5,
+            ) ||
+            stagedBins.some((b) => haversineMetres(lat, lon, b.lat, b.lon) < 5);
+
+          if (tooClose) {
+            skippedProximity++;
+            continue;
+          }
+
           const sanitizedTags = element.tags ? sanitize.tags(element.tags) : {};
 
           const bin = RecyclingBinSchema.parse({
-            osm_id: element.id.toString(),
+            osm_id: osmId,
             lat,
             lon,
             tags: sanitizedTags,
@@ -246,6 +302,7 @@ export async function GET(req: Request) {
           });
 
           bins.push(bin);
+          stagedBins.push({ lat, lon });
         } catch (error) {
           if (error instanceof z.ZodError) {
             errors.push(
@@ -268,13 +325,20 @@ export async function GET(req: Request) {
 
       if (bins.length === 0) {
         return NextResponse.json(
-          { error: "No valid recycling bins found", details: errors },
-          { status: 404 },
+          {
+            success: true,
+            inserted: 0,
+            skipped_existing: skippedExisting,
+            skipped_proximity: skippedProximity,
+            validation_errors: errors.length,
+            message: "No new bins to insert.",
+          },
+          { status: 200 },
         );
       }
 
       const CHUNK_SIZE = 100;
-      const chunks = [];
+      const chunks: z.infer<typeof RecyclingBinSchema>[][] = [];
       for (let i = 0; i < bins.length; i += CHUNK_SIZE) {
         chunks.push(bins.slice(i, i + CHUNK_SIZE));
       }
@@ -284,14 +348,23 @@ export async function GET(req: Request) {
         error?: string;
         count?: number;
       }> = [];
+
       for (const chunk of chunks) {
         try {
           const { error } = await supabaseServer
             .from("recycling_bins")
-            .upsert(chunk, { onConflict: "osm_id" });
+            .insert(chunk);
 
           if (error) {
-            results.push({ success: false, error: error.message });
+            if (error.code === "23505") {
+              console.warn(
+                "Race-condition duplicate ignored for a chunk:",
+                error.message,
+              );
+              results.push({ success: true, count: chunk.length });
+            } else {
+              results.push({ success: false, error: error.message });
+            }
           } else {
             results.push({ success: true, count: chunk.length });
           }
@@ -310,14 +383,16 @@ export async function GET(req: Request) {
       const failedInserts = results.filter((r) => !r.success);
 
       if (failedInserts.length > 0) {
-        console.error("Supabase upsert errors:", failedInserts);
+        console.error("Supabase insert errors:", failedInserts);
       }
 
       return NextResponse.json({
         success: true,
         inserted: successfulInserts,
         failed: bins.length - successfulInserts,
-        total_processed: bins.length,
+        skipped_existing: skippedExisting,
+        skipped_proximity: skippedProximity,
+        total_processed: data.elements.length,
         validation_errors: errors.length,
         batch_results: {
           total_chunks: chunks.length,

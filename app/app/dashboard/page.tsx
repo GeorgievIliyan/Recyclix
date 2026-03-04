@@ -76,7 +76,6 @@ type UserData = {
   currentStreak: number;
 };
 
-// Matches the UserProfile interface expected by <Leaderboard>
 type UserProfile = {
   id: string;
   xp: number;
@@ -132,14 +131,12 @@ export default function DashboardPage() {
 
         const typedEvents = events as RecyclingEvent[];
 
-        // Fetch all user profiles for the leaderboard
         const { data: profiles = [] } = await supabase
           .from("user_profiles")
           .select("id, xp, level, trust_score, streak, badges, app_role, organization_id, organization_role, username");
 
         setUserProfiles((profiles ?? []) as UserProfile[]);
 
-        // изчисляване на рекорд за поредни дни
         const calculateStreak = () => {
           if (!typedEvents.length) return 0;
           const sortedDates = [
@@ -258,8 +255,6 @@ export default function DashboardPage() {
       <Navigation />
       <div className="relative min-h-screen bg-fixed bg-gradient-to-br from-neutral-50 via-neutral-100 to-zinc-200 dark:from-neutral-900 dark:via-neutral-950 dark:to-black md:pt-16 lg:pt-18 overflow-hidden">
         <div className="absolute inset-0 opacity-[0.03] pointer-events-none z-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
-
-        {/* Декоративни елементи */}
         <div className="absolute top-20 -left-32 w-96 h-96 bg-[#00CD56]/10 rounded-full blur-[120px] pointer-events-none" />
         <div className="absolute bottom-40 -right-32 w-96 h-96 bg-emerald-400/10 rounded-full blur-[120px] pointer-events-none" />
 
@@ -322,9 +317,10 @@ export default function DashboardPage() {
 
           {/* прогрес */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6 md:mb-8">
-            <div className="lg:col-span-2 backdrop-blur-md bg-white/70 dark:bg-zinc-900/70 rounded-2xl sm:rounded-3xl border border-white/20 dark:border-zinc-800/50 shadow-2xl overflow-hidden">
-              <GamificationProgress totalXp={userData.xp} />
-            </div>
+            <GamificationProgress
+              totalXp={userData.xp}
+              className="lg:col-span-2 backdrop-blur-md bg-white/70 dark:bg-zinc-900/70 rounded-2xl sm:rounded-3xl border border-white/20 dark:border-zinc-800/50 shadow-xl overflow-hidden"
+            />
             <RecentActivity activities={recentActivities} />
           </div>
 
@@ -332,9 +328,10 @@ export default function DashboardPage() {
           <Leaderboard users={userProfiles} currentUserId={user?.id} />
 
           {/* значки */}
-          <div className="backdrop-blur-md bg-white/70 dark:bg-zinc-900/70 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden mb-4 sm:mb-6 md:mb-8 mt-8">
-            <BadgesGallery userId={user?.id} />
-          </div>
+          <BadgesGallery
+            userId={user?.id}
+            className="backdrop-blur-md bg-white/70 dark:bg-zinc-900/70 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden mb-4 sm:mb-6 md:mb-8 mt-8"
+          />
         </div>
       </div>
     </>

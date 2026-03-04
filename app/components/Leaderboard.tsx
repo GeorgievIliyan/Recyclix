@@ -250,14 +250,6 @@ export function Leaderboard({ users, currentUserId }: LeaderboardProps) {
           />
         ))}
       </div>
-
-      {/* Подсказка в края */}
-      <div className="relative z-10 px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 border-t border-zinc-200/50 dark:border-zinc-800/50 flex items-center justify-center gap-2">
-        <Flame className="h-3.5 w-3.5 text-orange-400" />
-        <p className="text-[11px] sm:text-xs text-muted-foreground text-center">
-          Изпълнявай задачи всеки ден, за да изкачиш класацията!
-        </p>
-      </div>
     </div>
   );
 }

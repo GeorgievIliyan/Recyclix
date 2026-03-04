@@ -2,6 +2,7 @@ import { TrendingUp, Star } from "lucide-react";
 
 interface GamificationProgressProps {
   totalXp: number;
+  className?: string;
 }
 
 // Формула за нива, ниво n+1 = 120% от ниво n
@@ -19,12 +20,12 @@ export function computeLevelFromXp(totalXp: number) {
   return { level, currentXp, xpForNextLevel };
 }
 
-export function GamificationProgress({ totalXp }: GamificationProgressProps) {
+export function GamificationProgress({ totalXp, className }: GamificationProgressProps) {
   const { level, currentXp, xpForNextLevel } = computeLevelFromXp(totalXp);
   const progressPercentage = (currentXp / xpForNextLevel) * 100;
 
   return (
-    <div className="group relative h-fit backdrop-blur-xl bg-gradient-to-br from-white/90 via-white/80 to-zinc-50/90 dark:from-zinc-900/70 dark:via-zinc-900/60 dark:to-zinc-800/70 rounded-xl border border-zinc-200/50 dark:border-zinc-800/50 shadow-md hover:shadow-xl hover:border-green-500/30 transition-all duration-300 overflow-hidden">
+    <div className={`group relative h-fit backdrop-blur-xl bg-gradient-to-br from-white/90 via-white/80 to-zinc-50/90 dark:from-zinc-900/70 dark:via-zinc-900/60 dark:to-zinc-800/70 rounded-xl border border-zinc-200/50 dark:border-zinc-800/50 shadow-md hover:shadow-xl hover:border-green-500/30 transition-all duration-300 overflow-hidden ${className?? ""}`}>
       {/* Декоративен градиент във фона */}
       <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-green-500/10 to-transparent rounded-full blur-2xl" />
       <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-emerald-400/10 to-transparent rounded-full blur-2xl" />

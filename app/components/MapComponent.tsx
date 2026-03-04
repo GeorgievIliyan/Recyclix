@@ -33,7 +33,7 @@ import FilterPanel from "./FilterPanel";
 
 // Типизация за данни от OpenStreetMap (OSM)
 export interface Bin {
-  id: number;
+  id: any;
   lat: number;
   lon: number;
   tags: Record<string, any>;
@@ -763,13 +763,13 @@ const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
 
 
         const popupContent = (
-          <div className="relative w-[85vw] max-w-[320px] sm:w-[260px] break-words dark:bg-neutral-800 bg-white dark:text-white text-gray-900 rounded-lg overflow-hidden">
+          <div className="relative w-[85vw] max-w-[320px] sm:w-[260px] break-words dark:bg-neutral-800 bg-white dark:text-white pt-1 text-gray-900 rounded-lg overflow-hidden">
             {bin.image_url && (
               <div className="w-full h-36 bg-gray-100 dark:bg-neutral-700">
                 <img
                   src={bin.image_url}
                   alt="Bin photo"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover rounded-lg"
                   onError={(e) => {
                     e.currentTarget.style.display = "none";
                     const parent = e.currentTarget.parentElement;
@@ -929,7 +929,7 @@ const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
               },
             }}
           >
-            <Popup>{popupContent}</Popup>
+            <Popup key={bin.id}>{popupContent}</Popup>
           </Marker>
         );
       })}
@@ -1540,18 +1540,6 @@ export default function MapComponent({
     return () => clearInterval(interval);
   }, []);
 
-  const validBins = useMemo(
-    () =>
-      bins.filter(
-        (bin) =>
-          bin.lat != null &&
-          bin.lon != null &&
-          !isNaN(bin.lat) &&
-          !isNaN(bin.lon),
-      ),
-    [bins],
-  );
-
   const [userLocation, setUserLocation] = useState<[number, number] | null>(
     null,
   );
@@ -1599,6 +1587,49 @@ export default function MapComponent({
   });
 
   const spamProtection = useReportSpamProtection();
+
+  const [customBins, setCustomBins] = useState<Bin[]>([]);
+
+  useEffect(() => {
+    const fetchCustomBins = async () => {
+      const { data, error } = await supabase
+        .from("recycling_bins")
+        .select("id, lat, lon, tags, image_url, is_smart")
+        .is("osm_id", null);
+
+      if (error || !data) return;
+
+      setCustomBins(
+        data
+          .filter((b) => b.lat != null && b.lon != null)
+          .map((b) => ({
+            id: `custom-${b.id}`,
+            lat: b.lat,
+            lon: b.lon,
+            tags: typeof b.tags === "string" ? JSON.parse(b.tags) : b.tags ?? {},
+            osm_type: "node" as const,
+            image_url: b.image_url ?? null,
+            is_smart: b.is_smart ?? null,
+          })),
+      );
+    };
+    fetchCustomBins();
+  }, [supabase]);
+
+  const validBins = useMemo(
+    () => [
+      ...bins.filter(
+        (bin) =>
+          bin.lat != null &&
+          bin.lon != null &&
+          !isNaN(bin.lat) &&
+          !isNaN(bin.lon),
+      ),
+      ...customBins,
+    ],
+    [bins, customBins],
+  );
+
 
   useEffect(() => {
     return () => {
