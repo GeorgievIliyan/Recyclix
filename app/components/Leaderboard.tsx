@@ -67,7 +67,6 @@ function RankBadge({ rank }: { rank: number }) {
 }
 
 function Avatar({ initials, rank }: { initials: string; rank: number }) {
-  // Пръстен около аватара по ранг
   const ring =
     rank === 1
       ? "ring-2 ring-yellow-400 ring-offset-2 ring-offset-white dark:ring-offset-zinc-900"
@@ -117,14 +116,12 @@ function LeaderboardRow({
     <div
       className={`group relative flex items-center gap-2 sm:gap-3 md:gap-4 px-3 sm:px-4 md:px-5 py-2.5 sm:py-3 rounded-xl transition-all duration-300
         ${isCurrentUser
-          ? "bg-gradient-to-r from-green-500/10 via-emerald-500/5 to-transparent border border-green-500/30 dark:border-green-500/20"
+          ? "bg-green-500/10 border border-green-500/30 dark:border-green-500/20"
           : "hover:bg-zinc-50/80 dark:hover:bg-zinc-800/40 border border-transparent hover:border-zinc-200/50 dark:hover:border-zinc-700/50"
         }
         ${isPodium && !isCurrentUser ? "hover:bg-amber-50/30 dark:hover:bg-amber-900/10" : ""}
       `}
     >
-      <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-green-500/0 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-
       {/* Място */}
       <div className="relative z-10 flex-shrink-0 w-8">
         <RankBadge rank={rank} />
@@ -145,7 +142,7 @@ function LeaderboardRow({
             {name}
           </p>
           {user.app_role === "platform_admin" && (
-            <span className="flex-shrink-0 px-1.5 py-0.5 text-[10px] font-semibold bg-gradient-to-r from-violet-500/20 to-purple-500/20 text-violet-600 dark:text-violet-400 border border-violet-500/20 rounded-full">
+            <span className="flex-shrink-0 px-1.5 py-0.5 text-[10px] font-semibold bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/20 rounded-full">
               Админ
             </span>
           )}
@@ -184,7 +181,7 @@ function LeaderboardRow({
 
       {/* Точки */}
       <div className="relative z-10 flex-shrink-0 text-right min-w-[60px] sm:min-w-[80px]">
-        <p className="text-sm sm:text-base font-bold bg-gradient-to-br from-green-400 via-green-500 to-emerald-600 bg-clip-text text-transparent">
+        <p className="text-sm sm:text-base font-bold text-green-600 dark:text-green-400">
           {user.xp.toLocaleString()}
         </p>
         <p className="text-[10px] sm:text-xs text-muted-foreground">Точки</p>
@@ -199,17 +196,12 @@ export function Leaderboard({ users, currentUserId }: LeaderboardProps) {
   const sorted = [...resolvedUsers].sort((a, b) => b.xp - a.xp);
 
   return (
-    <div className="group relative w-full h-fit backdrop-blur-xl bg-gradient-to-br from-white/90 via-white/80 to-zinc-50/90 dark:from-zinc-900/70 dark:via-zinc-900/60 dark:to-zinc-800/70 rounded-xl border border-zinc-200/50 dark:border-zinc-800/50 shadow-md hover:shadow-xl hover:border-green-500/30 transition-all duration-300 overflow-hidden">
-      {/* Декоративни фонови светлинки */}
-      <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-bl from-yellow-500/10 to-transparent rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-emerald-400/10 to-transparent rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-br from-green-500/5 to-transparent rounded-full blur-3xl pointer-events-none" />
-
+    <div className="relative w-full h-fit bg-white/70 dark:bg-zinc-900 backdrop-blur-xl dark:backdrop-blur-none rounded-xl border border-zinc-200/50 dark:border-zinc-800 shadow-md hover:shadow-xl hover:border-green-500/30 transition-all duration-300 overflow-hidden">
       {/* Заглавие */}
       <div className="relative z-10 p-3 sm:p-4 md:p-6 border-b border-zinc-200/50 dark:border-zinc-800/50">
         <div className="flex items-center justify-between gap-3">
           <h3 className="text-base sm:text-lg md:text-xl font-semibold flex items-center gap-2 sm:gap-3 text-card-foreground">
-            <div className="p-1.5 sm:p-2 bg-gradient-to-br from-yellow-400/20 to-amber-500/20 rounded-lg group-hover:scale-110 transition-transform duration-300">
+            <div className="p-1.5 sm:p-2 bg-yellow-400/20 rounded-lg">
               <Trophy className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 text-yellow-500" />
             </div>
             Класация

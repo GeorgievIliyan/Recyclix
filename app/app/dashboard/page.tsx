@@ -46,6 +46,7 @@ type RecyclingEvent = {
   points: number;
   co2_saved: number;
   created_at: string;
+  count: number;
 };
 
 type ActivityPoint = {
@@ -125,7 +126,7 @@ export default function DashboardPage() {
 
         const { data: events = [] } = await supabase
           .from("recycling_events")
-          .select("material, points, co2_saved, created_at")
+          .select("material, points, co2_saved, created_at, count")
           .eq("user_id", userId)
           .order("created_at", { ascending: false });
 
@@ -164,7 +165,8 @@ export default function DashboardPage() {
           return streak;
         };
 
-        const totalItems = typedEvents.length;
+        // Use event.count instead of counting rows
+        const totalItems = typedEvents.reduce((sum, e) => sum + (e.count ?? 1), 0);
         const totalPoints = typedEvents.reduce((sum, e) => sum + e.points, 0);
         const co2Saved = typedEvents.reduce((sum, e) => sum + e.co2_saved, 0);
 
@@ -186,7 +188,8 @@ export default function DashboardPage() {
               month: "short",
             });
             acc[day] ??= { date: day, items: 0 };
-            acc[day].items++;
+            // Accumulate by count instead of incrementing by 1
+            acc[day].items += e.count ?? 1;
             return acc;
           },
           {},
@@ -195,7 +198,8 @@ export default function DashboardPage() {
 
         const materialMap = typedEvents.reduce<Record<string, number>>(
           (acc, e) => {
-            acc[e.material] = (acc[e.material] ?? 0) + 1;
+            // Accumulate by count instead of incrementing by 1
+            acc[e.material] = (acc[e.material] ?? 0) + (e.count ?? 1);
             return acc;
           },
           {},
@@ -319,7 +323,7 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6 md:mb-8">
             <GamificationProgress
               totalXp={userData.xp}
-              className="lg:col-span-2 backdrop-blur-md bg-white/70 dark:bg-zinc-900/70 rounded-2xl sm:rounded-3xl border border-white/20 dark:border-zinc-800/50 shadow-xl overflow-hidden"
+              className="lg:col-span-2 backdrop-blur-md bg-white/70 dark:bg-zinc-900 dark:backdrop-blur-none rounded-2xl sm:rounded-3xl border border-white/20 dark:border-zinc-800 shadow-xl overflow-hidden"
             />
             <RecentActivity activities={recentActivities} />
           </div>

@@ -94,7 +94,7 @@ export async function POST(req: Request) {
           WEIGHT_KG: [float] (x.xxx)
           `
       : `Classify the recycling objects in the image. 
-          Categories: plastic, paper, glass, metal, textile, organic, wood.
+          Categories: plastic, paper, glass, metal, textile, organic, wood, bio (food and etc.).
           Give a rough estimate of save CO2.
           Estimate the total weight in kilograms.
           Respond exactly in this format:

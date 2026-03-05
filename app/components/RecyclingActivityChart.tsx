@@ -53,11 +53,9 @@ export function RecyclingActivityChart({ data }: RecyclingActivityChartProps) {
   });
 
   return (
-    <div className="group relative transform-gpu bg-white dark:bg-neutral-900 bg-gradient-to-br from-white to-zinc-50 dark:from-[#171717] dark:to-[#262626] rounded-xl border border-border dark:border-neutral-700/50 shadow-md overflow-hidden hover:shadow-lg hover:border-green-500/30 transition-all duration-300">
-      <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full blur-[80px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-
-      <div className="relative z-10 p-3 sm:p-4 md:p-6 border-b border-border dark:border-neutral-700/50 flex flex-row gap-2 sm:gap-3 items-center">
-        <div className="p-1.5 sm:p-2 bg-yellow-400/10 dark:bg-yellow-400/20 rounded-lg group-hover:scale-110 transition-transform duration-300">
+    <div className="group relative transform-gpu bg-white/70 dark:bg-zinc-900 backdrop-blur-xl dark:backdrop-blur-none rounded-xl border border-zinc-200/50 dark:border-zinc-800 shadow-md overflow-hidden hover:shadow-lg hover:border-green-500/30 transition-all duration-300">
+      <div className="relative z-10 p-3 sm:p-4 md:p-6 border-b border-zinc-200/50 dark:border-zinc-800/50 flex flex-row gap-2 sm:gap-3 items-center">
+        <div className="p-1.5 sm:p-2 bg-yellow-400/10 rounded-lg group-hover:scale-110 transition-transform duration-300">
           <Zap className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 text-yellow-400" />
         </div>
         <div>
@@ -84,7 +82,7 @@ export function RecyclingActivityChart({ data }: RecyclingActivityChartProps) {
             </defs>
 
             <CartesianGrid
-              stroke={isDarkMode ? "#262626" : colors.zinc[200]}
+              stroke={isDarkMode ? "#3f3f46" : colors.zinc[200]}
               strokeDasharray="3 3"
               vertical={false}
             />
@@ -96,7 +94,6 @@ export function RecyclingActivityChart({ data }: RecyclingActivityChartProps) {
               axisLine={false}
               fontSize={12}
               dy={10}
-              
             />
 
             <YAxis
@@ -110,9 +107,9 @@ export function RecyclingActivityChart({ data }: RecyclingActivityChartProps) {
 
             <Tooltip
               contentStyle={{
-                backgroundColor: isDarkMode ? "#171717" : colors.white,
+                backgroundColor: isDarkMode ? "#18181b" : colors.white,
                 border: isDarkMode
-                  ? "1px solid #262626"
+                  ? "1px solid #3f3f46"
                   : `1px solid ${colors.zinc[200]}`,
                 borderRadius: "12px",
                 fontSize: "12px",

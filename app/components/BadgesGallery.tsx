@@ -90,7 +90,6 @@ export function BadgesGallery({
   const [error, setError] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string>();
 
-  // получаване на userId
   useEffect(() => {
     const fetchUserId = async () => {
       if (propUserId) {
@@ -107,7 +106,6 @@ export function BadgesGallery({
     fetchUserId();
   }, [propUserId]);
 
-  // взимане на значките
   useEffect(() => {
     const fetchBadges = async () => {
       setIsLoading(true);
@@ -150,28 +148,22 @@ export function BadgesGallery({
   return (
     <div
       className={cn(
-        "group relative w-full h-fit backdrop-blur-xl",
-        "bg-gradient-to-br from-white/90 via-white/80 to-zinc-50/90",
-        "dark:from-zinc-900/70 dark:via-zinc-900/60 dark:to-zinc-800/70",
-        "rounded-xl border border-zinc-200/50 dark:border-zinc-800/50",
+        "group relative w-full h-fit bg-white/70 dark:bg-zinc-900 backdrop-blur-xl dark:backdrop-blur-none",
+        "rounded-xl border border-zinc-200/50 dark:border-zinc-800",
         "shadow-md hover:shadow-xl hover:border-green-500/30 transition-all duration-300 overflow-hidden",
         className,
       )}
     >
-      <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-bl from-amber-500/10 to-transparent rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-emerald-400/10 to-transparent rounded-full blur-3xl pointer-events-none" />
-
       {/* заглавие */}
       <div className="relative z-10 p-3 sm:p-4 md:p-6 border-b border-zinc-200/50 dark:border-zinc-800/50">
         <div className="flex items-center justify-between gap-3">
           <h3 className="text-base sm:text-lg md:text-xl font-semibold flex items-center gap-2 sm:gap-3 text-card-foreground">
-            <div className="p-1.5 sm:p-2 bg-gradient-to-br from-amber-400/20 to-amber-500/20 rounded-lg group-hover:scale-110 transition-transform duration-300">
+            <div className="p-1.5 sm:p-2 bg-amber-400/20 rounded-lg group-hover:scale-110 transition-transform duration-300">
               <Award className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 text-amber-500" />
             </div>
             {title}
           </h3>
 
-          {/* отключено */}
           {!isLoading && badges.length > 0 && (
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-100/80 dark:bg-zinc-800/60 border border-zinc-200/50 dark:border-zinc-700/50">
               <span className="text-xs font-medium text-muted-foreground">
@@ -228,7 +220,6 @@ export function BadgesGallery({
           </div>
         )}
       </div>
-
     </div>
   );
 }
@@ -264,7 +255,7 @@ function BadgeItem({
       <div
         className={cn(
           "relative overflow-hidden rounded-xl transition-all duration-300",
-          "bg-gradient-to-br from-zinc-50/80 to-white/60 dark:from-zinc-800/60 dark:to-zinc-900/60",
+          "bg-zinc-50 dark:bg-zinc-800/60",
           "border border-zinc-200/60 dark:border-zinc-700/40",
           aspectRatioClasses[aspectRatio],
           !isLocked && [
@@ -314,7 +305,6 @@ function BadgeItem({
             </p>
           </div>
         )}
-
       </div>
 
       {/* описание под картината */}
@@ -341,7 +331,6 @@ function BadgeItem({
   );
 }
 
-// при зареждане
 function BadgeSkeleton({
   aspectRatio,
 }: {

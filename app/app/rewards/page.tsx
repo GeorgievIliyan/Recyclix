@@ -369,8 +369,11 @@ export default function RewardsPage() {
           {/* Декоративен градиент зад заглавието */}
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2 w-[600px] h-72 opacity-10 dark:opacity-15"
-            style={{ background: "radial-gradient(ellipse at center,#4ade80 0%,#16a34a 40%,transparent 70%)", filter: "blur(80px)" }}
+            className="pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2 w-[150%] max-w-2xl h-72 opacity-10 dark:opacity-15"
+            style={{
+              background: "radial-gradient(ellipse at center,#4ade80 0%,#16a34a 40%,transparent 70%)",
+              filter: "blur(80px)",
+            }}
           />
           {/* XP значка */}
           <div className="relative z-10 inline-flex items-center gap-2.5 px-5 py-2 rounded-full border border-green-500/30 bg-green-500/10 backdrop-blur-sm mb-6">

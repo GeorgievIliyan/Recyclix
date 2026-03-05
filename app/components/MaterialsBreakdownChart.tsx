@@ -207,12 +207,9 @@ export function MaterialsBreakdownChart({
   }, [data, hasData]);
 
   return (
-    <div className="group relative transform-gpu bg-white dark:bg-neutral-900 bg-gradient-to-br from-white to-zinc-50 dark:from-[#171717] dark:to-[#262626] rounded-xl border border-border dark:border-neutral-700/50 shadow-md overflow-hidden hover:shadow-lg hover:border-green-500/30 transition-all duration-300">
-      {/* Деликатен градиентен акцент */}
-      <div className="absolute top-0 left-0 w-32 h-32 bg-green-500/10 rounded-full blur-[80px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-
-      <div className="relative z-10 p-3 sm:p-4 md:p-6 border-b border-border dark:border-neutral-700/50 flex flex-row gap-2 sm:gap-3 items-center justify-items-center">
-        <div className="p-1.5 sm:p-2 bg-green-500/10 dark:bg-green-500/20 rounded-lg group-hover:scale-110 transition-transform duration-300">
+    <div className="group relative transform-gpu bg-white/70 dark:bg-zinc-900 backdrop-blur-xl dark:backdrop-blur-none rounded-xl border border-zinc-200/50 dark:border-zinc-800 shadow-md overflow-hidden hover:shadow-lg hover:border-green-500/30 transition-all duration-300">
+      <div className="relative z-10 p-3 sm:p-4 md:p-6 border-b border-zinc-200/50 dark:border-zinc-800/50 flex flex-row gap-2 sm:gap-3 items-center justify-items-center">
+        <div className="p-1.5 sm:p-2 bg-green-500/10 rounded-lg group-hover:scale-110 transition-transform duration-300">
           <Recycle className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 text-green-500" />
         </div>
         <div>

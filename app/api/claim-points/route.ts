@@ -135,15 +135,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 7. Запис в recycling_events
-    await supabaseAdmin.from("recycling_events").insert({
-      user_id: resolvedUserId,
-      material: "qr_scan",
-      points: qrRecord.points,
-      co2_saved: 0,
-      count: 1,
-    });
-
     if (isDev) console.log("[claim-points] Успешно! Дадени точки:", qrRecord.points);
 
     return NextResponse.json(

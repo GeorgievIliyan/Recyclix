@@ -36,13 +36,23 @@ export async function POST(req: NextRequest) {
     // Нужен е за да запишем user_id в QR записа — после го използваме при вземане на точките
     let userId: string | null = null;
     const authHeader = req.headers.get("authorization");
-    if (isDev) console.log("[temporary-qr] Authorization хедър:", authHeader ? "присъства" : "липсва");
+    if (isDev)
+      console.log(
+        "[temporary-qr] Authorization хедър:",
+        authHeader ? "присъства" : "липсва",
+      );
 
     if (authHeader?.startsWith("Bearer ")) {
       const userToken = authHeader.replace("Bearer ", "");
-      const { data: { user } } = await supabase.auth.getUser(userToken);
+      const {
+        data: { user },
+      } = await supabase.auth.getUser(userToken);
       if (user) userId = user.id;
-      if (isDev) console.log("[temporary-qr] Извлечен userId:", userId ?? "null — токенът е невалиден");
+      if (isDev)
+        console.log(
+          "[temporary-qr] Извлечен userId:",
+          userId ?? "null — токенът е невалиден",
+        );
     }
 
     const body = await req.json();
@@ -93,16 +103,27 @@ export async function POST(req: NextRequest) {
         console.log("Retrying without code column...");
         const { error: retryError } = await supabase
           .from("temporary_qrs")
-          .insert({ token: qrToken, points, expires_at: expiresAt, user_id: userId });
+          .insert({
+            token: qrToken,
+            points,
+            expires_at: expiresAt,
+            user_id: userId,
+          });
         if (retryError) {
-          return NextResponse.json({ error: retryError.message }, { status: 500 });
+          return NextResponse.json(
+            { error: retryError.message },
+            { status: 500 },
+          );
         }
       } else {
         return NextResponse.json({ error: error.message }, { status: 500 });
       }
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const baseUrl =
+      isDev
+        ? "http://localhost:3000"
+        : process.env.NEXT_PUBLIC_URL || "https://recyclix.online/";
     const qrUrl = `${baseUrl}/app/claim?token=${qrToken}`;
 
     if (isDev) {
@@ -113,7 +134,6 @@ export async function POST(req: NextRequest) {
         qrUrl,
         userId,
       });
-      console.log("[temporary-qr] Full QR URL:", qrUrl);
     }
 
     return NextResponse.json({
@@ -139,7 +159,8 @@ export async function OPTIONS() {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "POST, OPTIONS",
         // Authorization добавен — нужен е за да се прати Bearer токена
-        "Access-Control-Allow-Headers": "Content-Type, x-api-token, Authorization",
+        "Access-Control-Allow-Headers":
+          "Content-Type, x-api-token, Authorization",
       },
     },
   );
