@@ -131,15 +131,18 @@ interface OrganizationRequest {
 }
 
 // функции за извличане на допълнителна информация
-async function getUserInfo(userId: string): Promise<{ email: string; username: string }> {
+async function getUserInfo(
+  username: string,
+): Promise<{ email: string; username: string }> {
   const { data } = await supabase
     .from("user_profiles")
-    .select("email, username")
-    .eq("id", userId)
-    .single();
+    .select("username")
+    .eq("username", username)
+    .maybeSingle();
+
   return {
-    email: data?.email || "Анонимен",
-    username: data?.username || data?.email || "Анонимен",
+    email: "Анонимен", // email is ignored now
+    username: data?.username || "Анонимен",
   };
 }
 
@@ -159,7 +162,14 @@ export async function checkAdminStatus(userId: string): Promise<boolean> {
 
 function parseTagsObject(tags: any) {
   if (!tags || typeof tags !== "object")
-    return { amenity: "recycling", recycling_type: "", operator: "", recycling_clothes: false, recycling_shoes: false, count: 1 };
+    return {
+      amenity: "recycling",
+      recycling_type: "",
+      operator: "",
+      recycling_clothes: false,
+      recycling_shoes: false,
+      count: 1,
+    };
   return {
     amenity: tags.amenity || "recycling",
     recycling_type: tags.recycling_type || "",
@@ -171,7 +181,9 @@ function parseTagsObject(tags: any) {
 }
 
 // взимане на данни за различните секции на админ панела
-export async function getOrganizationRequests(): Promise<OrganizationRequest[]> {
+export async function getOrganizationRequests(): Promise<
+  OrganizationRequest[]
+> {
   try {
     const { data, error } = await supabase
       .from("organization_requests")
@@ -195,7 +207,8 @@ export async function getPendingBins(): Promise<Bin[]> {
     if (error) throw error;
     const binsWithEmail = await Promise.all(
       (data || []).map(async (bin) => {
-        let userEmail = "Анонимен", userUsername = "Анонимен";
+        let userEmail = "Анонимен",
+          userUsername = "Анонимен";
         if (bin.user_id) {
           const info = await getUserInfo(bin.user_id);
           userEmail = info.email;
@@ -271,16 +284,18 @@ export async function getReports(): Promise<Report[]> {
       .from("reports")
       .select("*")
       .order("created_at", { ascending: false });
+
     if (error) throw error;
+
     const reportsWithDetails = await Promise.all(
       (reportsData || []).map(async (report) => {
-        let userEmail = "Анонимен", userUsername = "Анонимен";
-        if (report.user_id) {
-          const info = await getUserInfo(report.user_id);
-          userEmail = info.email;
-          userUsername = info.username;
+        let userUsername = "Анонимен";
+        if (report.user_username) {
+          userUsername = report.user_username;
         }
-        let binCode = "", binLat = 0, binLon = 0;
+        let binCode = "",
+          binLat = 0,
+          binLon = 0;
         if (report.bin_id) {
           const { data: binFromRecycling } = await supabase
             .from("recycling_bins")
@@ -293,6 +308,7 @@ export async function getReports(): Promise<Report[]> {
             binLon = binFromRecycling.lon || 0;
           }
         }
+
         let images: ReportImage[] = [];
         try {
           const { data: imagesData } = await supabase
@@ -301,10 +317,20 @@ export async function getReports(): Promise<Report[]> {
             .eq("report_id", report.id)
             .order("created_at", { ascending: true });
           if (imagesData) images = imagesData;
-        } catch { }
-        return { ...report, user_email: userEmail, user_username: userUsername, bin_code: binCode, bin_lat: binLat, bin_lon: binLon, images };
+        } catch {}
+
+        return {
+          ...report,
+          user_email: "Анонимен",
+          user_username: userUsername,
+          bin_code: binCode,
+          bin_lat: binLat,
+          bin_lon: binLon,
+          images,
+        };
       }),
     );
+
     return reportsWithDetails;
   } catch {
     return [];
@@ -320,11 +346,25 @@ export async function getStats() {
       { count: reports },
       { count: orgRequests },
     ] = await Promise.all([
-      supabase.from("pending_bins").select("*", { count: "exact", head: true }).eq("status", "pending"),
-      supabase.from("recycling_bins").select("*", { count: "exact", head: true }),
-      supabase.from("edit_suggestions").select("*", { count: "exact", head: true }).eq("status", "pending"),
-      supabase.from("reports").select("*", { count: "exact", head: true }).eq("resolved", false),
-      supabase.from("organization_requests").select("*", { count: "exact", head: true }).eq("status", "pending"),
+      supabase
+        .from("pending_bins")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "pending"),
+      supabase
+        .from("recycling_bins")
+        .select("*", { count: "exact", head: true }),
+      supabase
+        .from("edit_suggestions")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "pending"),
+      supabase
+        .from("reports")
+        .select("*", { count: "exact", head: true })
+        .eq("resolved", false),
+      supabase
+        .from("organization_requests")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "pending"),
     ]);
     return {
       pending: pending || 0,
@@ -335,11 +375,21 @@ export async function getStats() {
       orgRequests: orgRequests || 0,
     };
   } catch {
-    return { pending: 0, approved: 0, total: 0, suggestions: 0, reports: 0, orgRequests: 0 };
+    return {
+      pending: 0,
+      approved: 0,
+      total: 0,
+      suggestions: 0,
+      reports: 0,
+      orgRequests: 0,
+    };
   }
 }
 
-export async function approveBin(binId: string, binData: Bin): Promise<boolean> {
+export async function approveBin(
+  binId: string,
+  binData: Bin,
+): Promise<boolean> {
   try {
     const nowISO = new Date().toISOString();
 
@@ -397,14 +447,19 @@ export async function approveBin(binId: string, binData: Bin): Promise<boolean> 
 
 export async function rejectBin(binId: string): Promise<boolean> {
   try {
-    const { error } = await supabase.from("pending_bins").delete().eq("id", binId);
+    const { error } = await supabase
+      .from("pending_bins")
+      .delete()
+      .eq("id", binId);
     return !error;
   } catch {
     return false;
   }
 }
 
-export async function approveOrganizationRequest(requestId: string): Promise<boolean> {
+export async function approveOrganizationRequest(
+  requestId: string,
+): Promise<boolean> {
   try {
     const { error } = await supabase
       .from("organization_requests")
@@ -416,7 +471,9 @@ export async function approveOrganizationRequest(requestId: string): Promise<boo
   }
 }
 
-export async function rejectOrganizationRequest(requestId: string): Promise<boolean> {
+export async function rejectOrganizationRequest(
+  requestId: string,
+): Promise<boolean> {
   try {
     const { error } = await supabase
       .from("organization_requests")
@@ -443,16 +500,24 @@ export async function resolveReport(reportId: string): Promise<boolean> {
 export async function deleteReport(reportId: string): Promise<boolean> {
   try {
     await supabase.from("report_photos").delete().eq("report_id", reportId);
-    const { error } = await supabase.from("reports").delete().eq("id", reportId);
+    const { error } = await supabase
+      .from("reports")
+      .delete()
+      .eq("id", reportId);
     return !error;
   } catch {
     return false;
   }
 }
 
-async function approveSuggestion(suggestionId: string, suggestionData: EditSuggestion): Promise<boolean> {
+async function approveSuggestion(
+  suggestionId: string,
+  suggestionData: EditSuggestion,
+): Promise<boolean> {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return false;
     let { data: binData, error: binFetchError } = await supabase
       .from("recycling_bins")
@@ -471,8 +536,10 @@ async function approveSuggestion(suggestionId: string, suggestionData: EditSugge
     if (!binData) return false;
     const updatedTags = { ...(binData.tags || {}) };
     if (suggestionData.name) updatedTags.name = suggestionData.name;
-    if (suggestionData.opening_hours) updatedTags.opening_hours = suggestionData.opening_hours;
-    if (suggestionData.materials) updatedTags.recycling_type = suggestionData.materials;
+    if (suggestionData.opening_hours)
+      updatedTags.opening_hours = suggestionData.opening_hours;
+    if (suggestionData.materials)
+      updatedTags.recycling_type = suggestionData.materials;
     if (suggestionData.field_name && suggestionData.new_value !== undefined)
       updatedTags[suggestionData.field_name] = suggestionData.new_value;
     const { error: binUpdateError } = await supabase
@@ -482,7 +549,12 @@ async function approveSuggestion(suggestionId: string, suggestionData: EditSugge
     if (binUpdateError) return false;
     const { error: suggestionUpdateError } = await supabase
       .from("edit_suggestions")
-      .update({ status: "approved", reviewed_by: user.id, reviewed_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+      .update({
+        status: "approved",
+        reviewed_by: user.id,
+        reviewed_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
       .eq("id", suggestionId);
     return !suggestionUpdateError;
   } catch {
@@ -490,9 +562,14 @@ async function approveSuggestion(suggestionId: string, suggestionData: EditSugge
   }
 }
 
-async function rejectSuggestion(suggestionId: string, reviewNotes?: string): Promise<boolean> {
+async function rejectSuggestion(
+  suggestionId: string,
+  reviewNotes?: string,
+): Promise<boolean> {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     const { error } = await supabase
       .from("edit_suggestions")
       .update({
@@ -510,22 +587,41 @@ async function rejectSuggestion(suggestionId: string, reviewNotes?: string): Pro
 }
 
 // ui компоненти
-function StatusBadge({ status, labels }: { status: string; labels: Record<string, string> }) {
+function StatusBadge({
+  status,
+  labels,
+}: {
+  status: string;
+  labels: Record<string, string>;
+}) {
   const colors: Record<string, string> = {
-    pending: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 ring-1 ring-amber-200 dark:ring-amber-800",
-    approved: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 ring-1 ring-emerald-200 dark:ring-emerald-800",
-    rejected: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 ring-1 ring-red-200 dark:ring-red-800",
-    active: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 ring-1 ring-red-200 dark:ring-red-800",
-    resolved: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 ring-1 ring-emerald-200 dark:ring-emerald-800",
+    pending:
+      "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 ring-1 ring-amber-200 dark:ring-amber-800",
+    approved:
+      "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 ring-1 ring-emerald-200 dark:ring-emerald-800",
+    rejected:
+      "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 ring-1 ring-red-200 dark:ring-red-800",
+    active:
+      "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 ring-1 ring-red-200 dark:ring-red-800",
+    resolved:
+      "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 ring-1 ring-emerald-200 dark:ring-emerald-800",
   };
   return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wide ${colors[status] || colors.pending}`}>
+    <span
+      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wide ${colors[status] || colors.pending}`}
+    >
       {labels[status] || status}
     </span>
   );
 }
 
-function ActionButton({ onClick, disabled, variant, icon: Icon, label }: {
+function ActionButton({
+  onClick,
+  disabled,
+  variant,
+  icon: Icon,
+  label,
+}: {
   onClick: () => void;
   disabled: boolean;
   variant: "approve" | "reject" | "email" | "resolve" | "neutral";
@@ -533,11 +629,16 @@ function ActionButton({ onClick, disabled, variant, icon: Icon, label }: {
   label: string;
 }) {
   const styles = {
-    approve: "bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white shadow-emerald-500/20",
-    resolve: "bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white shadow-emerald-500/20",
-    reject: "bg-white hover:bg-red-50 dark:bg-neutral-700 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 ring-1 ring-red-200 dark:ring-red-800",
-    email: "bg-white hover:bg-blue-50 dark:bg-neutral-700 dark:hover:bg-blue-900/20 text-blue-600 dark:text-blue-400 ring-1 ring-blue-200 dark:ring-blue-800",
-    neutral: "bg-white hover:bg-neutral-100 dark:bg-neutral-700 dark:hover:bg-neutral-600 text-neutral-600 dark:text-neutral-300 ring-1 ring-neutral-200 dark:ring-neutral-600",
+    approve:
+      "bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white shadow-emerald-500/20",
+    resolve:
+      "bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white shadow-emerald-500/20",
+    reject:
+      "bg-white hover:bg-red-50 dark:bg-neutral-700 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 ring-1 ring-red-200 dark:ring-red-800",
+    email:
+      "bg-white hover:bg-blue-50 dark:bg-neutral-700 dark:hover:bg-blue-900/20 text-blue-600 dark:text-blue-400 ring-1 ring-blue-200 dark:ring-blue-800",
+    neutral:
+      "bg-white hover:bg-neutral-100 dark:bg-neutral-700 dark:hover:bg-neutral-600 text-neutral-600 dark:text-neutral-300 ring-1 ring-neutral-200 dark:ring-neutral-600",
   };
   return (
     <button
@@ -545,25 +646,51 @@ function ActionButton({ onClick, disabled, variant, icon: Icon, label }: {
       disabled={disabled}
       className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all shadow-sm disabled:opacity-40 disabled:cursor-not-allowed ${styles[variant]}`}
     >
-      {disabled ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Icon className="w-3.5 h-3.5" />}
+      {disabled ? (
+        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+      ) : (
+        <Icon className="w-3.5 h-3.5" />
+      )}
       <span>{label}</span>
     </button>
   );
 }
 
-function MetaRow({ icon: Icon, label, value, className }: { icon: any; label: string; value: string | ReactNode; className?: string }) {
+function MetaRow({
+  icon: Icon,
+  label,
+  value,
+  className,
+}: {
+  icon: any;
+  label: string;
+  value: string | ReactNode;
+  className?: string;
+}) {
   return (
     <div className="flex items-start gap-2.5">
       <Icon className="w-3.5 h-3.5 text-neutral-400 mt-0.5 shrink-0" />
       <div>
-        <span className="text-xs text-neutral-500 dark:text-neutral-400 block">{label}</span>
-        <span className={`text-sm font-medium text-neutral-800 dark:text-neutral-200 ${className || ""}`}>{value}</span>
+        <span className="text-xs text-neutral-500 dark:text-neutral-400 block">
+          {label}
+        </span>
+        <span
+          className={`text-sm font-medium text-neutral-800 dark:text-neutral-200 ${className || ""}`}
+        >
+          {value}
+        </span>
       </div>
     </div>
   );
 }
 
-function ImageGallery({ images, onSelect }: { images: string[]; onSelect: (url: string) => void }) {
+function ImageGallery({
+  images,
+  onSelect,
+}: {
+  images: string[];
+  onSelect: (url: string) => void;
+}) {
   if (images.length === 0)
     return (
       <div className="flex items-center gap-2 p-3 rounded-lg bg-neutral-50 dark:bg-neutral-800/50 border border-dashed border-neutral-200 dark:border-neutral-700">
@@ -574,8 +701,19 @@ function ImageGallery({ images, onSelect }: { images: string[]; onSelect: (url: 
   return (
     <div className="grid grid-cols-3 gap-1.5">
       {images.map((url, i) => (
-        <button key={i} onClick={() => onSelect(url)} className="relative group aspect-square overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-700">
-          <img src={url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" onError={(e) => { e.currentTarget.src = "/placeholder.svg"; }} />
+        <button
+          key={i}
+          onClick={() => onSelect(url)}
+          className="relative group aspect-square overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-700"
+        >
+          <img
+            src={url}
+            alt=""
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+            onError={(e) => {
+              e.currentTarget.src = "/placeholder.svg";
+            }}
+          />
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
             <Eye className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
@@ -587,28 +725,65 @@ function ImageGallery({ images, onSelect }: { images: string[]; onSelect: (url: 
 
 function LightboxModal({ url, onClose }: { url: string; onClose: () => void }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onClick={onClose}>
-      <div className="relative max-w-3xl max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
-        <button onClick={onClose} className="absolute -top-3 -right-3 z-10 p-1.5 bg-white dark:bg-neutral-800 rounded-full shadow-lg hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+      onClick={onClose}
+    >
+      <div
+        className="relative max-w-3xl max-h-[90vh]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={onClose}
+          className="absolute -top-3 -right-3 z-10 p-1.5 bg-white dark:bg-neutral-800 rounded-full shadow-lg hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
+        >
           <X className="w-4 h-4 text-neutral-700 dark:text-neutral-300" />
         </button>
-        <img src={url} alt="" className="max-w-full max-h-[90vh] rounded-xl object-contain shadow-2xl" onError={(e) => { e.currentTarget.src = "/placeholder.svg"; }} />
+        <img
+          src={url}
+          alt=""
+          className="max-w-full max-h-[90vh] rounded-xl object-contain shadow-2xl"
+          onError={(e) => {
+            e.currentTarget.src = "/placeholder.svg";
+          }}
+        />
       </div>
     </div>
   );
 }
 
-function MapModal({ lat, lon, onClose }: { lat: number; lon: number; onClose: () => void }) {
+function MapModal({
+  lat,
+  lon,
+  onClose,
+}: {
+  lat: number;
+  lon: number;
+  onClose: () => void;
+}) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
-      <div className="bg-white dark:bg-neutral-900 rounded-2xl max-w-3xl w-full overflow-hidden shadow-2xl border border-neutral-200 dark:border-neutral-700" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white dark:bg-neutral-900 rounded-2xl max-w-3xl w-full overflow-hidden shadow-2xl border border-neutral-200 dark:border-neutral-700"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-200 dark:border-neutral-700">
           <div className="flex items-center gap-2">
             <MapPin className="w-4 h-4 text-emerald-500" />
-            <span className="font-semibold text-neutral-900 dark:text-white text-sm">Местоположение</span>
-            <span className="text-xs text-neutral-400 font-mono">{lat.toFixed(5)}, {lon.toFixed(5)}</span>
+            <span className="font-semibold text-neutral-900 dark:text-white text-sm">
+              Местоположение
+            </span>
+            <span className="text-xs text-neutral-400 font-mono">
+              {lat.toFixed(5)}, {lon.toFixed(5)}
+            </span>
           </div>
-          <button onClick={onClose} className="p-1.5 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors">
+          <button
+            onClick={onClose}
+            className="p-1.5 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors"
+          >
             <X className="w-4 h-4 text-neutral-500" />
           </button>
         </div>
@@ -620,17 +795,35 @@ function MapModal({ lat, lon, onClose }: { lat: number; lon: number; onClose: ()
   );
 }
 
-function Card({ children, className }: { children: ReactNode; className?: string }) {
+function Card({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
   return (
-    <div className={`bg-white dark:bg-neutral-800/60 border border-neutral-200 dark:border-neutral-700/60 rounded-xl shadow-sm ${className || ""}`}>
+    <div
+      className={`bg-white dark:bg-neutral-800/60 border border-neutral-200 dark:border-neutral-700/60 rounded-xl shadow-sm ${className || ""}`}
+    >
       {children}
     </div>
   );
 }
 
 // детайли за контейнери чакащи одобрение
-function BinDetails({ bin, onApprove, onReject }: { bin: Bin; onApprove: (binId: string, binData: Bin) => Promise<void>; onReject: (binId: string) => Promise<void> }) {
-  const [processing, setProcessing] = useState<"approve" | "reject" | null>(null);
+function BinDetails({
+  bin,
+  onApprove,
+  onReject,
+}: {
+  bin: Bin;
+  onApprove: (binId: string, binData: Bin) => Promise<void>;
+  onReject: (binId: string) => Promise<void>;
+}) {
+  const [processing, setProcessing] = useState<"approve" | "reject" | null>(
+    null,
+  );
   const [showMap, setShowMap] = useState(false);
   const [lightbox, setLightbox] = useState<string | null>(null);
   const formData = parseTagsObject(bin.tags);
@@ -648,15 +841,28 @@ function BinDetails({ bin, onApprove, onReject }: { bin: Bin; onApprove: (binId:
         <div className="flex items-start justify-between gap-4 mb-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium ${formData.amenity === "recycling" ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" : "bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"}`}>
+              <span
+                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium ${formData.amenity === "recycling" ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" : "bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"}`}
+              >
                 <Recycle className="w-3 h-3" />
                 {formData.amenity}
               </span>
-              {bin.code && <span className="text-xs font-mono text-neutral-400 bg-neutral-100 dark:bg-neutral-700 px-2 py-0.5 rounded">{bin.code}</span>}
+              {bin.code && (
+                <span className="text-xs font-mono text-neutral-400 bg-neutral-100 dark:bg-neutral-700 px-2 py-0.5 rounded">
+                  {bin.code}
+                </span>
+              )}
             </div>
             <h3 className="text-base font-semibold text-neutral-900 dark:text-white">
-              {formData.amenity === "recycling" ? "Контейнер за рециклиране" : "Кошче за отпадъци"}
-              {formData.operator && <span className="text-neutral-400 font-normal"> — {formData.operator}</span>}
+              {formData.amenity === "recycling"
+                ? "Контейнер за рециклиране"
+                : "Кошче за отпадъци"}
+              {formData.operator && (
+                <span className="text-neutral-400 font-normal">
+                  {" "}
+                  — {formData.operator}
+                </span>
+              )}
             </h3>
           </div>
           <StatusBadge status="pending" labels={{ pending: "Чакащ" }} />
@@ -664,19 +870,65 @@ function BinDetails({ bin, onApprove, onReject }: { bin: Bin; onApprove: (binId:
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-4">
           <div className="space-y-3">
-            <MetaRow icon={User} label="Добавен от" value={<>{bin.user_username || "Анонимен"}{bin.user_email && bin.user_email !== "Анонимен" && <span className="block text-xs text-neutral-400 font-normal">{bin.user_email}</span>}</>} />
-            <MetaRow icon={Calendar} label="Дата" value={bin.created_at ? new Date(bin.created_at).toLocaleDateString("bg-BG", { year: "numeric", month: "long", day: "numeric" }) : "—"} />
-            {formData.operator && <MetaRow icon={Building} label="Оператор" value={formData.operator} />}
+            <MetaRow
+              icon={User}
+              label="Добавен от"
+              value={
+                <>
+                  {bin.user_username || "Анонимен"}
+                  {bin.user_email && bin.user_email !== "Анонимен" && (
+                    <span className="block text-xs text-neutral-400 font-normal">
+                      {bin.user_email}
+                    </span>
+                  )}
+                </>
+              }
+            />
+            <MetaRow
+              icon={Calendar}
+              label="Дата"
+              value={
+                bin.created_at
+                  ? new Date(bin.created_at).toLocaleDateString("bg-BG", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })
+                  : "—"
+              }
+            />
+            {formData.operator && (
+              <MetaRow
+                icon={Building}
+                label="Оператор"
+                value={formData.operator}
+              />
+            )}
           </div>
           <div className="space-y-3">
-            {formData.recycling_type && <MetaRow icon={Package} label="Тип рециклиране" value={formData.recycling_type} />}
-            <MetaRow icon={Hash} label="Брой контейнери" value={String(formData.count)} />
+            {formData.recycling_type && (
+              <MetaRow
+                icon={Package}
+                label="Тип рециклиране"
+                value={formData.recycling_type}
+              />
+            )}
+            <MetaRow
+              icon={Hash}
+              label="Брой контейнери"
+              value={String(formData.count)}
+            />
             {bin.lat && bin.lon && (
               <div className="flex items-start gap-2.5">
                 <MapPin className="w-3.5 h-3.5 text-neutral-400 mt-0.5 shrink-0" />
                 <div>
-                  <span className="text-xs text-neutral-500 dark:text-neutral-400 block">Координати</span>
-                  <button onClick={() => setShowMap(true)} className="text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:underline font-mono">
+                  <span className="text-xs text-neutral-500 dark:text-neutral-400 block">
+                    Координати
+                  </span>
+                  <button
+                    onClick={() => setShowMap(true)}
+                    className="text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:underline font-mono"
+                  >
                     {bin.lat.toFixed(5)}, {bin.lon.toFixed(5)}
                   </button>
                 </div>
@@ -685,11 +937,25 @@ function BinDetails({ bin, onApprove, onReject }: { bin: Bin; onApprove: (binId:
           </div>
         </div>
 
-        {(formData.recycling_clothes || formData.recycling_shoes || formData.recycling_type) && (
+        {(formData.recycling_clothes ||
+          formData.recycling_shoes ||
+          formData.recycling_type) && (
           <div className="flex flex-wrap gap-1.5 mb-4">
-            {formData.recycling_type && <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400 rounded-full text-xs font-medium">{formData.recycling_type}</span>}
-            {formData.recycling_clothes && <span className="px-2.5 py-1 bg-pink-50 text-pink-700 dark:bg-pink-900/20 dark:text-pink-400 rounded-full text-xs font-medium">Дрехи</span>}
-            {formData.recycling_shoes && <span className="px-2.5 py-1 bg-pink-50 text-pink-700 dark:bg-pink-900/20 dark:text-pink-400 rounded-full text-xs font-medium">Обувки</span>}
+            {formData.recycling_type && (
+              <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400 rounded-full text-xs font-medium">
+                {formData.recycling_type}
+              </span>
+            )}
+            {formData.recycling_clothes && (
+              <span className="px-2.5 py-1 bg-pink-50 text-pink-700 dark:bg-pink-900/20 dark:text-pink-400 rounded-full text-xs font-medium">
+                Дрехи
+              </span>
+            )}
+            {formData.recycling_shoes && (
+              <span className="px-2.5 py-1 bg-pink-50 text-pink-700 dark:bg-pink-900/20 dark:text-pink-400 rounded-full text-xs font-medium">
+                Обувки
+              </span>
+            )}
           </div>
         )}
 
@@ -697,19 +963,49 @@ function BinDetails({ bin, onApprove, onReject }: { bin: Bin; onApprove: (binId:
       </div>
 
       <div className="flex items-center justify-end gap-2 px-5 py-3 border-t border-neutral-100 dark:border-neutral-700/60 bg-neutral-50/50 dark:bg-neutral-800/30 rounded-b-xl">
-        <ActionButton onClick={() => handle("reject")} disabled={!!processing} variant="neutral" icon={XCircle} label="Откажи" />
-        <ActionButton onClick={() => handle("approve")} disabled={!!processing} variant="approve" icon={CheckCircle} label="Одобри" />
+        <ActionButton
+          onClick={() => handle("reject")}
+          disabled={!!processing}
+          variant="neutral"
+          icon={XCircle}
+          label="Откажи"
+        />
+        <ActionButton
+          onClick={() => handle("approve")}
+          disabled={!!processing}
+          variant="approve"
+          icon={CheckCircle}
+          label="Одобри"
+        />
       </div>
 
-      {showMap && bin.lat && bin.lon && <MapModal lat={bin.lat} lon={bin.lon} onClose={() => setShowMap(false)} />}
-      {lightbox && <LightboxModal url={lightbox} onClose={() => setLightbox(null)} />}
+      {showMap && bin.lat && bin.lon && (
+        <MapModal
+          lat={bin.lat}
+          lon={bin.lon}
+          onClose={() => setShowMap(false)}
+        />
+      )}
+      {lightbox && (
+        <LightboxModal url={lightbox} onClose={() => setLightbox(null)} />
+      )}
     </Card>
   );
 }
 
 // за предложени промени по съществуващи контейнери
-function SuggestionDetails({ suggestion, onApprove, onReject }: { suggestion: EditSuggestion; onApprove: (id: string, data: EditSuggestion) => Promise<void>; onReject: (id: string) => Promise<void> }) {
-  const [processing, setProcessing] = useState<"approve" | "reject" | null>(null);
+function SuggestionDetails({
+  suggestion,
+  onApprove,
+  onReject,
+}: {
+  suggestion: EditSuggestion;
+  onApprove: (id: string, data: EditSuggestion) => Promise<void>;
+  onReject: (id: string) => Promise<void>;
+}) {
+  const [processing, setProcessing] = useState<"approve" | "reject" | null>(
+    null,
+  );
   const [reviewNotes, setReviewNotes] = useState("");
 
   const handle = async (action: "approve" | "reject") => {
@@ -722,7 +1018,10 @@ function SuggestionDetails({ suggestion, onApprove, onReject }: { suggestion: Ed
   const changedFields = [
     suggestion.field_name && { label: "Поле", value: suggestion.field_name },
     suggestion.name && { label: "Име", value: suggestion.name },
-    suggestion.opening_hours && { label: "Работно време", value: suggestion.opening_hours },
+    suggestion.opening_hours && {
+      label: "Работно време",
+      value: suggestion.opening_hours,
+    },
     suggestion.materials && { label: "Материали", value: suggestion.materials },
     suggestion.notes && { label: "Бележки", value: suggestion.notes },
   ].filter(Boolean) as { label: string; value: string }[];
@@ -734,40 +1033,77 @@ function SuggestionDetails({ suggestion, onApprove, onReject }: { suggestion: Ed
           <div>
             <div className="flex items-center gap-2 mb-1">
               <PenLine className="w-3.5 h-3.5 text-blue-500" />
-              <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">Предложение за промяна</span>
-              <span className="text-xs font-mono text-neutral-400 bg-neutral-100 dark:bg-neutral-700 px-2 py-0.5 rounded">{suggestion.bin_id}</span>
+              <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                Предложение за промяна
+              </span>
+              <span className="text-xs font-mono text-neutral-400 bg-neutral-100 dark:bg-neutral-700 px-2 py-0.5 rounded">
+                {suggestion.bin_id}
+              </span>
             </div>
           </div>
-          <StatusBadge status={suggestion.status} labels={{ pending: "Чакащо", approved: "Одобрено", rejected: "Отхвърлено" }} />
+          <StatusBadge
+            status={suggestion.status}
+            labels={{
+              pending: "Чакащо",
+              approved: "Одобрено",
+              rejected: "Отхвърлено",
+            }}
+          />
         </div>
 
         {changedFields.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
             {changedFields.map((field) => (
-              <div key={field.label} className="p-3 rounded-lg bg-neutral-50 dark:bg-neutral-700/40 border border-neutral-200 dark:border-neutral-700">
-                <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-1">{field.label}</p>
-                <p className="text-sm text-neutral-800 dark:text-neutral-200 font-medium">{field.value}</p>
+              <div
+                key={field.label}
+                className="p-3 rounded-lg bg-neutral-50 dark:bg-neutral-700/40 border border-neutral-200 dark:border-neutral-700"
+              >
+                <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-1">
+                  {field.label}
+                </p>
+                <p className="text-sm text-neutral-800 dark:text-neutral-200 font-medium">
+                  {field.value}
+                </p>
               </div>
             ))}
           </div>
         )}
 
-        {(suggestion.old_value !== undefined || suggestion.new_value !== undefined) && (
+        {(suggestion.old_value !== undefined ||
+          suggestion.new_value !== undefined) && (
           <div className="grid grid-cols-2 gap-3 mb-4">
             <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30">
-              <p className="text-xs font-medium text-red-400 uppercase tracking-wider mb-1">Преди</p>
-              <p className="text-sm font-mono text-red-700 dark:text-red-400">{suggestion.old_value !== undefined ? String(suggestion.old_value) : "—"}</p>
+              <p className="text-xs font-medium text-red-400 uppercase tracking-wider mb-1">
+                Преди
+              </p>
+              <p className="text-sm font-mono text-red-700 dark:text-red-400">
+                {suggestion.old_value !== undefined
+                  ? String(suggestion.old_value)
+                  : "—"}
+              </p>
             </div>
             <div className="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/30">
-              <p className="text-xs font-medium text-emerald-500 uppercase tracking-wider mb-1">След</p>
-              <p className="text-sm font-mono text-emerald-700 dark:text-emerald-400">{suggestion.new_value !== undefined ? String(suggestion.new_value) : "—"}</p>
+              <p className="text-xs font-medium text-emerald-500 uppercase tracking-wider mb-1">
+                След
+              </p>
+              <p className="text-sm font-mono text-emerald-700 dark:text-emerald-400">
+                {suggestion.new_value !== undefined
+                  ? String(suggestion.new_value)
+                  : "—"}
+              </p>
             </div>
           </div>
         )}
 
         <div className="flex items-center gap-4 text-xs text-neutral-500 dark:text-neutral-400">
-          <div className="flex items-center gap-1.5"><User className="w-3 h-3" />{suggestion.user_email || "Неизвестен"}</div>
-          <div className="flex items-center gap-1.5"><Calendar className="w-3 h-3" />{new Date(suggestion.created_at).toLocaleDateString("bg-BG")}</div>
+          <div className="flex items-center gap-1.5">
+            <User className="w-3 h-3" />
+            {suggestion.user_email || "Неизвестен"}
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Calendar className="w-3 h-3" />
+            {new Date(suggestion.created_at).toLocaleDateString("bg-BG")}
+          </div>
         </div>
       </div>
 
@@ -781,8 +1117,20 @@ function SuggestionDetails({ suggestion, onApprove, onReject }: { suggestion: Ed
             className="flex-1 text-xs px-3 py-2 rounded-lg border border-neutral-200 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-neutral-800 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-emerald-500"
           />
           <div className="flex gap-2">
-            <ActionButton onClick={() => handle("reject")} disabled={!!processing} variant="reject" icon={XCircle} label="Отхвърли" />
-            <ActionButton onClick={() => handle("approve")} disabled={!!processing} variant="approve" icon={CheckCircle} label="Одобри" />
+            <ActionButton
+              onClick={() => handle("reject")}
+              disabled={!!processing}
+              variant="reject"
+              icon={XCircle}
+              label="Отхвърли"
+            />
+            <ActionButton
+              onClick={() => handle("approve")}
+              disabled={!!processing}
+              variant="approve"
+              icon={CheckCircle}
+              label="Одобри"
+            />
           </div>
         </div>
       )}
@@ -791,8 +1139,18 @@ function SuggestionDetails({ suggestion, onApprove, onReject }: { suggestion: Ed
 }
 
 // при доклади за проблем с контейнери
-function ReportDetails({ report, onResolve, onDelete }: { report: Report; onResolve: (id: string) => Promise<void>; onDelete: (id: string) => Promise<void> }) {
-  const [processing, setProcessing] = useState<"resolve" | "delete" | null>(null);
+function ReportDetails({
+  report,
+  onResolve,
+  onDelete,
+}: {
+  report: Report;
+  onResolve: (id: string) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
+}) {
+  const [processing, setProcessing] = useState<"resolve" | "delete" | null>(
+    null,
+  );
   const [showMap, setShowMap] = useState(false);
   const [lightbox, setLightbox] = useState<string | null>(null);
 
@@ -804,13 +1162,23 @@ function ReportDetails({ report, onResolve, onDelete }: { report: Report; onReso
   };
 
   const getReportTypeLabel = (type: string) =>
-    ({ incorrect_location: "Грешна локация", bin_missing: "Липсващ кош", bin_damaged: "Повреден кош", wrong_materials: "Грешни материали", overflowing: "Препълнен", duplicate: "Дубликат", other: "Друг проблем" })[type] || type;
+    ({
+      incorrect_location: "Грешна локация",
+      bin_missing: "Липсващ кош",
+      bin_damaged: "Повреден кош",
+      wrong_materials: "Грешни материали",
+      overflowing: "Препълнен",
+      duplicate: "Дубликат",
+      other: "Друг проблем",
+    })[type] || type;
 
   const getImageUrl = (photoUrl: string) => {
     if (!photoUrl) return "/placeholder.svg";
     if (photoUrl.startsWith("http")) return photoUrl;
     const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const fileName = photoUrl.includes("/") ? photoUrl.split("/").pop() : photoUrl;
+    const fileName = photoUrl.includes("/")
+      ? photoUrl.split("/").pop()
+      : photoUrl;
     return `${base}/storage/v1/object/public/report-photos/${fileName}`;
   };
 
@@ -826,26 +1194,58 @@ function ReportDetails({ report, onResolve, onDelete }: { report: Report; onReso
           <div>
             <div className="flex items-center gap-2 mb-1">
               <Flag className="w-3.5 h-3.5 text-red-500" />
-              <span className="text-xs text-red-600 dark:text-red-400 font-medium">{getReportTypeLabel(report.type)}</span>
-              {report.bin_code && <span className="text-xs font-mono text-neutral-400 bg-neutral-100 dark:bg-neutral-700 px-2 py-0.5 rounded">{report.bin_code}</span>}
+              <span className="text-xs text-red-600 dark:text-red-400 font-medium">
+                {getReportTypeLabel(report.type)}
+              </span>
+              {report.bin_code && (
+                <span className="text-xs font-mono text-neutral-400 bg-neutral-100 dark:bg-neutral-700 px-2 py-0.5 rounded">
+                  {report.bin_code}
+                </span>
+              )}
             </div>
-            <h3 className="text-base font-semibold text-neutral-900 dark:text-white">{report.title}</h3>
+            <h3 className="text-base font-semibold text-neutral-900 dark:text-white">
+              {report.title}
+            </h3>
           </div>
-          <StatusBadge status={report.resolved ? "resolved" : "active"} labels={{ resolved: "Разрешен", active: "Активен" }} />
+          <StatusBadge
+            status={report.resolved ? "resolved" : "active"}
+            labels={{ resolved: "Разрешен", active: "Активен" }}
+          />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-4">
           <div className="space-y-3">
-            <MetaRow icon={User} label="Докладван от" value={<>{report.user_username || "Анонимен"}{report.user_email && report.user_email !== "Анонимен" && <span className="block text-xs text-neutral-400 font-normal">{report.user_email}</span>}</>} />
-            <MetaRow icon={Calendar} label="Дата" value={report.created_at ? new Date(report.created_at).toLocaleDateString("bg-BG", { year: "numeric", month: "long", day: "numeric" }) : "—"} />
+            <MetaRow
+              icon={User}
+              label="Докладван от"
+              value={report.user_username || "Анонимен"}
+            />
+            <MetaRow
+              icon={Calendar}
+              label="Дата"
+              value={
+                report.created_at
+                  ? new Date(report.created_at).toLocaleDateString("bg-BG", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })
+                  : "—"
+              }
+            />
           </div>
           <div className="space-y-3">
             {report.bin_lat && report.bin_lon && (
               <div className="flex items-start gap-2.5">
                 <MapPin className="w-3.5 h-3.5 text-neutral-400 mt-0.5 shrink-0" />
                 <div>
-                  <span className="text-xs text-neutral-500 dark:text-neutral-400 block">Локация</span>
-                  <button onClick={() => setShowMap(true)} className="text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:underline font-mono">
+                  <span className="text-xs text-neutral-500 dark:text-neutral-400 block">
+                    Локация
+                  </span>
+                  <button
+                    onClick={() => setShowMap(true)}
+                    className="text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:underline font-mono"
+                  >
                     {report.bin_lat.toFixed(4)}, {report.bin_lon.toFixed(4)}
                   </button>
                 </div>
@@ -856,8 +1256,12 @@ function ReportDetails({ report, onResolve, onDelete }: { report: Report; onReso
 
         {report.description && (
           <div className="p-3 rounded-lg bg-neutral-50 dark:bg-neutral-700/40 border border-neutral-200 dark:border-neutral-700 mb-4">
-            <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-1.5">Описание</p>
-            <p className="text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed">{report.description}</p>
+            <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-1.5">
+              Описание
+            </p>
+            <p className="text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed">
+              {report.description}
+            </p>
           </div>
         )}
 
@@ -865,19 +1269,51 @@ function ReportDetails({ report, onResolve, onDelete }: { report: Report; onReso
       </div>
 
       <div className="flex items-center justify-end gap-2 px-5 py-3 border-t border-neutral-100 dark:border-neutral-700/60 bg-neutral-50/50 dark:bg-neutral-800/30 rounded-b-xl">
-        <ActionButton onClick={() => handle("delete")} disabled={!!processing} variant="reject" icon={Trash2} label="Изтрий" />
-        {!report.resolved && <ActionButton onClick={() => handle("resolve")} disabled={!!processing} variant="resolve" icon={CheckCircle} label="Разреши" />}
+        <ActionButton
+          onClick={() => handle("delete")}
+          disabled={!!processing}
+          variant="reject"
+          icon={Trash2}
+          label="Изтрий"
+        />
+        {!report.resolved && (
+          <ActionButton
+            onClick={() => handle("resolve")}
+            disabled={!!processing}
+            variant="resolve"
+            icon={CheckCircle}
+            label="Разреши"
+          />
+        )}
       </div>
 
-      {showMap && report.bin_lat && report.bin_lon && <MapModal lat={report.bin_lat} lon={report.bin_lon} onClose={() => setShowMap(false)} />}
-      {lightbox && <LightboxModal url={lightbox} onClose={() => setLightbox(null)} />}
+      {showMap && report.bin_lat && report.bin_lon && (
+        <MapModal
+          lat={report.bin_lat}
+          lon={report.bin_lon}
+          onClose={() => setShowMap(false)}
+        />
+      )}
+      {lightbox && (
+        <LightboxModal url={lightbox} onClose={() => setLightbox(null)} />
+      )}
     </Card>
   );
 }
 
 // при заявки от организации за получаване на кошове за рециклиране
-function OrganizationRequestDetails({ request, onApprove, onReject }: { request: OrganizationRequest; onApprove: (id: string) => Promise<void>; onReject: (id: string) => Promise<void> }) {
-  const [processing, setProcessing] = useState<"approve" | "reject" | "email" | null>(null);
+function OrganizationRequestDetails({
+  request,
+  onApprove,
+  onReject,
+}: {
+  request: OrganizationRequest;
+  onApprove: (id: string) => Promise<void>;
+  onReject: (id: string) => Promise<void>;
+}) {
+  const [processing, setProcessing] = useState<
+    "approve" | "reject" | "email" | null
+  >(null);
 
   const openEmail = (subject: string, body: string) => {
     const link = `https://mail.google.com/mail/u/0/?view=cm&fs=1&to=${encodeURIComponent(request.contact_email)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
@@ -885,7 +1321,12 @@ function OrganizationRequestDetails({ request, onApprove, onReject }: { request:
   };
 
   const handle = async (action: "approve" | "reject") => {
-    if (!window.confirm(`Сигурни ли сте, че искате да ${action === "approve" ? "одобрите" : "отхвърлите"} заявката от "${request.organization_name}"?`)) return;
+    if (
+      !window.confirm(
+        `Сигурни ли сте, че искате да ${action === "approve" ? "одобрите" : "отхвърлите"} заявката от "${request.organization_name}"?`,
+      )
+    )
+      return;
     setProcessing(action);
     const subject = `Заявка за кошове от ${request.organization_name} - ${action === "approve" ? "ОДОБРЕНО" : "ОТХВЪРЛЕНА"}`;
     const body = `Уважаеми/а ${request.contact_name},\n\nВашата заявка за получаване на ${request.intended_bin_count} кош${request.intended_bin_count > 1 ? "а" : ""} е ${action === "approve" ? "одобрена" : "отхвърлена"}.\n\nС уважение,\nЕкипът на Recyclix`;
@@ -903,28 +1344,75 @@ function OrganizationRequestDetails({ request, onApprove, onReject }: { request:
           <div>
             <div className="flex items-center gap-2 mb-1">
               <Building className="w-3.5 h-3.5 text-purple-500" />
-              <span className="text-xs text-purple-600 dark:text-purple-400 font-medium capitalize">{request.organization_type}</span>
+              <span className="text-xs text-purple-600 dark:text-purple-400 font-medium capitalize">
+                {request.organization_type}
+              </span>
             </div>
-            <h3 className="text-base font-semibold text-neutral-900 dark:text-white">{request.organization_name}</h3>
+            <h3 className="text-base font-semibold text-neutral-900 dark:text-white">
+              {request.organization_name}
+            </h3>
           </div>
-          <StatusBadge status={request.status} labels={{ pending: "Чакаща", approved: "Одобрена", rejected: "Отхвърлена" }} />
+          <StatusBadge
+            status={request.status}
+            labels={{
+              pending: "Чакаща",
+              approved: "Одобрена",
+              rejected: "Отхвърлена",
+            }}
+          />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-4">
           <div className="space-y-3">
-            <MetaRow icon={User} label="Контактно лице" value={<>{request.contact_name}<span className="block text-xs font-normal"><a href={`mailto:${request.contact_email}`} className="text-emerald-600 dark:text-emerald-400 hover:underline">{request.contact_email}</a></span></>} />
-            <MetaRow icon={Package} label="Брой кошове" value={String(request.intended_bin_count)} />
+            <MetaRow
+              icon={User}
+              label="Контактно лице"
+              value={
+                <>
+                  {request.contact_name}
+                  <span className="block text-xs font-normal">
+                    <a
+                      href={`mailto:${request.contact_email}`}
+                      className="text-emerald-600 dark:text-emerald-400 hover:underline"
+                    >
+                      {request.contact_email}
+                    </a>
+                  </span>
+                </>
+              }
+            />
+            <MetaRow
+              icon={Package}
+              label="Брой кошове"
+              value={String(request.intended_bin_count)}
+            />
           </div>
           <div className="space-y-3">
-            {(request.city || request.country) && <MetaRow icon={MapPin} label="Локация" value={[request.city, request.country].filter(Boolean).join(", ")} />}
-            <MetaRow icon={Calendar} label="Дата на заявка" value={new Date(request.created_at).toLocaleDateString("bg-BG")} />
+            {(request.city || request.country) && (
+              <MetaRow
+                icon={MapPin}
+                label="Локация"
+                value={[request.city, request.country]
+                  .filter(Boolean)
+                  .join(", ")}
+              />
+            )}
+            <MetaRow
+              icon={Calendar}
+              label="Дата на заявка"
+              value={new Date(request.created_at).toLocaleDateString("bg-BG")}
+            />
           </div>
         </div>
 
         {request.message && (
           <div className="p-3 rounded-lg bg-neutral-50 dark:bg-neutral-700/40 border border-neutral-200 dark:border-neutral-700">
-            <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-1.5">Съобщение</p>
-            <p className="text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed">{request.message}</p>
+            <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-1.5">
+              Съобщение
+            </p>
+            <p className="text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed">
+              {request.message}
+            </p>
           </div>
         )}
       </div>
@@ -932,18 +1420,48 @@ function OrganizationRequestDetails({ request, onApprove, onReject }: { request:
       {request.status === "pending" && (
         <div className="flex items-center justify-end gap-2 px-5 py-3 border-t border-neutral-100 dark:border-neutral-700/60 bg-neutral-50/50 dark:bg-neutral-800/30 rounded-b-xl">
           <ActionButton
-            onClick={() => openEmail(`Заявка за кошове от ${request.organization_name}`, `Уважаеми/а ${request.contact_name},\n\nОтносно Вашата заявка...\n\nС уважение,\nЕкипът на Recyclix`)}
-            disabled={!!processing} variant="email" icon={Mail} label="Имейл"
+            onClick={() =>
+              openEmail(
+                `Заявка за кошове от ${request.organization_name}`,
+                `Уважаеми/а ${request.contact_name},\n\nОтносно Вашата заявка...\n\nС уважение,\nЕкипът на Recyclix`,
+              )
+            }
+            disabled={!!processing}
+            variant="email"
+            icon={Mail}
+            label="Имейл"
           />
-          <ActionButton onClick={() => handle("reject")} disabled={!!processing} variant="neutral" icon={XCircle} label="Откажи" />
-          <ActionButton onClick={() => handle("approve")} disabled={!!processing} variant="approve" icon={CheckCircle} label="Одобри" />
+          <ActionButton
+            onClick={() => handle("reject")}
+            disabled={!!processing}
+            variant="neutral"
+            icon={XCircle}
+            label="Откажи"
+          />
+          <ActionButton
+            onClick={() => handle("approve")}
+            disabled={!!processing}
+            variant="approve"
+            icon={CheckCircle}
+            label="Одобри"
+          />
         </div>
       )}
     </Card>
   );
 }
 
-function StatCard({ label, value, icon: Icon, color }: { label: string; value: number; icon: any; color: string }) {
+function StatCard({
+  label,
+  value,
+  icon: Icon,
+  color,
+}: {
+  label: string;
+  value: number;
+  icon: any;
+  color: string;
+}) {
   const colorMap: Record<string, string> = {
     emerald: "text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20",
     green: "text-green-500 bg-green-50 dark:bg-green-900/20",
@@ -958,8 +1476,12 @@ function StatCard({ label, value, icon: Icon, color }: { label: string; value: n
         <Icon className={`w-5 h-5 ${colorMap[color].split(" ")[0]}`} />
       </div>
       <div>
-        <p className="text-2xl font-bold text-neutral-900 dark:text-white leading-none">{value}</p>
-        <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">{label}</p>
+        <p className="text-2xl font-bold text-neutral-900 dark:text-white leading-none">
+          {value}
+        </p>
+        <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+          {label}
+        </p>
       </div>
     </div>
   );
@@ -971,15 +1493,26 @@ export function AdminPanel() {
   const [suggestions, setSuggestions] = useState<EditSuggestion[]>([]);
   const [reports, setReports] = useState<Report[]>([]);
   const [orgRequests, setOrgRequests] = useState<OrganizationRequest[]>([]);
-  const [stats, setStats] = useState({ pending: 0, approved: 0, total: 0, suggestions: 0, reports: 0, orgRequests: 0 });
+  const [stats, setStats] = useState({
+    pending: 0,
+    approved: 0,
+    total: 0,
+    suggestions: 0,
+    reports: 0,
+    orgRequests: 0,
+  });
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"bins" | "suggestions" | "reports" | "orgRequests">("bins");
+  const [activeTab, setActiveTab] = useState<
+    "bins" | "suggestions" | "reports" | "orgRequests"
+  >("bins");
   const [searchQuery, setSearchQuery] = useState("");
   const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
     loadData();
-    const isDark = localStorage.getItem("darkMode") === "true" || window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const isDark =
+      localStorage.getItem("darkMode") === "true" ||
+      window.matchMedia("(prefers-color-scheme: dark)").matches;
     setDarkMode(isDark);
     if (isDark) document.documentElement.classList.add("dark");
   }, []);
@@ -994,37 +1527,149 @@ export function AdminPanel() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [binsData, suggestionsData, reportsData, orgRequestsData, statsData] = await Promise.all([
-        getPendingBins(), getEditSuggestions(), getReports(), getOrganizationRequests(), getStats(),
+      const [
+        binsData,
+        suggestionsData,
+        reportsData,
+        orgRequestsData,
+        statsData,
+      ] = await Promise.all([
+        getPendingBins(),
+        getEditSuggestions(),
+        getReports(),
+        getOrganizationRequests(),
+        getStats(),
       ]);
-      setBins(binsData); setSuggestions(suggestionsData); setReports(reportsData); setOrgRequests(orgRequestsData); setStats(statsData);
-    } catch (e) { console.error(e); } finally { setLoading(false); }
+      setBins(binsData);
+      setSuggestions(suggestionsData);
+      setReports(reportsData);
+      setOrgRequests(orgRequestsData);
+      setStats(statsData);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleApproveBin = async (id: string, data: Bin) => { if (await approveBin(id, data)) loadData(); };
-  const handleRejectBin = async (id: string) => { if (await rejectBin(id)) loadData(); };
-  const handleApproveSuggestion = async (id: string, data: EditSuggestion) => { if (await approveSuggestion(id, data)) loadData(); };
-  const handleRejectSuggestion = async (id: string) => { if (await rejectSuggestion(id)) loadData(); };
-  const handleResolveReport = async (id: string) => { if (await resolveReport(id)) loadData(); };
-  const handleDeleteReport = async (id: string) => { if (await deleteReport(id)) loadData(); };
-  const handleApproveOrgRequest = async (id: string) => { if (await approveOrganizationRequest(id)) loadData(); };
-  const handleRejectOrgRequest = async (id: string) => { if (await rejectOrganizationRequest(id)) loadData(); };
+  const handleApproveBin = async (id: string, data: Bin) => {
+    if (await approveBin(id, data)) loadData();
+  };
+  const handleRejectBin = async (id: string) => {
+    if (await rejectBin(id)) loadData();
+  };
+  const handleApproveSuggestion = async (id: string, data: EditSuggestion) => {
+    if (await approveSuggestion(id, data)) loadData();
+  };
+  const handleRejectSuggestion = async (id: string) => {
+    if (await rejectSuggestion(id)) loadData();
+  };
+  const handleResolveReport = async (id: string) => {
+    if (await resolveReport(id)) loadData();
+  };
+  const handleDeleteReport = async (id: string) => {
+    if (await deleteReport(id)) loadData();
+  };
+  const handleApproveOrgRequest = async (id: string) => {
+    if (await approveOrganizationRequest(id)) loadData();
+  };
+  const handleRejectOrgRequest = async (id: string) => {
+    if (await rejectOrganizationRequest(id)) loadData();
+  };
 
   const q = searchQuery.toLowerCase();
-  const filteredBins = bins.filter((b) => [b.user_username, b.user_email, b.code, ...Object.values(parseTagsObject(b.tags ?? {})).map(String)].some((f) => String(f).toLowerCase().includes(q)));
-  const filteredSuggestions = suggestions.filter((s) => [s.user_email, s.bin_id, s.name, s.materials].some((f) => String(f ?? "").toLowerCase().includes(q)));
-  const filteredReports = reports.filter((r) => [r.user_email, r.user_username, r.title, r.type, r.description, r.bin_code].some((f) => String(f ?? "").toLowerCase().includes(q)));
-  const filteredOrgRequests = orgRequests.filter((r) => [r.organization_name, r.contact_name, r.contact_email, r.city, r.country].some((f) => String(f ?? "").toLowerCase().includes(q)));
+  const filteredBins = bins.filter((b) =>
+    [
+      b.user_username,
+      b.user_email,
+      b.code,
+      ...Object.values(parseTagsObject(b.tags ?? {})).map(String),
+    ].some((f) => String(f).toLowerCase().includes(q)),
+  );
+  const filteredSuggestions = suggestions.filter((s) =>
+    [s.user_email, s.bin_id, s.name, s.materials].some((f) =>
+      String(f ?? "")
+        .toLowerCase()
+        .includes(q),
+    ),
+  );
+  const filteredReports = reports.filter((r) =>
+    [
+      r.user_email,
+      r.user_username,
+      r.title,
+      r.type,
+      r.description,
+      r.bin_code,
+    ].some((f) =>
+      String(f ?? "")
+        .toLowerCase()
+        .includes(q),
+    ),
+  );
+  const filteredOrgRequests = orgRequests.filter((r) =>
+    [
+      r.organization_name,
+      r.contact_name,
+      r.contact_email,
+      r.city,
+      r.country,
+    ].some((f) =>
+      String(f ?? "")
+        .toLowerCase()
+        .includes(q),
+    ),
+  );
 
-  const tabs: { key: typeof activeTab; label: string; count: number; icon: any; emptyIcon: any; emptyMsg: string }[] = [
-    { key: "bins", label: "Кошове", count: bins.length, icon: Recycle, emptyIcon: Trash, emptyMsg: "Няма чакащи кошове" },
-    { key: "suggestions", label: "Предложения", count: suggestions.length, icon: PenLine, emptyIcon: PenLine, emptyMsg: "Няма чакащи предложения" },
-    { key: "reports", label: "Отчети", count: reports.length, icon: Flag, emptyIcon: Flag, emptyMsg: "Няма активни отчети" },
-    { key: "orgRequests", label: "Заявки", count: orgRequests.length, icon: Building, emptyIcon: Building, emptyMsg: "Няма чакащи заявки" },
+  const tabs: {
+    key: typeof activeTab;
+    label: string;
+    count: number;
+    icon: any;
+    emptyIcon: any;
+    emptyMsg: string;
+  }[] = [
+    {
+      key: "bins",
+      label: "Кошове",
+      count: bins.length,
+      icon: Recycle,
+      emptyIcon: Trash,
+      emptyMsg: "Няма чакащи кошове",
+    },
+    {
+      key: "suggestions",
+      label: "Предложения",
+      count: suggestions.length,
+      icon: PenLine,
+      emptyIcon: PenLine,
+      emptyMsg: "Няма чакащи предложения",
+    },
+    {
+      key: "reports",
+      label: "Отчети",
+      count: reports.length,
+      icon: Flag,
+      emptyIcon: Flag,
+      emptyMsg: "Няма активни отчети",
+    },
+    {
+      key: "orgRequests",
+      label: "Заявки",
+      count: orgRequests.length,
+      icon: Building,
+      emptyIcon: Building,
+      emptyMsg: "Няма чакащи заявки",
+    },
   ];
 
   const activeConfig = tabs.find((t) => t.key === activeTab)!;
-  const filtered = { bins: filteredBins, suggestions: filteredSuggestions, reports: filteredReports, orgRequests: filteredOrgRequests }[activeTab];
+  const filtered = {
+    bins: filteredBins,
+    suggestions: filteredSuggestions,
+    reports: filteredReports,
+    orgRequests: filteredOrgRequests,
+  }[activeTab];
 
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900">
@@ -1035,16 +1680,32 @@ export function AdminPanel() {
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-green-600 flex items-center justify-center shadow-sm shadow-emerald-500/30">
                 <Shield className="w-4 h-4 text-white" />
               </div>
-              <span className="font-semibold text-neutral-900 dark:text-white text-lg ml-1">Табло</span>
+              <span className="font-semibold text-neutral-900 dark:text-white text-lg ml-1">
+                Табло
+              </span>
             </div>
-            <span className="hidden sm:block text-neutral-300 dark:text-neutral-600">|</span>
-            <span className="hidden sm:block text-xs text-neutral-400">Recyclix</span>
+            <span className="hidden sm:block text-neutral-300 dark:text-neutral-600">
+              |
+            </span>
+            <span className="hidden sm:block text-xs text-neutral-400">
+              Recyclix
+            </span>
           </div>
           <div className="flex items-center gap-1">
-            <button onClick={toggleDarkMode} className="p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors">
-              {darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-neutral-500" />}
+            <button
+              onClick={toggleDarkMode}
+              className="p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+            >
+              {darkMode ? (
+                <Sun className="w-4 h-4 text-amber-400" />
+              ) : (
+                <Moon className="w-4 h-4 text-neutral-500" />
+              )}
             </button>
-            <button onClick={loadData} className="p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors">
+            <button
+              onClick={loadData}
+              className="p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+            >
               <RefreshCw className="w-4 h-4 text-neutral-500 dark:text-neutral-400" />
             </button>
             <LogoutButtonAlt />
@@ -1054,12 +1715,42 @@ export function AdminPanel() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-5">
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-          <StatCard label="Общо кошове" value={stats.total} icon={Recycle} color="emerald" />
-          <StatCard label="Одобрени" value={stats.approved} icon={CircleCheck} color="green" />
-          <StatCard label="Чакащи" value={stats.pending} icon={List} color="amber" />
-          <StatCard label="Предложения" value={stats.suggestions} icon={PenLine} color="blue" />
-          <StatCard label="Активни отчети" value={stats.reports} icon={Flag} color="red" />
-          <StatCard label="Заявки" value={stats.orgRequests} icon={Building} color="purple" />
+          <StatCard
+            label="Общо кошове"
+            value={stats.total}
+            icon={Recycle}
+            color="emerald"
+          />
+          <StatCard
+            label="Одобрени"
+            value={stats.approved}
+            icon={CircleCheck}
+            color="green"
+          />
+          <StatCard
+            label="Чакащи"
+            value={stats.pending}
+            icon={List}
+            color="amber"
+          />
+          <StatCard
+            label="Предложения"
+            value={stats.suggestions}
+            icon={PenLine}
+            color="blue"
+          />
+          <StatCard
+            label="Активни отчети"
+            value={stats.reports}
+            icon={Flag}
+            color="red"
+          />
+          <StatCard
+            label="Заявки"
+            value={stats.orgRequests}
+            icon={Building}
+            color="purple"
+          />
         </div>
 
         <div className="bg-white dark:bg-neutral-800/40 border border-neutral-200 dark:border-neutral-700/60 rounded-2xl shadow-sm overflow-hidden">
@@ -1073,14 +1764,17 @@ export function AdminPanel() {
                     <button
                       key={tab.key}
                       onClick={() => setActiveTab(tab.key)}
-                      className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${isActive
-                        ? "bg-emerald-500 text-white shadow-sm shadow-emerald-500/30"
-                        : "text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700 hover:text-neutral-700 dark:hover:text-neutral-200"
-                        }`}
+                      className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
+                        isActive
+                          ? "bg-emerald-500 text-white shadow-sm shadow-emerald-500/30"
+                          : "text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700 hover:text-neutral-700 dark:hover:text-neutral-200"
+                      }`}
                     >
                       <Icon className="w-3.5 h-3.5" />
                       <span>{tab.label}</span>
-                      <span className={`ml-0.5 px-1.5 py-0.5 rounded-full text-xs font-semibold ${isActive ? "bg-white/20 text-white" : "bg-neutral-200 dark:bg-neutral-600 text-neutral-600 dark:text-neutral-300"}`}>
+                      <span
+                        className={`ml-0.5 px-1.5 py-0.5 rounded-full text-xs font-semibold ${isActive ? "bg-white/20 text-white" : "bg-neutral-200 dark:bg-neutral-600 text-neutral-600 dark:text-neutral-300"}`}
+                      >
                         {tab.count}
                       </span>
                     </button>
@@ -1102,18 +1796,61 @@ export function AdminPanel() {
 
           <div className="p-4 sm:p-5">
             {loading ? (
-              <div className="flex justify-center py-16"><SimpleSpinningRecycling /></div>
+              <div className="flex justify-center py-16">
+                <SimpleSpinningRecycling />
+              </div>
             ) : filtered.length === 0 ? (
               <div className="text-center py-16">
-                {(() => { const EmptyIcon = activeConfig.emptyIcon; return <EmptyIcon className="w-10 h-10 text-neutral-300 dark:text-neutral-600 mx-auto mb-3" />; })()}
-                <p className="text-sm text-neutral-400">{searchQuery ? "Няма намерени резултати" : activeConfig.emptyMsg}</p>
+                {(() => {
+                  const EmptyIcon = activeConfig.emptyIcon;
+                  return (
+                    <EmptyIcon className="w-10 h-10 text-neutral-300 dark:text-neutral-600 mx-auto mb-3" />
+                  );
+                })()}
+                <p className="text-sm text-neutral-400">
+                  {searchQuery
+                    ? "Няма намерени резултати"
+                    : activeConfig.emptyMsg}
+                </p>
               </div>
             ) : (
               <div className="space-y-3">
-                {activeTab === "bins" && filteredBins.map((bin) => <BinDetails key={bin.id} bin={bin} onApprove={handleApproveBin} onReject={handleRejectBin} />)}
-                {activeTab === "suggestions" && filteredSuggestions.map((s) => <SuggestionDetails key={s.id} suggestion={s} onApprove={handleApproveSuggestion} onReject={handleRejectSuggestion} />)}
-                {activeTab === "reports" && filteredReports.map((r) => <ReportDetails key={r.id} report={r} onResolve={handleResolveReport} onDelete={handleDeleteReport} />)}
-                {activeTab === "orgRequests" && filteredOrgRequests.map((r) => <OrganizationRequestDetails key={r.id} request={r} onApprove={handleApproveOrgRequest} onReject={handleRejectOrgRequest} />)}
+                {activeTab === "bins" &&
+                  filteredBins.map((bin) => (
+                    <BinDetails
+                      key={bin.id}
+                      bin={bin}
+                      onApprove={handleApproveBin}
+                      onReject={handleRejectBin}
+                    />
+                  ))}
+                {activeTab === "suggestions" &&
+                  filteredSuggestions.map((s) => (
+                    <SuggestionDetails
+                      key={s.id}
+                      suggestion={s}
+                      onApprove={handleApproveSuggestion}
+                      onReject={handleRejectSuggestion}
+                    />
+                  ))}
+                {activeTab === "reports" &&
+                  filteredReports.map((r) => (
+                    <ReportDetails
+                      key={r.id}
+                      report={r}
+                      onResolve={handleResolveReport}
+                      onDelete={handleDeleteReport}
+                    />
+                  ))}
+                {activeTab === "orgRequests" &&
+                  filteredOrgRequests.map((r) => (
+                    <OrganizationRequestDetails
+                      key={r.id}
+                      request={r}
+                      onApprove={handleApproveOrgRequest}
+                      onReject={handleRejectOrgRequest}
+                    />
+                  ))}
               </div>
             )}
           </div>
@@ -1124,7 +1861,9 @@ export function AdminPanel() {
 }
 
 export function AdminRoute({ children }: { children: ReactNode }) {
-  const [status, setStatus] = useState<"loading" | "authorized" | "unauthorized" | "error">("loading");
+  const [status, setStatus] = useState<
+    "loading" | "authorized" | "unauthorized" | "error"
+  >("loading");
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [debugInfo, setDebugInfo] = useState<Record<string, any>>({});
 
@@ -1133,7 +1872,8 @@ export function AdminRoute({ children }: { children: ReactNode }) {
 
     const check = async () => {
       try {
-        const hasLocalStorage = typeof window !== 'undefined' && window.localStorage !== null;
+        const hasLocalStorage =
+          typeof window !== "undefined" && window.localStorage !== null;
         const debug: Record<string, any> = { hasLocalStorage };
 
         if (hasLocalStorage) {
@@ -1142,21 +1882,28 @@ export function AdminRoute({ children }: { children: ReactNode }) {
             const key = localStorage.key(i);
             if (key) allKeys.push(key);
           }
-          const supabaseKeys = allKeys.filter(key =>
-            key.includes('supabase') || key.includes('sb-') || key.includes('auth')
+          const supabaseKeys = allKeys.filter(
+            (key) =>
+              key.includes("supabase") ||
+              key.includes("sb-") ||
+              key.includes("auth"),
           );
-          const storedToken = localStorage.getItem('supabase.auth.token');
+          const storedToken = localStorage.getItem("supabase.auth.token");
           debug.allLocalStorageKeys = allKeys;
           debug.supabaseKeys = supabaseKeys;
           debug.hasToken = !!storedToken;
         }
 
         debug.cookies = document.cookie;
-        debug.hasSessionCookie = document.cookie.includes('sb-') ||
-          document.cookie.includes('supabase') ||
-          document.cookie.includes('auth');
+        debug.hasSessionCookie =
+          document.cookie.includes("sb-") ||
+          document.cookie.includes("supabase") ||
+          document.cookie.includes("auth");
 
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        const {
+          data: { user },
+          error: userError,
+        } = await supabase.auth.getUser();
 
         if (userError) {
           if (isDev) {
@@ -1177,7 +1924,7 @@ export function AdminRoute({ children }: { children: ReactNode }) {
           if (mounted) {
             setDebugInfo(debug);
             setStatus("unauthorized");
-            setDebugInfo(prev => ({ ...prev, reason: "no_session" }));
+            setDebugInfo((prev) => ({ ...prev, reason: "no_session" }));
           }
           return;
         }
@@ -1191,7 +1938,7 @@ export function AdminRoute({ children }: { children: ReactNode }) {
         debug.profileCheck = {
           exists: !profileError,
           app_role: profileData?.app_role,
-          error: profileError?.message
+          error: profileError?.message,
         };
 
         let isAdmin = false;
@@ -1202,13 +1949,15 @@ export function AdminRoute({ children }: { children: ReactNode }) {
 
         if (!isAdmin) {
           try {
-            const { data: rpcData, error: rpcError } = await supabase
-              .rpc("is_platform_admin", { user_id: user.id });
+            const { data: rpcData, error: rpcError } = await supabase.rpc(
+              "is_platform_admin",
+              { user_id: user.id },
+            );
 
             debug.rpcCheck = {
               success: !rpcError,
               result: rpcData,
-              error: rpcError?.message
+              error: rpcError?.message,
             };
 
             if (!rpcError && rpcData === true) {
@@ -1225,7 +1974,7 @@ export function AdminRoute({ children }: { children: ReactNode }) {
           if (mounted) {
             setDebugInfo(debug);
             setStatus("unauthorized");
-            setDebugInfo(prev => ({ ...prev, reason: "not_admin" }));
+            setDebugInfo((prev) => ({ ...prev, reason: "not_admin" }));
           }
           return;
         }
@@ -1238,7 +1987,7 @@ export function AdminRoute({ children }: { children: ReactNode }) {
         if (mounted) {
           setStatus("error");
           setErrorMessage(err.message || "Неизвестна грешка");
-          setDebugInfo(prev => ({ ...prev, error: err.message }));
+          setDebugInfo((prev) => ({ ...prev, error: err.message }));
         }
       }
     };
@@ -1267,8 +2016,12 @@ export function AdminRoute({ children }: { children: ReactNode }) {
           <div className="w-16 h-16 rounded-2xl bg-red-50 dark:bg-red-900/20 flex items-center justify-center mx-auto mb-4 border border-red-100 dark:border-red-900/30">
             <Shield className="w-8 h-8 text-red-500" />
           </div>
-          <h2 className="text-xl font-bold text-neutral-900 dark:text-white mb-2">Възникна грешка</h2>
-          <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-4">{errorMessage}</p>
+          <h2 className="text-xl font-bold text-neutral-900 dark:text-white mb-2">
+            Възникна грешка
+          </h2>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-4">
+            {errorMessage}
+          </p>
 
           <div className="mt-4 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg text-xs font-mono text-left overflow-auto max-h-60">
             <p className="font-bold mb-2">Debug Info:</p>
@@ -1295,7 +2048,9 @@ export function AdminRoute({ children }: { children: ReactNode }) {
           <div className="w-14 h-14 rounded-2xl bg-red-50 dark:bg-red-900/20 flex items-center justify-center mx-auto mb-4 border border-red-100 dark:border-red-900/30">
             <Shield className="w-7 h-7 text-red-500" />
           </div>
-          <h2 className="text-lg font-bold text-neutral-900 dark:text-white mb-2">Достъп отказан</h2>
+          <h2 className="text-lg font-bold text-neutral-900 dark:text-white mb-2">
+            Достъп отказан
+          </h2>
           <p className="text-sm text-neutral-500 mb-5">
             {debugInfo.reason === "no_session"
               ? "Няма активна сесия. Моля, влезте в профила си."
@@ -1328,5 +2083,9 @@ export function AdminRoute({ children }: { children: ReactNode }) {
 }
 
 export default function AdminPage() {
-  return <AdminRoute><AdminPanel /></AdminRoute>;
+  return (
+    <AdminRoute>
+      <AdminPanel />
+    </AdminRoute>
+  );
 }

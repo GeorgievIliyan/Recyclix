@@ -103,6 +103,10 @@ export const RECYCLING_COLORS: Record<string, string> = {
   dropoff: "bg-gradient-to-r from-cyan-400 to-cyan-500",
   waste_basket: "bg-gradient-to-r from-red-400 to-red-500",
   unknown: "bg-gradient-to-r from-gray-400 to-gray-500",
+  tyres: "bg-gradient-to-r from-slate-600 to-slate-700",
+  tires: "bg-gradient-to-r from-slate-600 to-slate-700",
+  e_waste: "bg-gradient-to-r from-purple-400 to-purple-500",
+  weee: "bg-gradient-to-r from-purple-400 to-purple-500",
 };
 
 // Дефиниция на филтриращите категории в интерфейса
@@ -151,8 +155,8 @@ export const FILTER_OPTIONS = [
       "electronics",
       "batteries",
       "e_waste",
-      "weee",
-      "electrical_appliances",
+      "electrical appliances",
+      "електроуреди"
     ],
   },
   {
@@ -164,8 +168,6 @@ export const FILTER_OPTIONS = [
       "clothing",
       "clothes",
       "shoes",
-      "tyres",
-      "tires",
       "Clothes",
       "дрехи",
       "Дрехи",
@@ -1289,7 +1291,7 @@ const AddBinModal = memo(function AddBinModal({
                     <option value="waste_basket">Кошче за боклук</option>
                     <option value="container">Контейнер</option>
                     <option value="centre">Център за рециклиране</option>
-                    <option value="dropoff">Пункт за сваляне</option>
+                    <option value="dropoff">Пункт за отпадаци</option>
                     <option value="other">Друго</option>
                   </select>
                 </div>
