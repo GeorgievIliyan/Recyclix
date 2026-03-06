@@ -109,6 +109,21 @@ export const RECYCLING_COLORS: Record<string, string> = {
   weee: "bg-gradient-to-r from-purple-400 to-purple-500",
 };
 
+const bulgarianToOsmKey: Record<string, string> = {
+  пластмаса: "recycling:plastic_packaging",
+  стъкло: "recycling:glass_bottles",
+  хартия: "recycling:paper_packaging",
+  картон: "recycling:cardboard",
+  метал: "recycling:metal_packaging",
+  алуминий: "recycling:aluminium",
+  електроника: "recycling:electrical_appliances",
+  батерии: "recycling:batteries",
+  текстил: "recycling:textiles",
+  дрехи: "recycling:clothes",
+  "органични отпадъци": "recycling:organic",
+  "общи отпадъци": "recycling:residual",
+};
+
 // Дефиниция на филтриращите категории в интерфейса
 export const FILTER_OPTIONS = [
   {
@@ -156,7 +171,7 @@ export const FILTER_OPTIONS = [
       "batteries",
       "e_waste",
       "electrical appliances",
-      "електроуреди"
+      "електроуреди",
     ],
   },
   {
@@ -539,7 +554,7 @@ const useReportSpamProtection = () => {
           const minutesLeft = Math.ceil(
             (LIMITS.BIN_MIN_TIME_BETWEEN_REPORTS * 60 * 1000 -
               timeSinceLastReport) /
-            (60 * 1000),
+              (60 * 1000),
           );
           return {
             allowed: false,
@@ -579,7 +594,7 @@ const useReportSpamProtection = () => {
           const secondsLeft = Math.ceil(
             (LIMITS.USER_MIN_TIME_BETWEEN_REPORTS * 1000 -
               timeSinceLastUserReport) /
-            1000,
+              1000,
           );
           return {
             allowed: false,
@@ -763,7 +778,6 @@ const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
 
         const isReportDisabledForThisBin = isReportDisabled(bin.id);
 
-
         const popupContent = (
           <div className="relative w-[85vw] max-w-[320px] sm:w-[260px] break-words dark:bg-neutral-800 bg-white dark:text-white pt-1 text-gray-900 rounded-lg overflow-hidden">
             {bin.image_url && (
@@ -784,10 +798,11 @@ const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
             <div className="relative py-4 px-3">
               <div className="absolute top-2 right-2 flex gap-1.5">
                 <button
-                  className={`p-1.5 rounded-md transition ${isReportDisabledForThisBin
-                    ? "bg-gray-100 dark:bg-neutral-700 text-gray-400 dark:text-neutral-400 cursor-not-allowed"
-                    : "hover:bg-red-50 dark:hover:bg-red-900/30 text-red-500 hover:text-red-600 dark:hover:text-red-500"
-                    }`}
+                  className={`p-1.5 rounded-md transition ${
+                    isReportDisabledForThisBin
+                      ? "bg-gray-100 dark:bg-neutral-700 text-gray-400 dark:text-neutral-400 cursor-not-allowed"
+                      : "hover:bg-red-50 dark:hover:bg-red-900/30 text-red-500 hover:text-red-600 dark:hover:text-red-500"
+                  }`}
                   title={
                     isReportDisabledForThisBin
                       ? "Отчетът е временно деактивиран"
@@ -817,13 +832,18 @@ const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
                   {bin.tags?.amenity === "waste_basket" ? (
                     <Trash2 className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                   ) : (
-                    <Recycle className="w-4 h-4 sm:w-5 sm:h-5 text-white" strokeWidth={2.5} />
+                    <Recycle
+                      className="w-4 h-4 sm:w-5 sm:h-5 text-white"
+                      strokeWidth={2.5}
+                    />
                   )}
                 </div>
 
                 <div className="min-w-0">
                   <h3 className="font-semibold text-sm sm:text-base text-gray-800 dark:text-white leading-tight">
-                    {bin.tags?.amenity === "waste_basket" ? "Кошче за боклук" : "Място за рециклиране"}
+                    {bin.tags?.amenity === "waste_basket"
+                      ? "Кошче за боклук"
+                      : "Място за рециклиране"}
                   </h3>
                   {bin.tags?.name && (
                     <p className="text-xs sm:text-sm text-gray-600 dark:text-neutral-300 mt-0.5">
@@ -833,7 +853,8 @@ const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
                 </div>
               </div>
 
-              {(bin.tags?.opening_hours || (acceptedMaterials && acceptedMaterials.length > 0)) && (
+              {(bin.tags?.opening_hours ||
+                (acceptedMaterials && acceptedMaterials.length > 0)) && (
                 <div className="mt-4">
                   {bin.tags?.opening_hours && (
                     <div className="bg-blue-50 dark:bg-blue-800/20 p-2 rounded-md">
@@ -880,7 +901,9 @@ const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
                       <div className="flex flex-wrap gap-1.5">
                         {acceptedMaterials.map((material, idx) => {
                           const translated =
-                            materialTranslations[material.trim().toLowerCase()] || material;
+                            materialTranslations[
+                              material.trim().toLowerCase()
+                            ] || material;
                           const color = getMaterialColor(material);
                           return (
                             <span
@@ -1319,8 +1342,8 @@ const AddBinModal = memo(function AddBinModal({
                     ].map((option) => {
                       const currentTypes = formData.recycling_type
                         ? formData.recycling_type
-                          .split(",")
-                          .map((t) => t.trim())
+                            .split(",")
+                            .map((t) => t.trim())
                         : [];
                       const isChecked = currentTypes.includes(option.value);
                       return (
@@ -1332,14 +1355,14 @@ const AddBinModal = memo(function AddBinModal({
                             onChange={(e) => {
                               const currentTypes = formData.recycling_type
                                 ? formData.recycling_type
-                                  .split(",")
-                                  .map((t) => t.trim())
+                                    .split(",")
+                                    .map((t) => t.trim())
                                 : [];
                               const newTypes = e.target.checked
                                 ? [...currentTypes, option.value]
                                 : currentTypes.filter(
-                                  (t) => t !== option.value,
-                                );
+                                    (t) => t !== option.value,
+                                  );
                               handleInputChange(
                                 "recycling_type",
                                 newTypes.join(", "),
@@ -1608,7 +1631,8 @@ export default function MapComponent({
             id: `custom-${b.id}`,
             lat: b.lat,
             lon: b.lon,
-            tags: typeof b.tags === "string" ? JSON.parse(b.tags) : b.tags ?? {},
+            tags:
+              typeof b.tags === "string" ? JSON.parse(b.tags) : (b.tags ?? {}),
             osm_type: "node" as const,
             image_url: b.image_url ?? null,
             is_smart: b.is_smart ?? null,
@@ -1631,7 +1655,6 @@ export default function MapComponent({
     ],
     [bins, customBins],
   );
-
 
   useEffect(() => {
     return () => {
@@ -2151,13 +2174,25 @@ export default function MapComponent({
         if (!tempMarkerPosition)
           throw new Error("Локацията на кошчето не е зададена.");
 
+        const recyclingTags: Record<string, string> = {};
+        if (formData.recycling_type) {
+          formData.recycling_type
+            .split(",")
+            .map((t) => t.trim())
+            .filter((t) => t.length > 0)
+            .forEach((bulgarianLabel) => {
+              const osmKey = bulgarianToOsmKey[bulgarianLabel];
+              if (osmKey) recyclingTags[osmKey] = "yes";
+            });
+        }
+
         const tags = {
-          amenity: formData.amenity,
-          recycling_type: formData.recycling_type,
+          amenity:
+            formData.amenity === "other" ? "recycling" : formData.amenity,
+          recycling_type: "container",
           operator: formData.operator,
-          "recycling:clothes": formData.recycling_clothes ? "yes" : "no",
-          "recycling:shoes": formData.recycling_shoes ? "yes" : "no",
           count: String(formData.count),
+          ...recyclingTags,
         };
 
         const code = generateRandomCode();
