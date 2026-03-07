@@ -124,11 +124,16 @@ export default function DashboardPage() {
           .eq("id", userId)
           .single();
 
-        const { data: events = [] } = await supabase
+        const { data: events = [], error: eventsError } = await supabase
           .from("recycling_events")
           .select("material, points, co2_saved, created_at, count")
           .eq("user_id", userId)
           .order("created_at", { ascending: false });
+
+          console.log("User ID:", userId);
+          console.log("Events error:", eventsError);
+          console.log("Events data:", events);
+          console.log("Events count:", events?.length);
 
         const typedEvents = events as RecyclingEvent[];
 

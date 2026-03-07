@@ -45,8 +45,8 @@ export function RecyclingActivityChart({ data }: RecyclingActivityChartProps) {
     const d = new Date();
     d.setDate(d.getDate() - (2 - i));
     const dateString = d.toLocaleDateString("bg-BG", {
-      day: "2-digit",
-      month: "2-digit",
+      day: "numeric",
+      month: "short",
     });
     const existingDay = data?.find((d) => d.date === dateString);
     return { date: dateString, items: existingDay ? existingDay.items : 0 };
@@ -102,7 +102,7 @@ export function RecyclingActivityChart({ data }: RecyclingActivityChartProps) {
               axisLine={false}
               fontSize={12}
               allowDecimals={false}
-              domain={[0, 'dataMax']}
+              domain={[0, "dataMax"]}
             />
 
             <Tooltip
