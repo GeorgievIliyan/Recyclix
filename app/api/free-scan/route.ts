@@ -71,7 +71,7 @@ export async function POST(req: Request) {
                     Task: ${task}
 
                     Return EXACTLY in this format:
-                    MATERIAL: [plastic, glass, paper, metal, or unknown]
+                    MATERIAL: [plastic, glass, paper, metal, e-waste, organic, textile or unknown]
                     COUNT: [number of items - integer]
                     CO2: [estimated CO2 savings in kilograms, formatted as x.xx - e.g. 0.15]
 

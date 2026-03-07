@@ -47,6 +47,24 @@ type QRData = {
   points: number;
 };
 
+const MATERIAL_TRANSLATIONS: Record<string, string> = {
+  plastic: "Пластмаса",
+  glass: "Стъкло",
+  paper: "Хартия",
+  metal: "Метал",
+  "e-waste": "Електроотпадъци",
+  ewaste: "Електроотпадъци",
+  electronics: "Електроотпадъци",
+  organic: "Органични отпадъци",
+  textile: "Текстил",
+  textiles: "Текстил",
+};
+
+function translateMaterial(material: string): string {
+  const normalized = material.toLowerCase().trim();
+  return MATERIAL_TRANSLATIONS[normalized] ?? material;
+}
+
 // Брои от 0 до `value` при монтиране
 function CountUp({ value, decimals = 0 }: { value: number; decimals?: number }) {
   const [display, setDisplay] = useState(0);
@@ -145,8 +163,9 @@ export function FreeCamera({ task }: { task: string }) {
       const json: ScanResult = await res.json();
       if (!res.ok) { setError(json.error || "Scan failed"); return; }
       if (json.material?.toLowerCase() === "unknown") { setError("Материала не може да бъде разпознат. Моля, опитайте отново!"); return; }
-      setResult(json);
-      await logToSchema(json);
+      const translated = { ...json, material: json.material ? translateMaterial(json.material) : json.material };
+      setResult(translated);
+      await logToSchema(json); // log original English material to DB
       generateQRCode(json.points);
     } catch (e: any) { setError(e.message || "Network error"); }
     finally { setLoading(false); }

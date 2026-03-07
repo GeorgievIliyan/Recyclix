@@ -21,7 +21,7 @@ import { isDev } from "@/lib/isDev";
 import { useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 
-type MaterialType = "plastic" | "textile" | "metal" | "paper" | "glass" | "unknown";
+type MaterialType = "plastic" | "textile" | "textiles" | "metal" | "paper" | "glass" | "organic" | "e-waste" | "ewaste" | "electronics" | "unknown";
 type VerifyResult = "YES" | "NO" | null;
 
 interface Props {
@@ -69,11 +69,30 @@ function StatPill({
   );
 }
 
+const materialLabels: Record<MaterialType, string> = {
+  plastic: "Пластмаса",
+  textile: "Текстил",
+  textiles: "Текстил",
+  metal: "Метал",
+  paper: "Хартия",
+  glass: "Стъкло",
+  organic: "Органични отпадъци",
+  "e-waste": "Електроотпадъци",
+  ewaste: "Електроотпадъци",
+  electronics: "Електроотпадъци",
+  unknown: "Неразпознат",
+};
+
+function translateMaterial(raw: string): string {
+  const normalized = raw.toLowerCase().trim() as MaterialType;
+  return materialLabels[normalized] ?? raw;
+}
+
 export default function BinCamera({ target, binId }: Props) {
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [cameraOn, setCameraOn] = useState(false);
-  const [prediction, setPrediction] = useState<MaterialType | null>(null);
+  const [prediction, setPrediction] = useState<string | null>(null);
   const [verifyResult, setVerifyResult] = useState<VerifyResult>(null);
   const [loading, setLoading] = useState(false);
   const [itemCount, setItemCount] = useState<number>(0);
@@ -169,9 +188,12 @@ export default function BinCamera({ target, binId }: Props) {
           await generateQR(detectedPoints);
         }
       } else {
-        const material = data.material as MaterialType;
-        setPrediction(material);
-        if (material && material !== "unknown") {
+        const rawMaterial = data.material as string;
+        // Store translated label for display, log original to DB
+        const translated = translateMaterial(rawMaterial);
+        setPrediction(rawMaterial === "unknown" ? "unknown" : translated);
+        if (rawMaterial && rawMaterial !== "unknown") {
+          await logRecyclingEvent(rawMaterial, detectedPoints, detectedCount, detectedCo2, detectedWeight);
           await generateQR(detectedPoints);
         }
       }
@@ -217,15 +239,6 @@ export default function BinCamera({ target, binId }: Props) {
     const image = takePhoto();
     if (!image) return;
     await classifyPhoto(image);
-  };
-
-  const materialLabels: Record<MaterialType, string> = {
-    plastic: "Пластмаса",
-    textile: "Текстил",
-    metal: "Метал",
-    paper: "Хартия",
-    glass: "Стъкло",
-    unknown: "Неразпознат",
   };
 
   return (
@@ -280,7 +293,7 @@ export default function BinCamera({ target, binId }: Props) {
                 <div className="flex flex-col items-center gap-2">
                   <CheckCircle2 className="w-10 h-10 text-green-500" />
                   <h3 className="text-2xl font-bold">
-                    {target ? "Правилен контейнер" : materialLabels[prediction!]}
+                    {target ? "Правилен контейнер" : prediction}
                   </h3>
                 </div>
 
