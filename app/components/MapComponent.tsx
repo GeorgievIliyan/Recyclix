@@ -554,7 +554,7 @@ const useReportSpamProtection = () => {
           const minutesLeft = Math.ceil(
             (LIMITS.BIN_MIN_TIME_BETWEEN_REPORTS * 60 * 1000 -
               timeSinceLastReport) /
-              (60 * 1000),
+            (60 * 1000),
           );
           return {
             allowed: false,
@@ -594,7 +594,7 @@ const useReportSpamProtection = () => {
           const secondsLeft = Math.ceil(
             (LIMITS.USER_MIN_TIME_BETWEEN_REPORTS * 1000 -
               timeSinceLastUserReport) /
-              1000,
+            1000,
           );
           return {
             allowed: false,
@@ -798,11 +798,10 @@ const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
             <div className="relative py-4 px-3">
               <div className="absolute top-2 right-2 flex gap-1.5">
                 <button
-                  className={`p-1.5 rounded-md transition ${
-                    isReportDisabledForThisBin
+                  className={`p-1.5 rounded-md transition ${isReportDisabledForThisBin
                       ? "bg-gray-100 dark:bg-neutral-700 text-gray-400 dark:text-neutral-400 cursor-not-allowed"
                       : "hover:bg-red-50 dark:hover:bg-red-900/30 text-red-500 hover:text-red-600 dark:hover:text-red-500"
-                  }`}
+                    }`}
                   title={
                     isReportDisabledForThisBin
                       ? "Отчетът е временно деактивиран"
@@ -855,80 +854,80 @@ const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
 
               {(bin.tags?.opening_hours ||
                 (acceptedMaterials && acceptedMaterials.length > 0)) && (
-                <div className="mt-4">
-                  {bin.tags?.opening_hours && (
-                    <div className="bg-blue-50 dark:bg-blue-800/20 p-2 rounded-md">
-                      <div className="flex items-center gap-2 text-blue-700 dark:text-blue-400 text-xs sm:text-sm">
-                        <svg
-                          className="w-4 h-4 flex-shrink-0"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                          />
-                        </svg>
-                        <span className="leading-tight">
-                          <span className="opacity-80">Работно време:</span>{" "}
-                          <span className="font-semibold">
-                            {translateDays(bin.tags.opening_hours)}
-                          </span>
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  {bin.is_smart && (
-                    <div className="text-xs sm:text-sm font-semibold text-gray-800 dark:text-white flex gap-2 items-center mb-0">
-                      <CheckCircle className="text-green-500 h-4 w-4" />
-                      <span className="bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-emerald-400">
-                        Smart
-                      </span>{" "}
-                      кош
-                    </div>
-                  )}
-
-                  {acceptedMaterials?.length > 0 && (
-                    <div>
-                      <div className="text-xs sm:text-sm font-semibold text-gray-800 dark:text-white flex gap-2 items-center">
-                        <CircleCheckBig className="text-green-500 w-4 h-4" />
-                        <p>Приема:</p>
-                      </div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {acceptedMaterials.map((material, idx) => {
-                          const translated =
-                            materialTranslations[
-                              material.trim().toLowerCase()
-                            ] || material;
-                          const color = getMaterialColor(material);
-                          return (
-                            <span
-                              key={idx}
-                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm"
-                              style={{
-                                backgroundColor: `${color}20`,
-                                color: color,
-                                border: `1px solid ${color}40`,
-                                fontWeight: "540",
-                              }}
-                            >
-                              <span
-                                className="w-2 h-2 rounded-full"
-                                style={{ backgroundColor: color }}
-                              />
-                              {translated}
+                  <div className="mt-4">
+                    {bin.tags?.opening_hours && (
+                      <div className="bg-blue-50 dark:bg-blue-800/20 p-2 rounded-md">
+                        <div className="flex items-center gap-2 text-blue-700 dark:text-blue-400 text-xs sm:text-sm">
+                          <svg
+                            className="w-4 h-4 flex-shrink-0"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                          </svg>
+                          <span className="leading-tight">
+                            <span className="opacity-80">Работно време:</span>{" "}
+                            <span className="font-semibold">
+                              {translateDays(bin.tags.opening_hours)}
                             </span>
-                          );
-                        })}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </div>
-              )}
+                    )}
+
+                    {bin.is_smart && (
+                      <div className="text-xs sm:text-sm font-semibold text-gray-800 dark:text-white flex gap-2 items-center mb-0">
+                        <CheckCircle className="text-green-500 h-4 w-4" />
+                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-emerald-400">
+                          Smart
+                        </span>{" "}
+                        кош
+                      </div>
+                    )}
+
+                    {acceptedMaterials?.length > 0 && (
+                      <div>
+                        <div className="text-xs sm:text-sm font-semibold text-gray-800 dark:text-white flex gap-2 items-center">
+                          <CircleCheckBig className="text-green-500 w-4 h-4" />
+                          <p>Приема:</p>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {acceptedMaterials.map((material, idx) => {
+                            const translated =
+                              materialTranslations[
+                              material.trim().toLowerCase()
+                              ] || material;
+                            const color = getMaterialColor(material);
+                            return (
+                              <span
+                                key={idx}
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm"
+                                style={{
+                                  backgroundColor: `${color}20`,
+                                  color: color,
+                                  border: `1px solid ${color}40`,
+                                  fontWeight: "540",
+                                }}
+                              >
+                                <span
+                                  className="w-2 h-2 rounded-full"
+                                  style={{ backgroundColor: color }}
+                                />
+                                {translated}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
 
               <a
                 href={`https://www.google.com/maps?q=${bin.lat},${bin.lon}&z=14`}
@@ -1342,8 +1341,8 @@ const AddBinModal = memo(function AddBinModal({
                     ].map((option) => {
                       const currentTypes = formData.recycling_type
                         ? formData.recycling_type
-                            .split(",")
-                            .map((t) => t.trim())
+                          .split(",")
+                          .map((t) => t.trim())
                         : [];
                       const isChecked = currentTypes.includes(option.value);
                       return (
@@ -1355,14 +1354,14 @@ const AddBinModal = memo(function AddBinModal({
                             onChange={(e) => {
                               const currentTypes = formData.recycling_type
                                 ? formData.recycling_type
-                                    .split(",")
-                                    .map((t) => t.trim())
+                                  .split(",")
+                                  .map((t) => t.trim())
                                 : [];
                               const newTypes = e.target.checked
                                 ? [...currentTypes, option.value]
                                 : currentTypes.filter(
-                                    (t) => t !== option.value,
-                                  );
+                                  (t) => t !== option.value,
+                                );
                               handleInputChange(
                                 "recycling_type",
                                 newTypes.join(", "),
@@ -1628,7 +1627,7 @@ export default function MapComponent({
         data
           .filter((b) => b.lat != null && b.lon != null)
           .map((b) => ({
-            id: `custom-${b.id}`,
+            id: `custom-${String(b.id)}`,
             lat: b.lat,
             lon: b.lon,
             tags:

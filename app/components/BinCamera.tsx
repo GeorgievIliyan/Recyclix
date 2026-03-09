@@ -150,8 +150,8 @@ export default function BinCamera({ target, binId }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ material, points, count, co2_saved: Number(co2), weight_kg: weight, created_at: new Date().toISOString() }),
       });
-      if (!res.ok && isDev) console.error("Log error:", await res.json());
-      else if (isDev) console.log("Event logged successfully");
+      /*if (!res.ok && isDev) console.error("Log error:", await res.json());
+      else if (isDev) console.log("Event logged successfully");*/
     } catch (error) {
       console.error("Failed to log recycling event:", error);
     }

@@ -222,7 +222,7 @@ export default function Page() {
                   }`}
                 >
                   <CameraIcon className="w-4 h-4" />
-                  <span className="hidden sm:block text-sm font-medium">Ръчен</span>
+                  <span className="hidden sm:block text-sm font-medium">Авто</span>
                 </button>
 
                 <button
