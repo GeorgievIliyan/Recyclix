@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 import { createBrowserClient } from "@supabase/ssr";
 import MapHome from "./MapHome";
-import MapFilter from "./MapFilter";
+import MapFilter from "../gamification-ui/MapFilter";
 import { isDev } from "@/lib/isDev";
 import FilterPanel from "./FilterPanel";
 

@@ -14,7 +14,7 @@ import {
   Weight,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
-import { SpinningRecyclingLoader } from "./RecyclingLoader";
+import { SpinningRecyclingLoader } from "../ui/RecyclingLoader";
 import { isDev } from "@/lib/isDev";
 import { createClient } from "@supabase/supabase-js";
 

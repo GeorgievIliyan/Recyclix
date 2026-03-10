@@ -28,9 +28,9 @@ import {
   X,
   Mail,
 } from "lucide-react";
-import LeafletMap from "./LeafletMap";
-import { SimpleSpinningRecycling } from "./RecyclingLoader";
-import LogoutButtonAlt from "./LogoutButtonAlt";
+import LeafletMap from "../map-ui/LeafletMap";
+import { SimpleSpinningRecycling } from "../ui/RecyclingLoader";
+import LogoutButtonAlt from "../ui/LogoutButtonAlt";
 import { isDev } from "@/lib/isDev";
 
 // типизация

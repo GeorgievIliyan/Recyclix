@@ -6,18 +6,18 @@ import { useEffect, useState } from "react";
 import { Recycle, Sparkles, Flame, Calendar } from "lucide-react";
 import { useRouter } from "next/navigation";
 import dynamicImport from "next/dynamic";
-import { RecyclingLoader } from "@/app/components/RecyclingLoader";
-import { StatCard } from "@/app/components/StatCard";
-import { GamificationProgress } from "@/app/components/GamificationProgress";
-import { RecentActivity } from "@/app/components/RecentActivity";
-import { Navigation } from "@/app/components/Navigation";
-import { BadgesGallery } from "@/app/components/BadgesGallery";
+import { RecyclingLoader } from "@/app/components/ui/RecyclingLoader";
+import { StatCard } from "@/app/components/gamification-ui/StatCard";
+import { GamificationProgress } from "@/app/components/gamification-ui/GamificationProgress";
+import { RecentActivity } from "@/app/components/gamification-ui/RecentActivity";
+import { Navigation } from "@/app/components/ui/Navigation";
+import { BadgesGallery } from "@/app/components/gamification-ui/BadgesGallery";
 import { supabase } from "@/lib/supabase-browser";
-import { Leaderboard } from "@/app/components/Leaderboard";
+import { Leaderboard } from "@/app/components/gamification-ui/Leaderboard";
 
 const RecyclingActivityChart = dynamicImport(
   () =>
-    import("@/app/components/RecyclingActivityChart").then(
+    import("@/app/components/gamification-ui/RecyclingActivityChart").then(
       (mod) => mod.RecyclingActivityChart,
     ),
   {
@@ -30,7 +30,7 @@ const RecyclingActivityChart = dynamicImport(
 
 const MaterialsBreakdownChart = dynamicImport(
   () =>
-    import("@/app/components/MaterialsBreakdownChart").then(
+    import("@/app/components/map-ui/MaterialsBreakdownChart").then(
       (mod) => mod.MaterialsBreakdownChart,
     ),
   {

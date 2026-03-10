@@ -1,6 +1,6 @@
 "use client";
 
-import BinCamera from "@/app/components/BinCamera";
+import BinCamera from "@/app/components/other/BinCamera";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase-browser";
 import {
@@ -23,7 +23,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import Logo36 from "@/app/components/Logo36";
+import Logo36 from "@/app/components/ui/Logo36";
 
 type Material = {
   id: string;

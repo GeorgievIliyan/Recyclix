@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Lock, TextAlignStart, SquarePen } from "lucide-react";
 import { supabase } from "@/lib/supabase-browser";
-import { RecyclingLoader } from "@/app/components/RecyclingLoader";
-import { LogoutButton } from "@/app/components/LogoutButton";
-import { Navigation } from "@/app/components/Navigation";
+import { RecyclingLoader } from "@/app/components/ui/RecyclingLoader";
+import { LogoutButton } from "@/app/components/ui/LogoutButton";
+import { Navigation } from "@/app/components/ui/Navigation";
 
 interface UserProfile {
   id: string;

@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import { Bin } from "@/app/components/MapComponent";
+import { Bin } from "@/app/components/map-ui/MapComponent";
 import { supabase } from "@/lib/supabase-browser";
-import { Navigation } from "@/app/components/Navigation";
+import { Navigation } from "@/app/components/ui/Navigation";
 
-const MapComponent = dynamic(() => import("@/app/components/MapComponent"), {
+const MapComponent = dynamic(() => import("@/app/components/map-ui/MapComponent"), {
   ssr: false,
 });
 

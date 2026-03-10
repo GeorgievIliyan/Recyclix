@@ -5,7 +5,7 @@ import {
   Gift, Sparkles, Lock, CheckCircle2, Zap, ShoppingBag,
   Leaf, Recycle, Star, X, Copy, Check, TrendingUp, AlertCircle,
 } from "lucide-react";
-import { Navigation } from "@/app/components/Navigation";
+import { Navigation } from "@/app/components/ui/Navigation";
 import { createClient } from "@supabase/supabase-js";
 
 interface Reward {

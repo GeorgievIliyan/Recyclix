@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase-browser";
-import ConfirmCamera from "@/app/components/ConfirmCamera";
-import { FreeCamera } from "@/app/components/FreeCamera";
+import ConfirmCamera from "@/app/components/other/ConfirmCamera";
+import { FreeCamera } from "@/app/components/other/FreeCamera";
 import {
   CheckCircle2,
   Circle,
@@ -14,8 +14,8 @@ import {
   CircleAlert,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { RecyclingLoader } from "@/app/components/RecyclingLoader";
-import { Navigation } from "@/app/components/Navigation";
+import { RecyclingLoader } from "@/app/components/ui/RecyclingLoader";
+import { Navigation } from "@/app/components/ui/Navigation";
 
 interface Task {
   id: string;

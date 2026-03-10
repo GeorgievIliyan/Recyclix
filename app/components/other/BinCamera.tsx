@@ -16,7 +16,7 @@ import { QRCodeSVG } from "qrcode.react";
 import {
   SimpleSpinningRecycling,
   SpinningRecyclingLoader,
-} from "./RecyclingLoader";
+} from "../ui/RecyclingLoader";
 import { isDev } from "@/lib/isDev";
 import { useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";

@@ -10,7 +10,7 @@ import {
   Tooltip,
 } from "recharts";
 import { Recycle } from "lucide-react";
-import { RECYCLING_COLORS } from "@/app/components/MapComponent";
+import { RECYCLING_COLORS } from "@/app/components/map-ui/MapComponent";
 
 interface MaterialData {
   name: string;

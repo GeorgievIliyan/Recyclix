@@ -3,16 +3,16 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase-browser";
 import { isDev } from "@/lib/isDev";
-import Pricing from "./components/Pricing";
-import SmartBins from "./components/SmartBins";
-import HomepageFooter from "./components/HomepageFooter";
-import CallToAction from "./components/CallToAction";
-import HomepageNavigation from "./components/HomepageNavigation";
-import Hero from "./components/Hero";
-import Feature from "./components/Feature";
-import HowItWorks from "./components/HowItWorks";
-import Impact from "./components/Impact";
-import Quote from "./components/Quote";
+import Pricing from "./components/homepage/Pricing";
+import SmartBins from "./components/homepage/SmartBins";
+import HomepageFooter from "./components/homepage/HomepageFooter";
+import CallToAction from "./components/homepage/CallToAction";
+import HomepageNavigation from "./components/homepage/HomepageNavigation";
+import Hero from "./components/homepage/Hero";
+import Feature from "./components/homepage/Feature";
+import HowItWorks from "./components/homepage/HowItWorks";
+import Impact from "./components/homepage/Impact";
+import Quote from "./components/homepage/Quote";
 
 const CACHE_DURATION = 2 * 60 * 60 * 1000;
 
