@@ -26,7 +26,7 @@ const sanitize = {
       .substring(0, 255);
   },
 
-  // валидация на имейл
+  // Валидация на имейл
   email: (email: string): string | null => {
     if (!email) return null;
 
@@ -69,6 +69,39 @@ const sanitize = {
   },
 };
 
+// Изчисляване на силата на паролата
+interface PasswordStrength {
+  score: number; // 0–4
+  label: string;
+  barColor: string;
+}
+
+function getPasswordStrength(password: string): PasswordStrength {
+  let score = 0;
+  if (password.length >= 8) score++;
+  if (/[A-Z]/.test(password)) score++;
+  if (/[0-9]/.test(password)) score++;
+  if (/[^A-Za-z0-9]/.test(password)) score++;
+
+  const levels: PasswordStrength[] = [
+    { score: 0, label: "Много слаба", barColor: "bg-red-500" },
+    { score: 1, label: "Слаба",       barColor: "bg-orange-500" },
+    { score: 2, label: "Средна",      barColor: "bg-yellow-500" },
+    { score: 3, label: "Добра",       barColor: "bg-[#00CD56]" },
+    { score: 4, label: "Силна",       barColor: "bg-emerald-500" },
+  ];
+
+  return levels[score];
+}
+
+// Изисквания за паролата — описание и проверка
+const passwordRequirements = [
+  { label: "Поне 8 символа",                  test: (p: string) => p.length >= 8 },
+  { label: "Поне една главна буква (A–Z)",     test: (p: string) => /[A-Z]/.test(p) },
+  { label: "Поне една цифра (0–9)",            test: (p: string) => /[0-9]/.test(p) },
+  { label: "Поне един специален символ (!@#…)", test: (p: string) => /[^A-Za-z0-9]/.test(p) },
+];
+
 function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -77,7 +110,13 @@ function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
+  // Показваме изискванията само когато потребителят е започнал да пише
+  const [passwordFocused, setPasswordFocused] = useState(false);
+
   const router = useRouter();
+
+  // Изчисляваме силата само когато има въведена парола
+  const strength = password ? getPasswordStrength(password) : null;
 
   const handleTogglePassword = () => {
     setPasswordShown(!passwordShown);
@@ -116,7 +155,7 @@ function RegisterPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-Requested-With": "XMLHttpRequest", // Против AJAX заявки
+          "X-Requested-With": "XMLHttpRequest", // Против CSRF заявки
         },
         body: JSON.stringify({
           email: sanitizedEmail,
@@ -280,27 +319,84 @@ function RegisterPage() {
                 />
               </div>
 
-              <div className="relative">
-                <input
-                  type={passwordShown ? "text" : "password"}
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3.5 pr-12 rounded-xl bg-neutral-50/50 dark:bg-neutral-800/50 border border-neutral-300/50 dark:border-neutral-700/50 text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-[#00CD56]/50 dark:focus:ring-[#00CD56]/40 focus:border-[#00CD56] dark:focus:border-[#00CD56] transition-all duration-200 backdrop-blur-sm"
-                />
-                <button
-                  type="button"
-                  className="absolute inset-y-0 right-3 flex items-center text-neutral-400 hover:text-neutral-600 transition duration-150 dark:hover:text-neutral-300"
-                >
-                  {passwordShown ? (
-                    <EyeOff
-                      className="w-5 h-5"
-                      onClick={handleTogglePassword}
-                    />
-                  ) : (
-                    <Eye className="w-5 h-5" onClick={handleTogglePassword} />
-                  )}
-                </button>
+              {/* Поле за парола с индикатор за сила */}
+              <div className="space-y-3">
+                <div className="relative">
+                  <input
+                    type={passwordShown ? "text" : "password"}
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onFocus={() => setPasswordFocused(true)}
+                    className="w-full px-4 py-3.5 pr-12 rounded-xl bg-neutral-50/50 dark:bg-neutral-800/50 border border-neutral-300/50 dark:border-neutral-700/50 text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-[#00CD56]/50 dark:focus:ring-[#00CD56]/40 focus:border-[#00CD56] dark:focus:border-[#00CD56] transition-all duration-200 backdrop-blur-sm"
+                  />
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 right-3 flex items-center text-neutral-400 hover:text-[#00CD56] transition duration-150"
+                    onClick={handleTogglePassword}
+                  >
+                    {passwordShown ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
+
+                {/* Индикатор за сила на паролата — появява се след фокус */}
+                {passwordFocused && password.length > 0 && strength && (
+                  <div className="space-y-1.5">
+                    {/* Лента за сила */}
+                    <div className="flex gap-1">
+                      {[0, 1, 2, 3].map((i) => (
+                        <div
+                          key={i}
+                          className={`h-1 flex-1 rounded-full transition-all duration-300 ${
+                            i < strength.score
+                              ? `${strength.barColor} shadow-sm shadow-[#00CD56]/30`
+                              : "bg-neutral-200 dark:bg-neutral-700"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                      Сила на паролата:{" "}
+                      <span className="font-medium text-neutral-700 dark:text-neutral-200">
+                        {strength.label}
+                      </span>
+                    </p>
+                  </div>
+                )}
+
+                {/* Изисквания за паролата — показват се след фокус */}
+                {passwordFocused && (
+                  <div className="rounded-xl bg-neutral-50/80 dark:bg-neutral-800/50 border border-neutral-200/50 dark:border-neutral-700/50 p-3 space-y-1.5">
+                    {passwordRequirements.map(({ label, test }) => {
+                      const met = test(password);
+                      return (
+                        <div key={label} className="flex items-center gap-2">
+                          {/* Точка — светва в зелено когато изискването е изпълнено */}
+                          <span
+                            className={`inline-block size-1.5 rounded-full flex-shrink-0 transition-all duration-300 ${
+                              met
+                                ? "bg-[#00CD56] shadow-sm shadow-[#00CD56]/60"
+                                : "bg-neutral-300 dark:bg-neutral-600"
+                            }`}
+                          />
+                          <p
+                            className={`text-xs transition-colors duration-200 ${
+                              met
+                                ? "text-neutral-700 dark:text-neutral-200"
+                                : "text-neutral-400 dark:text-neutral-500"
+                            }`}
+                          >
+                            {label}
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             </div>
 

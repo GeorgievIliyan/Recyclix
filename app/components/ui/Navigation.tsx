@@ -7,7 +7,7 @@ import { LayoutDashboard, MapPin, ListTodo, User, Gift } from "lucide-react";
 import { motion, LayoutGroup } from "framer-motion";
 import { cn } from "@/lib/utils";
 
-type Module = "dashboard" | "map" | "tasks" | "rewards" | "account";
+type Module = "dashboard" | "map" | "tasks" | "rewards" | "account"
 
 interface ModuleItem {
   id: Module;
@@ -17,12 +17,7 @@ interface ModuleItem {
 }
 
 const modules: ModuleItem[] = [
-  {
-    id: "dashboard",
-    label: "Табло",
-    icon: LayoutDashboard,
-    path: "/app/dashboard",
-  },
+  { id: "dashboard", label: "Табло", icon: LayoutDashboard, path: "/app/dashboard" },
   { id: "map", label: "Карта", icon: MapPin, path: "/app/map" },
   { id: "tasks", label: "Задачи", icon: ListTodo, path: "/app/tasks" },
   { id: "rewards", label: "Награди", icon: Gift, path: "/app/rewards" },
@@ -33,8 +28,8 @@ export function Navigation({ className }: { className?: string }) {
   const pathname = usePathname();
   const [isVisible, setIsVisible] = useState(true);
   const lastScrollY = useRef(0);
-  const activeModule =
-    modules.find((m) => pathname?.startsWith(m.path))?.id || "dashboard";
+  const activeModule = modules.find((m) => pathname?.startsWith(m.path))?.id ||
+    (pathname?.startsWith("/auth/") ? "account" : "dashboard");
 
   useEffect(() => {
     const handleScroll = () => {

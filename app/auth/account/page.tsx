@@ -9,6 +9,7 @@ import { supabase } from "@/lib/supabase-browser";
 import { RecyclingLoader } from "@/app/components/ui/RecyclingLoader";
 import { LogoutButton } from "@/app/components/ui/LogoutButton";
 import { Navigation } from "@/app/components/ui/Navigation";
+import { useRouter } from "next/navigation";
 
 interface UserProfile {
   id: string;
@@ -18,6 +19,9 @@ interface UserProfile {
 }
 
 export default function ProfilePage() {
+
+  const router = useRouter();
+
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [lastPasswordChange, setLastPasswordChange] = useState<string | null>(null);
@@ -160,6 +164,7 @@ export default function ProfilePage() {
 
               <Button
                 variant="outline"
+                onClick={() => router.push('/auth/reset-password')}
                 className="w-full sm:w-auto bg-transparent hover:bg-gradient-to-r hover:from-green-500/10 hover:to-transparent hover:border-green-500/40 transition-all duration-200"
               >
                 <Lock className="mr-1 size-4" />
