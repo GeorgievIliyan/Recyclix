@@ -16,9 +16,9 @@ const LogoutButtonAlt = () => {
   return (
     <button
       onClick={handleLogout}
-      className="p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-700 hover:[&_svg]:!text-red-500"
+      className="group p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
     >
-      <LogOut className="w-4 h-4 text-neutral-600 dark:neutral-500 transition duration-300" />
+      <LogOut className="w-4 h-4 text-neutral-500 dark:text-neutral-400 group-hover:!text-red-500 transition-colors duration-200" />
     </button>
   );
 };

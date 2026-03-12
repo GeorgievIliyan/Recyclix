@@ -79,24 +79,28 @@ CREATE TABLE public.pending_bins (
     image_url text
 );
 
-CREATE TABLE public.recycling_bins (
-    id uuid NOT NULL DEFAULT gen_random_uuid(),
-    created_at timestamp with time zone NOT NULL DEFAULT now(),
-    updated_at timestamp with time zone DEFAULT now(),
-    osm_id text DEFAULT ''::text,
-    lat double precision,
-    lon double precision,
-    tags jsonb,
-    capacity integer,
-    current_load integer DEFAULT 0,
-    total_weight numeric(10,2) DEFAULT 0,
-    organization_id uuid,
-    last_emptied timestamp without time zone,
-    stats_today jsonb DEFAULT '{}'::jsonb,
-    code text NOT NULL,
-    image_url text,
-    is_smart boolean DEFAULT false
-);
+create table public.recycling_bins (
+  id uuid not null default gen_random_uuid (),
+  created_at timestamp with time zone not null default now(),
+  updated_at timestamp with time zone null default now(),
+  osm_id text null default ''::text,
+  lat double precision null,
+  lon double precision null,
+  tags jsonb null,
+  capacity integer null,
+  current_load integer null default 0,
+  total_weight numeric(10, 2) null default 0,
+  organization_id uuid null,
+  last_emptied timestamp without time zone null,
+  stats_today jsonb null default '{}'::jsonb,
+  code text not null,
+  image_url text null,
+  is_smart boolean null default false,
+  org_bin_code text null,
+  constraint recycling_bins_pkey primary key (id),
+  constraint recycling_bins_org_bin_code_key unique (org_bin_code),
+  constraint recycling_bins_osm_id_key unique (osm_id)
+) TABLESPACE pg_default;
 
 CREATE TABLE public.recycling_events (
     id uuid NOT NULL DEFAULT gen_random_uuid(),
