@@ -15,6 +15,7 @@ export type Badge = {
   is_active: boolean;
   locked?: boolean;
   rarity?: "common" | "rare" | "epic" | "legendary";
+  progress?: number; // 0–100
 };
 
 type BadgesGalleryProps = {
@@ -250,6 +251,9 @@ function BadgeItem({
   const config = rarityConfig[rarity];
   const imageUrl = `/badges/badge-${badge.id}.png`;
 
+  const progress = Math.min(100, Math.max(0, badge.progress ?? (isLocked ? 0 : 100)));
+  const isComplete = progress >= 100;
+
   return (
     <div className={cn("group/badge relative", className)}>
       <div
@@ -280,7 +284,7 @@ function BadgeItem({
           />
         </div>
 
-        {/* иконка */}
+        {/* иконка заключване */}
         {isLocked && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/10 dark:bg-black/20 rounded-xl">
             <div className="p-2 rounded-full bg-zinc-900/30 dark:bg-zinc-900/50 backdrop-blur-sm">
@@ -290,21 +294,32 @@ function BadgeItem({
         )}
 
         {/* указания */}
-        {badge.how_to_obtain && (
-          <div
-            className={cn(
-              "absolute inset-0 flex items-end justify-center rounded-xl",
-              "bg-gradient-to-t from-black/80 via-black/40 to-transparent",
-              "opacity-0 group-hover/badge:opacity-100",
-              "transition-opacity duration-300 p-2",
-            )}
-          >
-            <p className="text-white text-[11px] text-center leading-snug line-clamp-4">
+        <div
+          className={cn(
+            "absolute inset-0 flex flex-col items-center justify-end rounded-xl",
+            "bg-gradient-to-t from-black/80 via-black/40 to-transparent",
+            "opacity-0 group-hover/badge:opacity-100",
+            "transition-opacity duration-300 p-2 gap-2",
+          )}
+        >
+          {/* как да се сдобием */}
+          {badge.how_to_obtain && (
+            <p className="text-white text-[11px] text-center leading-snug line-clamp-3">
               {isLocked ? "🔒 " : "💡 "}
               {badge.how_to_obtain}
             </p>
-          </div>
-        )}
+          )}
+
+          {/* ниво на прогрес */}
+          {badge.progress !== undefined && !isComplete && (
+            <div className="w-full h-1.5 rounded-full bg-white/20 overflow-hidden">
+              <div
+                className="h-full rounded-full bg-green-500 transition-all duration-500 ease-out"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       {/* описание под картината */}
