@@ -1,9 +1,14 @@
+-- ============================================================
+-- TABLES
+-- ============================================================
+
 CREATE TABLE public.badges (
     id smallint NOT NULL DEFAULT nextval('badges_id_seq'::regclass),
     title text,
     description text,
     category text,
-    is_active boolean NOT NULL DEFAULT true
+    is_active boolean NOT NULL DEFAULT true,
+    how_to_obtain text
 );
 
 CREATE TABLE public.edit_suggestions (
@@ -79,28 +84,25 @@ CREATE TABLE public.pending_bins (
     image_url text
 );
 
-create table public.recycling_bins (
-  id uuid not null default gen_random_uuid (),
-  created_at timestamp with time zone not null default now(),
-  updated_at timestamp with time zone null default now(),
-  osm_id text null default ''::text,
-  lat double precision null,
-  lon double precision null,
-  tags jsonb null,
-  capacity integer null,
-  current_load integer null default 0,
-  total_weight numeric(10, 2) null default 0,
-  organization_id uuid null,
-  last_emptied timestamp without time zone null,
-  stats_today jsonb null default '{}'::jsonb,
-  code text not null,
-  image_url text null,
-  is_smart boolean null default false,
-  org_bin_code text null,
-  constraint recycling_bins_pkey primary key (id),
-  constraint recycling_bins_org_bin_code_key unique (org_bin_code),
-  constraint recycling_bins_osm_id_key unique (osm_id)
-) TABLESPACE pg_default;
+CREATE TABLE public.recycling_bins (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    created_at timestamp with time zone NOT NULL DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    osm_id text DEFAULT ''::text,
+    lat double precision,
+    lon double precision,
+    tags jsonb,
+    capacity integer,
+    current_load integer DEFAULT 0,
+    total_weight numeric(10,2) DEFAULT 0,
+    organization_id uuid,
+    last_emptied timestamp without time zone,
+    stats_today jsonb DEFAULT '{}'::jsonb,
+    code text NOT NULL,
+    image_url text,
+    is_smart boolean DEFAULT false,
+    org_bin_code text
+);
 
 CREATE TABLE public.recycling_events (
     id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -125,7 +127,7 @@ CREATE TABLE public.reports (
     id uuid NOT NULL DEFAULT gen_random_uuid(),
     user_id uuid,
     bin_id uuid,
-    type text NOT NULL DEFAULT 'general '::text,
+    type text NOT NULL DEFAULT 'general'::text,
     created_at timestamp with time zone NOT NULL DEFAULT now(),
     title text NOT NULL DEFAULT 'New report'::text,
     description text,
@@ -170,13 +172,13 @@ CREATE TABLE public.tasks_pool (
 );
 
 CREATE TABLE public.temporary_qrs (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
     token text NOT NULL,
     points integer NOT NULL DEFAULT 10,
     expires_at timestamp with time zone NOT NULL,
     created_at timestamp with time zone DEFAULT timezone('utc'::text, now()),
     code text,
     is_claimed boolean DEFAULT false,
-    id uuid NOT NULL DEFAULT gen_random_uuid(),
     user_id uuid
 );
 
@@ -193,713 +195,846 @@ CREATE TABLE public.user_profiles (
     id uuid NOT NULL DEFAULT gen_random_uuid(),
     xp integer NOT NULL DEFAULT 0,
     level integer NOT NULL DEFAULT 1,
-    trust_score double precision NOT NULL DEFAULT '1'::double precision,
-    streak double precision NOT NULL DEFAULT '0'::double precision,
+    trust_score double precision NOT NULL DEFAULT 1,
+    streak double precision NOT NULL DEFAULT 0,
     created_at timestamp with time zone NOT NULL DEFAULT now(),
     updated_at timestamp with time zone DEFAULT now(),
     badges jsonb NOT NULL DEFAULT '[]'::jsonb,
     app_role text NOT NULL DEFAULT 'user'::text,
     organization_id uuid,
-    organization_role text
+    organization_role text,
+    username text,
+    password_changed_at timestamp with time zone
 );
 
-CREATE POLICY full_access ON public.badges AS PERMISSIVE FOR ALL TO PUBLIC USING (true) WITH CHECK (true);
 
-CREATE POLICY edit_suggestions_insert ON public.edit_suggestions AS PERMISSIVE FOR ALL TO PUBLIC WITH CHECK (((user_id IS NULL) OR (user_id = auth.uid())));
+-- ============================================================
+-- POLICIES
+-- ============================================================
 
-CREATE POLICY edit_suggestions_select ON public.edit_suggestions AS PERMISSIVE FOR ALL TO PUBLIC USING (true);
+CREATE POLICY full_access ON public.badges
+    AS PERMISSIVE FOR ALL TO PUBLIC
+    USING (true) WITH CHECK (true);
 
-CREATE POLICY "Service role can insert" ON public.images AS PERMISSIVE FOR ALL TO service_role WITH CHECK (true);
+CREATE POLICY edit_suggestions_insert ON public.edit_suggestions
+    AS PERMISSIVE FOR ALL TO PUBLIC
+    WITH CHECK ((user_id IS NULL) OR (user_id = auth.uid()));
 
-CREATE POLICY "Users can insert their own images" ON public.images AS PERMISSIVE FOR ALL TO authenticated WITH CHECK ((auth.uid() = user_id));
+CREATE POLICY edit_suggestions_select ON public.edit_suggestions
+    AS PERMISSIVE FOR ALL TO PUBLIC
+    USING (true);
 
-CREATE POLICY "public can submit organization request" ON public.organization_requests AS PERMISSIVE FOR ALL TO anon WITH CHECK (true);
+CREATE POLICY "Service role can insert" ON public.images
+    AS PERMISSIVE FOR ALL TO service_role
+    WITH CHECK (true);
 
-CREATE POLICY pending_bins_update ON public.pending_bins AS PERMISSIVE FOR ALL TO PUBLIC USING (true) WITH CHECK (true);
+CREATE POLICY "Users can insert their own images" ON public.images
+    AS PERMISSIVE FOR ALL TO authenticated
+    WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY pending_bins_select ON public.pending_bins AS PERMISSIVE FOR ALL TO PUBLIC USING (true);
+CREATE POLICY "public can submit organization request" ON public.organization_requests
+    AS PERMISSIVE FOR ALL TO anon
+    WITH CHECK (true);
 
-CREATE POLICY pending_bins_insert ON public.pending_bins AS PERMISSIVE FOR ALL TO PUBLIC WITH CHECK (((user_id IS NULL) OR (user_id = auth.uid())));
+CREATE POLICY pending_bins_update ON public.pending_bins
+    AS PERMISSIVE FOR ALL TO PUBLIC
+    USING (true) WITH CHECK (true);
 
-CREATE POLICY "service role can write" ON public.recycling_bins AS PERMISSIVE FOR ALL TO service_role USING (true) WITH CHECK (true);
+CREATE POLICY pending_bins_select ON public.pending_bins
+    AS PERMISSIVE FOR ALL TO PUBLIC
+    USING (true);
 
-CREATE POLICY "Allow insert for authenticated users" ON public.recycling_bins AS PERMISSIVE FOR ALL TO PUBLIC WITH CHECK ((auth.uid() IS NOT NULL));
+CREATE POLICY pending_bins_insert ON public.pending_bins
+    AS PERMISSIVE FOR ALL TO PUBLIC
+    WITH CHECK ((user_id IS NULL) OR (user_id = auth.uid()));
 
-CREATE POLICY "public can read bins" ON public.recycling_bins AS PERMISSIVE FOR ALL TO anon USING (true);
+CREATE POLICY "service role can write" ON public.recycling_bins
+    AS PERMISSIVE FOR ALL TO service_role
+    USING (true) WITH CHECK (true);
 
-CREATE POLICY "public read bins" ON public.recycling_bins AS PERMISSIVE FOR ALL TO PUBLIC USING (true);
+CREATE POLICY "Allow insert for authenticated users" ON public.recycling_bins
+    AS PERMISSIVE FOR ALL TO PUBLIC
+    WITH CHECK (auth.uid() IS NOT NULL);
 
-CREATE POLICY "public read recycling bins" ON public.recycling_bins AS PERMISSIVE FOR ALL TO PUBLIC USING (true);
+CREATE POLICY "public can read bins" ON public.recycling_bins
+    AS PERMISSIVE FOR ALL TO anon
+    USING (true);
 
-CREATE POLICY "Allow public read access" ON public.recycling_events AS PERMISSIVE FOR ALL TO PUBLIC USING (true);
+CREATE POLICY "public read bins" ON public.recycling_bins
+    AS PERMISSIVE FOR ALL TO PUBLIC
+    USING (true);
 
-CREATE POLICY report_photos_select ON public.report_photos AS PERMISSIVE FOR ALL TO PUBLIC USING (true);
+CREATE POLICY "public read recycling bins" ON public.recycling_bins
+    AS PERMISSIVE FOR ALL TO PUBLIC
+    USING (true);
 
-CREATE POLICY report_photos_insert ON public.report_photos AS PERMISSIVE FOR ALL TO PUBLIC WITH CHECK (((user_id IS NULL) OR (user_id = auth.uid())));
+CREATE POLICY "Allow public read access" ON public.recycling_events
+    AS PERMISSIVE FOR ALL TO PUBLIC
+    USING (true);
 
-CREATE POLICY reports_select ON public.reports AS PERMISSIVE FOR ALL TO PUBLIC USING (true);
+CREATE POLICY report_photos_select ON public.report_photos
+    AS PERMISSIVE FOR ALL TO PUBLIC
+    USING (true);
 
-CREATE POLICY reports_insert ON public.reports AS PERMISSIVE FOR ALL TO PUBLIC WITH CHECK (((user_id IS NULL) OR (user_id = auth.uid())));
+CREATE POLICY report_photos_insert ON public.report_photos
+    AS PERMISSIVE FOR ALL TO PUBLIC
+    WITH CHECK ((user_id IS NULL) OR (user_id = auth.uid()));
 
-CREATE POLICY "Allow read access for all authenticated users" ON public.rewards AS PERMISSIVE FOR ALL TO authenticated USING (true);
+CREATE POLICY reports_select ON public.reports
+    AS PERMISSIVE FOR ALL TO PUBLIC
+    USING (true);
 
-CREATE POLICY "Anyone can view available rewards" ON public.rewards AS PERMISSIVE FOR ALL TO PUBLIC USING ((is_available = true));
+CREATE POLICY reports_insert ON public.reports
+    AS PERMISSIVE FOR ALL TO PUBLIC
+    WITH CHECK ((user_id IS NULL) OR (user_id = auth.uid()));
 
-CREATE POLICY "Users can insert their own task images" ON public.task_images AS PERMISSIVE FOR ALL TO PUBLIC WITH CHECK ((auth.uid() = user_id));
+CREATE POLICY "Allow read access for all authenticated users" ON public.rewards
+    AS PERMISSIVE FOR ALL TO authenticated
+    USING (true);
 
-CREATE POLICY "Users can view their own task images" ON public.task_images AS PERMISSIVE FOR ALL TO PUBLIC USING ((auth.uid() = user_id));
+CREATE POLICY "Anyone can view available rewards" ON public.rewards
+    AS PERMISSIVE FOR ALL TO PUBLIC
+    USING (is_available = true);
 
-CREATE POLICY "Allow public read" ON public.tasks_pool AS PERMISSIVE FOR ALL TO PUBLIC USING (true);
+CREATE POLICY "Users can insert their own task images" ON public.task_images
+    AS PERMISSIVE FOR ALL TO PUBLIC
+    WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY "Users can read own daily tasks" ON public.user_daily_tasks AS PERMISSIVE FOR ALL TO PUBLIC USING ((auth.uid() = user_id));
+CREATE POLICY "Users can view their own task images" ON public.task_images
+    AS PERMISSIVE FOR ALL TO PUBLIC
+    USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can update own daily tasks" ON public.user_daily_tasks AS PERMISSIVE FOR ALL TO PUBLIC USING ((auth.uid() = user_id)) WITH CHECK ((auth.uid() = user_id));
+CREATE POLICY "Allow public read" ON public.tasks_pool
+    AS PERMISSIVE FOR ALL TO PUBLIC
+    USING (true);
 
-CREATE POLICY "Authenticated users can insert daily tasks" ON public.user_daily_tasks AS PERMISSIVE FOR ALL TO PUBLIC WITH CHECK ((auth.role() = 'authenticated'::text));
+CREATE POLICY "Users can delete own daily tasks" ON public.user_daily_tasks
+    AS PERMISSIVE FOR ALL TO PUBLIC
+    USING (auth.uid() = user_id);
 
-CREATE POLICY "Allow server inserts daily tasks" ON public.user_daily_tasks AS PERMISSIVE FOR ALL TO PUBLIC WITH CHECK (true);
+CREATE POLICY "Users can update own daily tasks" ON public.user_daily_tasks
+    AS PERMISSIVE FOR ALL TO PUBLIC
+    USING (auth.uid() = user_id)
+    WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY "Users can delete own daily tasks" ON public.user_daily_tasks AS PERMISSIVE FOR ALL TO PUBLIC USING ((auth.uid() = user_id));
+CREATE POLICY "Authenticated users can insert daily tasks" ON public.user_daily_tasks
+    AS PERMISSIVE FOR ALL TO PUBLIC
+    WITH CHECK (auth.role() = 'authenticated'::text);
 
-CREATE POLICY "Allow insert for daily tasks" ON public.user_daily_tasks AS PERMISSIVE FOR ALL TO PUBLIC WITH CHECK (true);
+CREATE POLICY "Allow server inserts daily tasks" ON public.user_daily_tasks
+    AS PERMISSIVE FOR ALL TO PUBLIC
+    WITH CHECK (true);
 
-CREATE POLICY "Only platform admins can view all profiles" ON public.user_profiles AS PERMISSIVE FOR ALL TO PUBLIC USING ((is_platform_admin() OR (id = auth.uid())));
+CREATE POLICY "Users can read own daily tasks" ON public.user_daily_tasks
+    AS PERMISSIVE FOR ALL TO PUBLIC
+    USING (auth.uid() = user_id);
 
-CREATE POLICY "Allow read profiles for cron" ON public.user_profiles AS PERMISSIVE FOR ALL TO PUBLIC USING (true);
+CREATE POLICY "Allow insert for daily tasks" ON public.user_daily_tasks
+    AS PERMISSIVE FOR ALL TO PUBLIC
+    WITH CHECK (true);
 
-CREATE POLICY update_own_profile ON public.user_profiles AS PERMISSIVE FOR ALL TO PUBLIC USING ((auth.uid() = id));
+CREATE POLICY "Only platform admins can view all profiles" ON public.user_profiles
+    AS PERMISSIVE FOR ALL TO PUBLIC
+    USING (is_platform_admin() OR (id = auth.uid()));
 
-CREATE POLICY read_own_profile ON public.user_profiles AS PERMISSIVE FOR ALL TO PUBLIC USING ((auth.uid() = id));
+CREATE POLICY "Allow read profiles for cron" ON public.user_profiles
+    AS PERMISSIVE FOR ALL TO PUBLIC
+    USING (true);
+
+CREATE POLICY update_own_profile ON public.user_profiles
+    AS PERMISSIVE FOR ALL TO PUBLIC
+    USING (auth.uid() = id);
+
+CREATE POLICY read_own_profile ON public.user_profiles
+    AS PERMISSIVE FOR ALL TO PUBLIC
+    USING (auth.uid() = id);
+
+
+-- ============================================================
+-- FUNCTIONS
+-- ============================================================
 
 CREATE OR REPLACE FUNCTION public.after_recycling_event()
- RETURNS trigger
- LANGUAGE plpgsql
-AS $function$
-begin
-  perform check_and_award_weight_badges(new.user_id);
-  return new;
-end;
-$function$;
-
-CREATE OR REPLACE FUNCTION public.approve_bin(bin_id uuid, bin_code text, bin_lat double precision, bin_lon double precision, bin_tags jsonb)
- RETURNS boolean
- LANGUAGE plpgsql
- SECURITY DEFINER
-AS $function$
-DECLARE
-  success BOOLEAN := false;
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
 BEGIN
-  UPDATE pending_bins 
-  SET status = 'approved', updated_at = NOW()
-  WHERE id = bin_id;
-  
-  INSERT INTO recycling_bins (code, lat, lon, tags, stats_today, created_at, updated_at)
-  VALUES (
-    COALESCE(bin_code, bin_id::TEXT),
-    bin_lat,
-    bin_lon,
-    bin_tags,
-    '{}'::jsonb,
-    COALESCE((SELECT created_at FROM pending_bins WHERE id = bin_id), NOW()),
-    NOW()
-  );
-  
-  success := true;
-  RETURN success;
-EXCEPTION WHEN OTHERS THEN
-  RETURN false;
+    PERFORM check_and_award_weight_badges(NEW.user_id);
+    RETURN NEW;
 END;
-$function$;
+$$;
+
+CREATE OR REPLACE FUNCTION public.approve_bin(
+    bin_id uuid,
+    bin_code text,
+    bin_lat double precision,
+    bin_lon double precision,
+    bin_tags jsonb
+)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    success BOOLEAN := false;
+BEGIN
+    UPDATE pending_bins
+    SET status = 'approved', updated_at = NOW()
+    WHERE id = bin_id;
+
+    INSERT INTO recycling_bins (code, lat, lon, tags, stats_today, created_at, updated_at)
+    VALUES (
+        COALESCE(bin_code, bin_id::TEXT),
+        bin_lat,
+        bin_lon,
+        bin_tags,
+        '{}'::jsonb,
+        COALESCE((SELECT created_at FROM pending_bins WHERE id = bin_id), NOW()),
+        NOW()
+    );
+
+    success := true;
+    RETURN success;
+EXCEPTION WHEN OTHERS THEN
+    RETURN false;
+END;
+$$;
 
 CREATE OR REPLACE FUNCTION public.approve_organization_request(request_id uuid)
- RETURNS boolean
- LANGUAGE plpgsql
- SECURITY DEFINER
-AS $function$
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
 DECLARE
-  success BOOLEAN := false;
+    success BOOLEAN := false;
 BEGIN
-  UPDATE organization_requests 
-  SET status = 'approved', updated_at = NOW()
-  WHERE id = request_id;
-  
-  success := true;
-  RETURN success;
+    UPDATE organization_requests
+    SET status = 'approved', updated_at = NOW()
+    WHERE id = request_id;
+
+    success := true;
+    RETURN success;
 EXCEPTION WHEN OTHERS THEN
-  RETURN false;
+    RETURN false;
 END;
-$function$;
+$$;
 
 CREATE OR REPLACE FUNCTION public.approve_suggestion(suggestion_id uuid, reviewer_id uuid)
- RETURNS boolean
- LANGUAGE plpgsql
- SECURITY DEFINER
-AS $function$
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
 DECLARE
-  suggestion_record edit_suggestions%ROWTYPE;
-  bin_record recycling_bins%ROWTYPE;
-  updated_tags JSONB;
-  success BOOLEAN := false;
+    suggestion_record edit_suggestions%ROWTYPE;
+    bin_record        recycling_bins%ROWTYPE;
+    updated_tags      JSONB;
+    success           BOOLEAN := false;
 BEGIN
-  SELECT * INTO suggestion_record FROM edit_suggestions WHERE id = suggestion_id;
-  
-  BEGIN
-    SELECT * INTO bin_record FROM recycling_bins WHERE id::TEXT = suggestion_record.bin_id;
-  EXCEPTION WHEN NO_DATA_FOUND THEN
-    SELECT * INTO bin_record FROM recycling_bins WHERE code = suggestion_record.bin_id;
-  END;
-  
-  IF bin_record.id IS NULL THEN
-    RETURN false;
-  END IF;
-  
-  updated_tags = bin_record.tags;
-  
-  IF suggestion_record.name IS NOT NULL THEN
-    updated_tags = jsonb_set(updated_tags, '{name}', to_jsonb(suggestion_record.name));
-  END IF;
-  
-  IF suggestion_record.opening_hours IS NOT NULL THEN
-    updated_tags = jsonb_set(updated_tags, '{opening_hours}', to_jsonb(suggestion_record.opening_hours));
-  END IF;
-  
-  IF suggestion_record.materials IS NOT NULL THEN
-    updated_tags = jsonb_set(updated_tags, '{recycling_type}', to_jsonb(suggestion_record.materials));
-  END IF;
-  
-  IF suggestion_record.field_name IS NOT NULL AND suggestion_record.new_value IS NOT NULL THEN
-    updated_tags = jsonb_set(updated_tags, to_jsonb(suggestion_record.field_name), suggestion_record.new_value);
-  END IF;
-  
-  UPDATE recycling_bins 
-  SET tags = updated_tags, updated_at = NOW()
-  WHERE id = bin_record.id;
-  
-  UPDATE edit_suggestions 
-  SET 
-    status = 'approved',
-    reviewed_by = reviewer_id,
-    reviewed_at = NOW(),
-    updated_at = NOW()
-  WHERE id = suggestion_id;
-  
-  success := true;
-  RETURN success;
+    SELECT * INTO suggestion_record FROM edit_suggestions WHERE id = suggestion_id;
+
+    BEGIN
+        SELECT * INTO bin_record FROM recycling_bins WHERE id::TEXT = suggestion_record.bin_id;
+    EXCEPTION WHEN NO_DATA_FOUND THEN
+        SELECT * INTO bin_record FROM recycling_bins WHERE code = suggestion_record.bin_id;
+    END;
+
+    IF bin_record.id IS NULL THEN
+        RETURN false;
+    END IF;
+
+    updated_tags := bin_record.tags;
+
+    IF suggestion_record.name IS NOT NULL THEN
+        updated_tags := jsonb_set(updated_tags, '{name}', to_jsonb(suggestion_record.name));
+    END IF;
+
+    IF suggestion_record.opening_hours IS NOT NULL THEN
+        updated_tags := jsonb_set(updated_tags, '{opening_hours}', to_jsonb(suggestion_record.opening_hours));
+    END IF;
+
+    IF suggestion_record.materials IS NOT NULL THEN
+        updated_tags := jsonb_set(updated_tags, '{recycling_type}', to_jsonb(suggestion_record.materials));
+    END IF;
+
+    IF suggestion_record.field_name IS NOT NULL AND suggestion_record.new_value IS NOT NULL THEN
+        updated_tags := jsonb_set(updated_tags, to_jsonb(suggestion_record.field_name), suggestion_record.new_value);
+    END IF;
+
+    UPDATE recycling_bins
+    SET tags = updated_tags, updated_at = NOW()
+    WHERE id = bin_record.id;
+
+    UPDATE edit_suggestions
+    SET
+        status      = 'approved',
+        reviewed_by = reviewer_id,
+        reviewed_at = NOW(),
+        updated_at  = NOW()
+    WHERE id = suggestion_id;
+
+    success := true;
+    RETURN success;
 EXCEPTION WHEN OTHERS THEN
-  RETURN false;
+    RETURN false;
 END;
-$function$;
+$$;
 
 CREATE OR REPLACE FUNCTION public.check_admin_status(user_id uuid)
- RETURNS boolean
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public'
-AS $function$
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
 DECLARE
-  user_role TEXT;
-  is_admin_profile BOOLEAN;
+    user_role        TEXT;
+    is_admin_profile BOOLEAN;
 BEGIN
-  SELECT raw_user_meta_data->>'role' INTO user_role
-  FROM auth.users
-  WHERE id = user_id;
-  
-  IF user_role = 'service_role' THEN
-    RETURN true;
-  END IF;
-  
-  SELECT COALESCE(p.is_admin, false) INTO is_admin_profile
-  FROM profiles p
-  WHERE p.id = user_id;
-  
-  RETURN is_admin_profile;
-EXCEPTION
-  WHEN OTHERS THEN
+    SELECT raw_user_meta_data->>'role' INTO user_role
+    FROM auth.users
+    WHERE id = user_id;
+
+    IF user_role = 'service_role' THEN
+        RETURN true;
+    END IF;
+
+    SELECT COALESCE(p.is_admin, false) INTO is_admin_profile
+    FROM profiles p
+    WHERE p.id = user_id;
+
+    RETURN is_admin_profile;
+EXCEPTION WHEN OTHERS THEN
     RETURN false;
 END;
-$function$;
-
-CREATE OR REPLACE FUNCTION public.check_and_award_weight_badges(p_user_id uuid)
- RETURNS void
- LANGUAGE plpgsql
-AS $function$
-declare
-  total_kg numeric;
-begin
-  select coalesce(sum(co2_saved), 0)
-  into total_kg
-  from recycling_events
-  where user_id = p_user_id;
-
-  if total_kg >= 10 then
-    update user_profiles
-    set badges = badges || '[1]'::jsonb
-    where id = p_user_id
-      and not (badges @> '[1]'::jsonb);
-  end if;
-
-  if total_kg >= 50 then
-    update user_profiles
-    set badges = badges || '[2]'::jsonb
-    where id = p_user_id
-      and not (badges @> '[2]'::jsonb);
-  end if;
-
-  if total_kg >= 250 then
-    update user_profiles
-    set badges = badges || '[3]'::jsonb
-    where id = p_user_id
-      and not (badges @> '[3]'::jsonb);
-  end if;
-end;
-$function$;
-
-CREATE OR REPLACE FUNCTION public.cleanup_temporary_qrs()
- RETURNS void
- LANGUAGE sql
-AS $function$
-  delete from public.temporary_qrs;
-$function$;
-
-CREATE OR REPLACE FUNCTION public.create_user_profile(p_user uuid)
- RETURNS void
- LANGUAGE plpgsql
- SECURITY DEFINER
-AS $function$
-begin
-  if not exists (select 1 from public.user_profiles where id = p_user) then
-    insert into public.user_profiles (
-      id, xp, level, trust_score, streak, created_at, updated_at
-    ) values (
-      p_user, 0, 1, 1.0, 0, now(), now()
-    );
-  end if;
-end;
-$function$;
-
-CREATE OR REPLACE FUNCTION public.debug_admin_check(user_id uuid)
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
-AS $function$
-DECLARE
-  result JSONB;
-  auth_user RECORD;
-  profile_data RECORD;
-  user_role TEXT;
-BEGIN
-  SELECT id, email, raw_user_meta_data, role INTO auth_user
-  FROM auth.users
-  WHERE id = user_id;
-  
-  user_role := auth_user.raw_user_meta_data->>'role';
-  
-  SELECT * INTO profile_data FROM profiles WHERE id = user_id;
-  
-  result := jsonb_build_object(
-    'user_id', user_id,
-    'auth_user_exists', auth_user.id IS NOT NULL,
-    'auth_role', auth_user.role,
-    'metadata_role', user_role,
-    'raw_user_meta_data', auth_user.raw_user_meta_data,
-    'profile_exists', profile_data.id IS NOT NULL,
-    'profile_is_admin', COALESCE(profile_data.is_admin, false),
-    'profile_data', to_jsonb(profile_data)
-  );
-  
-  RETURN result;
-END;
-$function$;
-
-CREATE OR REPLACE FUNCTION public.delete_report(report_id uuid)
- RETURNS boolean
- LANGUAGE plpgsql
- SECURITY DEFINER
-AS $function$
-DECLARE
-  success BOOLEAN := false;
-BEGIN
-  DELETE FROM report_photos WHERE report_id = report_id;
-  DELETE FROM reports WHERE id = report_id;
-  
-  success := true;
-  RETURN success;
-EXCEPTION WHEN OTHERS THEN
-  RETURN false;
-END;
-$function$;
-
-CREATE OR REPLACE FUNCTION public.get_admin_stats()
- RETURNS TABLE(pending bigint, approved bigint, suggestions bigint, reports bigint, org_requests bigint)
- LANGUAGE plpgsql
- SECURITY DEFINER
-AS $function$
-BEGIN
-  RETURN QUERY
-  SELECT
-    (SELECT COUNT(*) FROM pending_bins WHERE status = 'pending') as pending,
-    (SELECT COUNT(*) FROM recycling_bins) as approved,
-    (SELECT COUNT(*) FROM edit_suggestions WHERE status = 'pending') as suggestions,
-    (SELECT COUNT(*) FROM reports WHERE resolved = false) as reports,
-    (SELECT COUNT(*) FROM organization_requests WHERE status = 'pending') as org_requests;
-END;
-$function$;
-
-CREATE OR REPLACE FUNCTION public.get_bins_count()
- RETURNS bigint
- LANGUAGE sql
- SECURITY DEFINER
-AS $function$
-  SELECT count(*) FROM public.recycling_bins;
-$function$;
-
-CREATE OR REPLACE FUNCTION public.get_edit_suggestions()
- RETURNS TABLE(id uuid, bin_id text, name text, opening_hours text, materials text, notes text, status text, user_id uuid, created_at timestamp with time zone, reviewed_by uuid, reviewed_at timestamp with time zone, review_notes text, field_name text, old_value jsonb, new_value jsonb, reason text, user_email text, bin_code text, bin_lat double precision, bin_lon double precision, bin_tags jsonb)
- LANGUAGE plpgsql
- SECURITY DEFINER
-AS $function$
-BEGIN
-  RETURN QUERY
-  SELECT 
-    es.id, es.bin_id, es.name, es.opening_hours, es.materials, es.notes,
-    es.status::TEXT, es.user_id, es.created_at, es.reviewed_by, es.reviewed_at,
-    es.review_notes, es.field_name, es.old_value, es.new_value, es.reason,
-    COALESCE(p.email, 'Анонимен') as user_email,
-    rb.code as bin_code,
-    rb.lat as bin_lat,
-    rb.lon as bin_lon,
-    rb.tags as bin_tags
-  FROM edit_suggestions es
-  LEFT JOIN profiles p ON es.user_id = p.id
-  LEFT JOIN recycling_bins rb ON rb.code = es.bin_id
-  WHERE es.status = 'pending'
-  ORDER BY es.created_at DESC;
-END;
-$function$;
-
-CREATE OR REPLACE FUNCTION public.get_glass_metal_total()
- RETURNS double precision
- LANGUAGE sql
- STABLE SECURITY DEFINER
- SET search_path TO 'public'
-AS $function$
-  select coalesce(sum(weight_kg), 0)
-  from public.recycling_events
-  where material = 'glass_metal';
-$function$;
-
-CREATE OR REPLACE FUNCTION public.get_kg_total()
- RETURNS double precision
- LANGUAGE sql
- STABLE SECURITY DEFINER
- SET search_path TO 'public'
-AS $function$
-  select coalesce(sum(weight_kg), 0)
-  from public.recycling_events;
-$function$;
-
-CREATE OR REPLACE FUNCTION public.get_organization_requests()
- RETURNS TABLE(id uuid, organization_name text, organization_type text, contact_name text, contact_email text, intended_bin_count integer, city text, country text, message text, status text, created_at timestamp with time zone)
- LANGUAGE plpgsql
- SECURITY DEFINER
-AS $function$
-BEGIN
-  RETURN QUERY
-  SELECT r.id, r.organization_name, r.organization_type::TEXT, 
-         r.contact_name, r.contact_email, r.intended_bin_count,
-         r.city, r.country, r.message, r.status::TEXT, r.created_at
-  FROM organization_requests r
-  WHERE r.status = 'pending'
-  ORDER BY r.created_at DESC;
-END;
-$function$;
-
-CREATE OR REPLACE FUNCTION public.get_paper_total()
- RETURNS double precision
- LANGUAGE sql
- STABLE SECURITY DEFINER
- SET search_path TO 'public'
-AS $function$
-  select coalesce(sum(weight_kg), 0)
-  from public.recycling_events
-  where material = 'paper';
-$function$;
-
-CREATE OR REPLACE FUNCTION public.get_pending_bins()
- RETURNS TABLE(id uuid, code text, lat double precision, lon double precision, created_at timestamp with time zone, user_id uuid, tags jsonb, image_url text, status text, user_email text, user_username text)
- LANGUAGE plpgsql
- SECURITY DEFINER
-AS $function$
-BEGIN
-  RETURN QUERY
-  SELECT 
-    pb.id, pb.code, pb.lat, pb.lon, pb.created_at, pb.user_id, pb.tags, pb.image_url, pb.status,
-    COALESCE(p.email, 'Анонимен') as user_email,
-    COALESCE(p.username, p.email, 'Анонимен') as user_username
-  FROM pending_bins pb
-  LEFT JOIN profiles p ON pb.user_id = p.id
-  WHERE pb.status = 'pending'
-  ORDER BY pb.created_at DESC;
-END;
-$function$;
-
-CREATE OR REPLACE FUNCTION public.get_plastic_total()
- RETURNS double precision
- LANGUAGE sql
- STABLE SECURITY DEFINER
- SET search_path TO 'public'
-AS $function$
-  select coalesce(sum(weight_kg), 0)
-  from public.recycling_events
-  where material = 'plastic';
-$function$;
-
-CREATE OR REPLACE FUNCTION public.get_reports()
- RETURNS TABLE(id uuid, bin_id text, user_id uuid, type text, title text, description text, resolved boolean, created_at timestamp with time zone, photo_url text, user_email text, user_username text, bin_code text, bin_lat double precision, bin_lon double precision, images jsonb)
- LANGUAGE plpgsql
- SECURITY DEFINER
-AS $function$
-BEGIN
-  RETURN QUERY
-  SELECT 
-    r.id, r.bin_id, r.user_id, r.type::TEXT, r.title, r.description,
-    r.resolved, r.created_at, r.photo_url,
-    COALESCE(p.email, 'Анонимен') as user_email,
-    COALESCE(p.username, p.email, 'Анонимен') as user_username,
-    rb.code as bin_code,
-    rb.lat as bin_lat,
-    rb.lon as bin_lon,
-    COALESCE(
-      (SELECT jsonb_agg(jsonb_build_object(
-        'id', rp.id,
-        'photo_url', rp.photo_url,
-        'created_at', rp.created_at,
-        'user_id', rp.user_id
-      ))
-      FROM report_photos rp
-      WHERE rp.report_id = r.id),
-      '[]'::jsonb
-    ) as images
-  FROM reports r
-  LEFT JOIN profiles p ON r.user_id = p.id
-  LEFT JOIN recycling_bins rb ON rb.id::TEXT = r.bin_id
-  ORDER BY r.created_at DESC;
-END;
-$function$;
-
-CREATE OR REPLACE FUNCTION public.get_total_co2()
- RETURNS numeric
- LANGUAGE sql
- SECURITY DEFINER
-AS $function$
-  SELECT COALESCE(SUM(co2_saved), 0) FROM public.recycling_events;
-$function$;
-
-CREATE OR REPLACE FUNCTION public.get_user_count()
- RETURNS bigint
- LANGUAGE sql
- SECURITY DEFINER
-AS $function$
-  SELECT count(*) FROM auth.users;
-$function$;
-
-CREATE OR REPLACE FUNCTION public.is_platform_admin()
- RETURNS boolean
- LANGUAGE plpgsql
- SECURITY DEFINER
-AS $function$
-BEGIN
-  RETURN EXISTS (
-    SELECT 1 FROM user_profiles
-    WHERE id = auth.uid() 
-    AND app_role = 'platform_admin'
-  );
-END;
-$function$;
-
-CREATE OR REPLACE FUNCTION public.migrate_temporary_qrs_id_to_uuid()
- RETURNS void
- LANGUAGE plpgsql
-AS $function$
-begin
-  create extension if not exists "pgcrypto";
-
-  alter table public.temporary_qrs
-  add column if not exists id_uuid uuid default gen_random_uuid();
-
-  alter table public.temporary_qrs
-  drop constraint if exists temporary_qrs_pkey;
-
-  alter table public.temporary_qrs
-  drop column id;
-
-  alter table public.temporary_qrs
-  rename column id_uuid to id;
-
-  alter table public.temporary_qrs
-  add primary key (id);
-end;
-$function$;
-
-CREATE OR REPLACE FUNCTION public.reject_bin(bin_id uuid)
- RETURNS boolean
- LANGUAGE plpgsql
- SECURITY DEFINER
-AS $function$
-DECLARE
-  success BOOLEAN := false;
-BEGIN
-  DELETE FROM pending_bins WHERE id = bin_id;
-  success := true;
-  RETURN success;
-EXCEPTION WHEN OTHERS THEN
-  RETURN false;
-END;
-$function$;
-
-CREATE OR REPLACE FUNCTION public.reject_organization_request(request_id uuid)
- RETURNS boolean
- LANGUAGE plpgsql
- SECURITY DEFINER
-AS $function$
-DECLARE
-  success BOOLEAN := false;
-BEGIN
-  UPDATE organization_requests 
-  SET status = 'rejected', updated_at = NOW()
-  WHERE id = request_id;
-  
-  success := true;
-  RETURN success;
-EXCEPTION WHEN OTHERS THEN
-  RETURN false;
-END;
-$function$;
-
-CREATE OR REPLACE FUNCTION public.reject_suggestion(suggestion_id uuid, reviewer_id uuid, notes text DEFAULT NULL::text)
- RETURNS boolean
- LANGUAGE plpgsql
- SECURITY DEFINER
-AS $function$
-DECLARE
-  success BOOLEAN := false;
-BEGIN
-  UPDATE edit_suggestions 
-  SET 
-    status = 'rejected',
-    reviewed_by = reviewer_id,
-    reviewed_at = NOW(),
-    updated_at = NOW(),
-    review_notes = notes
-  WHERE id = suggestion_id;
-  
-  success := true;
-  RETURN success;
-EXCEPTION WHEN OTHERS THEN
-  RETURN false;
-END;
-$function$;
-
-CREATE OR REPLACE FUNCTION public.resolve_report(report_id uuid)
- RETURNS boolean
- LANGUAGE plpgsql
- SECURITY DEFINER
-AS $function$
-DECLARE
-  success BOOLEAN := false;
-BEGIN
-  UPDATE reports 
-  SET resolved = true, updated_at = NOW()
-  WHERE id = report_id;
-  
-  success := true;
-  RETURN success;
-EXCEPTION WHEN OTHERS THEN
-  RETURN false;
-END;
-$function$;
+$$;
 
 CREATE OR REPLACE FUNCTION public.check_and_award_weight_badges(p_user_id uuid)
 RETURNS void
 LANGUAGE plpgsql
-AS $function$
-declare
-  total_co2   numeric;
-  glass_count integer;
-  max_streak  integer;
-  prev_day    date;
-  curr_day    date;
-  curr_streak integer;
-begin
-  -- съществуващи значки за co2 (1, 2, 3)
-  select coalesce(sum(co2_saved), 0)
-  into total_co2
-  from recycling_events
-  where user_id = p_user_id;
+AS $$
+DECLARE
+    total_co2   numeric;
+    glass_count integer;
+    max_streak  integer;
+    prev_day    date;
+    curr_day    date;
+    curr_streak integer;
+BEGIN
+    SELECT COALESCE(SUM(co2_saved), 0)
+    INTO total_co2
+    FROM recycling_events
+    WHERE user_id = p_user_id;
 
-  if total_co2 >= 10 then
-    update user_profiles set badges = badges || '[1]'::jsonb
-    where id = p_user_id and not (badges @> '[1]'::jsonb);
-  end if;
+    IF total_co2 >= 10 THEN
+        UPDATE user_profiles SET badges = badges || '[1]'::jsonb
+        WHERE id = p_user_id AND NOT (badges @> '[1]'::jsonb);
+    END IF;
 
-  if total_co2 >= 50 then
-    update user_profiles set badges = badges || '[2]'::jsonb
-    where id = p_user_id and not (badges @> '[2]'::jsonb);
-  end if;
+    IF total_co2 >= 50 THEN
+        UPDATE user_profiles SET badges = badges || '[2]'::jsonb
+        WHERE id = p_user_id AND NOT (badges @> '[2]'::jsonb);
+    END IF;
 
-  if total_co2 >= 250 then
-    update user_profiles set badges = badges || '[3]'::jsonb
-    where id = p_user_id and not (badges @> '[3]'::jsonb);
-  end if;
+    IF total_co2 >= 250 THEN
+        UPDATE user_profiles SET badges = badges || '[3]'::jsonb
+        WHERE id = p_user_id AND NOT (badges @> '[3]'::jsonb);
+    END IF;
 
-  select count(*)
-  into glass_count
-  from recycling_events
-  where user_id = p_user_id
-    and material = 'glass_metal';
+    SELECT COUNT(*) INTO glass_count
+    FROM recycling_events
+    WHERE user_id = p_user_id AND material = 'glass_metal';
 
-  if glass_count >= 15 then
-    update user_profiles set badges = badges || '[4]'::jsonb
-    where id = p_user_id and not (badges @> '[4]'::jsonb);
-  end if;
-  max_streak  := 0;
-  curr_streak := 1;
-  prev_day    := null;
+    IF glass_count >= 15 THEN
+        UPDATE user_profiles SET badges = badges || '[4]'::jsonb
+        WHERE id = p_user_id AND NOT (badges @> '[4]'::jsonb);
+    END IF;
 
-  for curr_day in
-    select distinct date_trunc('day', created_at)::date
-    from recycling_events
-    where user_id = p_user_id
-      and material = 'glass_metal'
-    order by 1
-  loop
-    if prev_day is not null and curr_day = prev_day + 1 then
-      curr_streak := curr_streak + 1;
-    elsif prev_day is not null then
-      curr_streak := 1;
-    end if;
+    max_streak  := 0;
+    curr_streak := 1;
+    prev_day    := null;
 
-    if curr_streak > max_streak then
-      max_streak := curr_streak;
-    end if;
+    FOR curr_day IN
+        SELECT DISTINCT date_trunc('day', created_at)::date
+        FROM recycling_events
+        WHERE user_id = p_user_id AND material = 'glass_metal'
+        ORDER BY 1
+    LOOP
+        IF prev_day IS NOT NULL AND curr_day = prev_day + 1 THEN
+            curr_streak := curr_streak + 1;
+        ELSIF prev_day IS NOT NULL THEN
+            curr_streak := 1;
+        END IF;
 
-    prev_day := curr_day;
-  end loop;
+        IF curr_streak > max_streak THEN
+            max_streak := curr_streak;
+        END IF;
 
-  if max_streak >= 7 then
-    update user_profiles set badges = badges || '[5]'::jsonb
-    where id = p_user_id and not (badges @> '[5]'::jsonb);
-  end if;
+        prev_day := curr_day;
+    END LOOP;
 
-  if glass_count >= 100 then
-    update user_profiles set badges = badges || '[6]'::jsonb
-    where id = p_user_id and not (badges @> '[6]'::jsonb);
-  end if;
+    IF max_streak >= 7 THEN
+        UPDATE user_profiles SET badges = badges || '[5]'::jsonb
+        WHERE id = p_user_id AND NOT (badges @> '[5]'::jsonb);
+    END IF;
 
-end;
-$function$;
+    IF glass_count >= 100 THEN
+        UPDATE user_profiles SET badges = badges || '[6]'::jsonb
+        WHERE id = p_user_id AND NOT (badges @> '[6]'::jsonb);
+    END IF;
+END;
+$$;
 
-INSERT INTO "public"."user_profiles" ("id", "xp", "level", "trust_score", "streak", "created_at", "updated_at", "badges", "app_role", "organization_id", "organization_role") VALUES ('96162770-a125-4b99-80d9-b9590b7b9a27', '1250', '5', '1', '7', '2026-02-20 19:38:13.990804+00', '2026-02-20 19:38:13.990804+00', '[]', 'platform_admin', null, null), ('b844362f-d9b2-4781-8b91-570404179206', '450', '2', '1', '3', '2026-02-20 19:38:13.990804+00', '2026-02-20 19:38:13.990804+00', '[]', 'user', null, null);
+CREATE OR REPLACE FUNCTION public.cleanup_temporary_qrs()
+RETURNS void
+LANGUAGE sql
+AS $$
+    DELETE FROM public.temporary_qrs;
+$$;
+
+CREATE OR REPLACE FUNCTION public.create_user_profile(p_user uuid)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM public.user_profiles WHERE id = p_user) THEN
+        INSERT INTO public.user_profiles (id, xp, level, trust_score, streak, created_at, updated_at)
+        VALUES (p_user, 0, 1, 1.0, 0, now(), now());
+    END IF;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.debug_admin_check(user_id uuid)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    result       JSONB;
+    auth_user    RECORD;
+    profile_data RECORD;
+    user_role    TEXT;
+BEGIN
+    SELECT id, email, raw_user_meta_data, role INTO auth_user
+    FROM auth.users
+    WHERE id = user_id;
+
+    user_role := auth_user.raw_user_meta_data->>'role';
+
+    SELECT * INTO profile_data FROM profiles WHERE id = user_id;
+
+    result := jsonb_build_object(
+        'user_id',             user_id,
+        'auth_user_exists',    auth_user.id IS NOT NULL,
+        'auth_role',           auth_user.role,
+        'metadata_role',       user_role,
+        'raw_user_meta_data',  auth_user.raw_user_meta_data,
+        'profile_exists',      profile_data.id IS NOT NULL,
+        'profile_is_admin',    COALESCE(profile_data.is_admin, false),
+        'profile_data',        to_jsonb(profile_data)
+    );
+
+    RETURN result;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.delete_report(report_id uuid)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    success BOOLEAN := false;
+BEGIN
+    DELETE FROM report_photos WHERE report_id = report_id;
+    DELETE FROM reports WHERE id = report_id;
+
+    success := true;
+    RETURN success;
+EXCEPTION WHEN OTHERS THEN
+    RETURN false;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_admin_stats()
+RETURNS TABLE(
+    pending      bigint,
+    approved     bigint,
+    suggestions  bigint,
+    reports      bigint,
+    org_requests bigint
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        (SELECT COUNT(*) FROM pending_bins         WHERE status = 'pending')  AS pending,
+        (SELECT COUNT(*) FROM recycling_bins)                                  AS approved,
+        (SELECT COUNT(*) FROM edit_suggestions     WHERE status = 'pending')  AS suggestions,
+        (SELECT COUNT(*) FROM reports              WHERE resolved = false)     AS reports,
+        (SELECT COUNT(*) FROM organization_requests WHERE status = 'pending') AS org_requests;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_bins_count()
+RETURNS bigint
+LANGUAGE sql
+SECURITY DEFINER
+AS $$
+    SELECT COUNT(*) FROM public.recycling_bins;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_edit_suggestions()
+RETURNS TABLE(
+    id           uuid,
+    bin_id       text,
+    name         text,
+    opening_hours text,
+    materials    text,
+    notes        text,
+    status       text,
+    user_id      uuid,
+    created_at   timestamp with time zone,
+    reviewed_by  uuid,
+    reviewed_at  timestamp with time zone,
+    review_notes text,
+    field_name   text,
+    old_value    jsonb,
+    new_value    jsonb,
+    reason       text,
+    user_email   text,
+    bin_code     text,
+    bin_lat      double precision,
+    bin_lon      double precision,
+    bin_tags     jsonb
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        es.id, es.bin_id, es.name, es.opening_hours, es.materials, es.notes,
+        es.status::TEXT, es.user_id, es.created_at, es.reviewed_by, es.reviewed_at,
+        es.review_notes, es.field_name, es.old_value, es.new_value, es.reason,
+        COALESCE(p.email, 'Анонимен') AS user_email,
+        rb.code   AS bin_code,
+        rb.lat    AS bin_lat,
+        rb.lon    AS bin_lon,
+        rb.tags   AS bin_tags
+    FROM edit_suggestions es
+    LEFT JOIN profiles      p  ON es.user_id = p.id
+    LEFT JOIN recycling_bins rb ON rb.code   = es.bin_id
+    WHERE es.status = 'pending'
+    ORDER BY es.created_at DESC;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_glass_metal_total()
+RETURNS double precision
+LANGUAGE sql
+STABLE SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+    SELECT COALESCE(SUM(weight_kg), 0)
+    FROM public.recycling_events
+    WHERE material = 'glass_metal';
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_kg_total()
+RETURNS double precision
+LANGUAGE sql
+STABLE SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+    SELECT COALESCE(SUM(weight_kg), 0)
+    FROM public.recycling_events;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_organization_requests()
+RETURNS TABLE(
+    id                 uuid,
+    organization_name  text,
+    organization_type  text,
+    contact_name       text,
+    contact_email      text,
+    intended_bin_count integer,
+    city               text,
+    country            text,
+    message            text,
+    status             text,
+    created_at         timestamp with time zone
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        r.id, r.organization_name, r.organization_type::TEXT,
+        r.contact_name, r.contact_email, r.intended_bin_count,
+        r.city, r.country, r.message, r.status::TEXT, r.created_at
+    FROM organization_requests r
+    WHERE r.status = 'pending'
+    ORDER BY r.created_at DESC;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_paper_total()
+RETURNS double precision
+LANGUAGE sql
+STABLE SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+    SELECT COALESCE(SUM(weight_kg), 0)
+    FROM public.recycling_events
+    WHERE material = 'paper';
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_pending_bins()
+RETURNS TABLE(
+    id            uuid,
+    code          text,
+    lat           double precision,
+    lon           double precision,
+    created_at    timestamp with time zone,
+    user_id       uuid,
+    tags          jsonb,
+    image_url     text,
+    status        text,
+    user_email    text,
+    user_username text
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        pb.id, pb.code, pb.lat, pb.lon, pb.created_at, pb.user_id,
+        pb.tags, pb.image_url, pb.status,
+        COALESCE(p.email,                   'Анонимен') AS user_email,
+        COALESCE(p.username, p.email,       'Анонимен') AS user_username
+    FROM pending_bins pb
+    LEFT JOIN profiles p ON pb.user_id = p.id
+    WHERE pb.status = 'pending'
+    ORDER BY pb.created_at DESC;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_plastic_total()
+RETURNS double precision
+LANGUAGE sql
+STABLE SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+    SELECT COALESCE(SUM(weight_kg), 0)
+    FROM public.recycling_events
+    WHERE material = 'plastic';
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_reports()
+RETURNS TABLE(
+    id            uuid,
+    bin_id        text,
+    user_id       uuid,
+    type          text,
+    title         text,
+    description   text,
+    resolved      boolean,
+    created_at    timestamp with time zone,
+    photo_url     text,
+    user_email    text,
+    user_username text,
+    bin_code      text,
+    bin_lat       double precision,
+    bin_lon       double precision,
+    images        jsonb
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        r.id, r.bin_id, r.user_id, r.type::TEXT, r.title, r.description,
+        r.resolved, r.created_at, r.photo_url,
+        COALESCE(p.email,             'Анонимен') AS user_email,
+        COALESCE(p.username, p.email, 'Анонимен') AS user_username,
+        rb.code AS bin_code,
+        rb.lat  AS bin_lat,
+        rb.lon  AS bin_lon,
+        COALESCE(
+            (SELECT jsonb_agg(jsonb_build_object(
+                'id',         rp.id,
+                'photo_url',  rp.photo_url,
+                'created_at', rp.created_at,
+                'user_id',    rp.user_id
+            ))
+            FROM report_photos rp
+            WHERE rp.report_id = r.id),
+            '[]'::jsonb
+        ) AS images
+    FROM reports r
+    LEFT JOIN profiles       p  ON r.user_id    = p.id
+    LEFT JOIN recycling_bins rb ON rb.id::TEXT  = r.bin_id
+    ORDER BY r.created_at DESC;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_total_co2()
+RETURNS numeric
+LANGUAGE sql
+SECURITY DEFINER
+AS $$
+    SELECT COALESCE(SUM(co2_saved), 0) FROM public.recycling_events;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_user_count()
+RETURNS bigint
+LANGUAGE sql
+SECURITY DEFINER
+AS $$
+    SELECT COUNT(*) FROM auth.users;
+$$;
+
+CREATE OR REPLACE FUNCTION public.handle_password_change()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+BEGIN
+    IF NEW.encrypted_password <> OLD.encrypted_password THEN
+        UPDATE public.user_profiles
+        SET password_changed_at = now()
+        WHERE id = NEW.id;
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.is_platform_admin()
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+    RETURN EXISTS (
+        SELECT 1 FROM user_profiles
+        WHERE id = auth.uid() AND app_role = 'platform_admin'
+    );
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.migrate_temporary_qrs_id_to_uuid()
+RETURNS void
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
+    ALTER TABLE public.temporary_qrs
+        ADD COLUMN IF NOT EXISTS id_uuid uuid DEFAULT gen_random_uuid();
+
+    ALTER TABLE public.temporary_qrs
+        DROP CONSTRAINT IF EXISTS temporary_qrs_pkey;
+
+    ALTER TABLE public.temporary_qrs
+        DROP COLUMN id;
+
+    ALTER TABLE public.temporary_qrs
+        RENAME COLUMN id_uuid TO id;
+
+    ALTER TABLE public.temporary_qrs
+        ADD PRIMARY KEY (id);
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.reject_bin(bin_id uuid)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    success BOOLEAN := false;
+BEGIN
+    DELETE FROM pending_bins WHERE id = bin_id;
+    success := true;
+    RETURN success;
+EXCEPTION WHEN OTHERS THEN
+    RETURN false;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.reject_organization_request(request_id uuid)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    success BOOLEAN := false;
+BEGIN
+    UPDATE organization_requests
+    SET status = 'rejected', updated_at = NOW()
+    WHERE id = request_id;
+
+    success := true;
+    RETURN success;
+EXCEPTION WHEN OTHERS THEN
+    RETURN false;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.reject_suggestion(
+    suggestion_id uuid,
+    reviewer_id   uuid,
+    notes         text DEFAULT NULL
+)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    success BOOLEAN := false;
+BEGIN
+    UPDATE edit_suggestions
+    SET
+        status       = 'rejected',
+        reviewed_by  = reviewer_id,
+        reviewed_at  = NOW(),
+        updated_at   = NOW(),
+        review_notes = notes
+    WHERE id = suggestion_id;
+
+    success := true;
+    RETURN success;
+EXCEPTION WHEN OTHERS THEN
+    RETURN false;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.resolve_report(report_id uuid)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    success BOOLEAN := false;
+BEGIN
+    UPDATE reports
+    SET resolved = true, updated_at = NOW()
+    WHERE id = report_id;
+
+    success := true;
+    RETURN success;
+EXCEPTION WHEN OTHERS THEN
+    RETURN false;
+END;
+$$;
+
+INSERT INTO "public"."user_profiles" ("id", "xp", "level", "trust_score", "streak", "created_at", "updated_at", "badges", "app_role", "organization_id", "organization_role", "username", "password_changed_at") VALUES ('96162770-a125-4b99-80d9-b9590b7b9a27', '1250', '5', '1', '7', '2026-02-20 19:38:13.990804+00', '2026-02-20 19:38:13.990804+00', '[1, 2]', 'platform_admin', null, null, 'user2', null), ('b844362f-d9b2-4781-8b91-570404179206', '450', '2', '1', '3', '2026-02-20 19:38:13.990804+00', '2026-02-20 19:38:13.990804+00', '[]', 'manager', null, null, 'user1', null);
 INSERT INTO "public"."badges" ("id", "title", "description", "category", "is_active") VALUES ('1', 'Воин на рециклирането', 'Награден за последователни усилия в рециклирането', 'achievement', 'true'), ('2', 'Рицар на рециклирането', 'Придобит при изключително активно участие в рециклиране', 'achievement', 'true'), ('3', 'Легенда на рециклирането', 'Най-висока чест за изключителни заслуги в рециклирането', 'legendary', 'true'), ('4', 'Кристална яснота', 'За онези, които виждат потенциал в претопеното стъкло', 'achievement', 'true'), ('5', 'Закален дух', 'Награда за постоянство в цикъла на преобразуване на стъклото', 'achievement', 'true'), ('6', 'Вечна структура', 'Върховно признание за безкрайния цикъл на стъкленото възраждане', 'legendary', 'true');
 INSERT INTO "public"."tasks_pool" ("id", "title", "description", "difficulty", "points", "is_active", "created_at", "updated_at") VALUES ('1a2b3c01-0000-0000-0000-000000000001', 'Рециклирай алуминиев кен', 'Занеси един празен алуминиев кен в контейнер за алуминий.', '1', '10', 'true', '2026-01-15 18:51:08.32999+00', '2026-01-15 18:51:08.32999'), ('1a2b3c02-0000-0000-0000-000000000002', 'Рециклирай пластмасова опаковка', 'Снимай и предай малка пластмасова опаковка за рециклиране.', '1', '10', 'true', '2026-01-15 18:51:08.32999+00', '2026-01-15 18:51:08.32999'), ('1a2b3c03-0000-0000-0000-000000000003', 'Рециклирай хартиена опаковка', 'Снимай и предай една хартиена опаковка за рециклиране.', '1', '10', 'true', '2026-01-15 18:51:08.32999+00', '2026-01-15 18:51:08.32999'), ('1a2b3c04-0000-0000-0000-000000000004', 'Рециклирай стъклена бутилка', 'Снимай и предай една стъклена бутилка в контейнер за стъкло.', '2', '15', 'true', '2026-01-15 18:51:08.32999+00', '2026-01-15 18:51:08.32999'), ('1a2b3c05-0000-0000-0000-000000000005', 'Събери хартия от списание', 'Снимай и предай една страница от списание за рециклиране.', '1', '10', 'true', '2026-01-15 18:51:08.32999+00', '2026-01-15 18:51:08.32999'), ('1a2b3c06-0000-0000-0000-000000000006', 'Рециклирай малка пластмасова бутилка', 'Снимай и предай една малка пластмасова бутилка.', '1', '10', 'true', '2026-01-15 18:51:08.32999+00', '2026-01-15 18:51:08.32999'), ('1a2b3c07-0000-0000-0000-000000000007', 'Рециклирай картонена кутия', 'Снимай и предай една малка картонена кутия за рециклиране.', '2', '15', 'true', '2026-01-15 18:51:08.32999+00', '2026-01-15 18:51:08.32999'), ('1a2b3c08-0000-0000-0000-000000000008', 'Рециклирай алуминиево фолио', 'Снимай и предай малко алуминиево фолио за рециклиране.', '1', '10', 'true', '2026-01-15 18:51:08.32999+00', '2026-01-15 18:51:08.32999'), ('1a2b3c09-0000-0000-0000-000000000009', 'Рециклирай капачка от бутилка', 'Снимай и предай една пластмасова капачка от бутилка.', '1', '10', 'true', '2026-01-15 18:51:08.32999+00', '2026-01-15 18:51:08.32999'), ('1a2b3c10-0000-0000-0000-000000000010', 'Рециклирай стъклена чаша', 'Снимай и предай една стъклена чаша в контейнер за стъкло.', '2', '15', 'true', '2026-01-15 18:51:08.32999+00', '2026-01-15 18:51:08.32999'), ('1a2b3c11-0000-0000-0000-000000000011', 'Рециклирай малък картонен плик', 'Снимай и предай един малък картонен плик за рециклиране.', '1', '10', 'true', '2026-01-15 18:51:08.32999+00', '2026-01-15 18:51:08.32999'), ('1a2b3c12-0000-0000-0000-000000000012', 'Рециклирай хартия от книга', 'Снимай и предай една страница от стара книга за рециклиране.', '2', '15', 'true', '2026-01-15 18:51:08.32999+00', '2026-01-15 18:51:08.32999'), ('1a2b3c13-0000-0000-0000-000000000013', 'Рециклирай малка пластмасова опаковка за храна', 'Снимай и предай една пластмасова опаковка от храна.', '1', '10', 'true', '2026-01-15 18:51:08.32999+00', '2026-01-15 18:51:08.32999'), ('1a2b3c14-0000-0000-0000-000000000014', 'Рециклирай капсула от кафе', 'Снимай и предай една кафе капсула за рециклиране.', '2', '15', 'true', '2026-01-15 18:51:08.32999+00', '2026-01-15 18:51:08.32999'), ('1a2b3c15-0000-0000-0000-000000000015', 'Рециклирай пластмасова купа', 'Снимай и предай една пластмасова купа за рециклиране.', '2', '15', 'true', '2026-01-15 18:51:08.32999+00', '2026-01-15 18:51:08.32999'), ('1a2b3c16-0000-0000-0000-000000000016', 'Рециклирай алуминиев капак', 'Снимай и предай един алуминиев капак за рециклиране.', '1', '10', 'true', '2026-01-15 18:51:08.32999+00', '2026-01-15 18:51:08.32999'), ('1a2b3c17-0000-0000-0000-000000000017', 'Рециклирай малко стъклено бурканче', 'Снимай и предай едно малко стъклено бурканче.', '2', '15', 'true', '2026-01-15 18:51:08.32999+00', '2026-01-15 18:51:08.32999'), ('1a2b3c18-0000-0000-0000-000000000018', 'Рециклирай картонена опаковка от сок', 'Снимай и предай една картонена опаковка от сок.', '1', '10', 'true', '2026-01-15 18:51:08.32999+00', '2026-01-15 18:51:08.32999'), ('1a2b3c19-0000-0000-0000-000000000019', 'Рециклирай пластмасов контейнер от храна', 'Снимай и предай един пластмасов контейнер от храна.', '1', '10', 'true', '2026-01-15 18:51:08.32999+00', '2026-01-15 18:51:08.32999'), ('1a2b3c20-0000-0000-0000-000000000020', 'Рециклирай стъклена бутилка от напитка', 'Снимай и предай една стъклена бутилка от напитка.', '2', '15', 'true', '2026-01-15 18:51:08.32999+00', '2026-01-15 18:51:08.32999');
 INSERT INTO "public"."rewards" ("id", "title", "description", "points_cost", "category", "is_available", "created_at") VALUES ('7357fe56-d10f-450f-b078-1206f6fe12d6', 'Достъп до онлайн курс', 'Безплатен достъп до курс по избор от водеща платформа за обучение.', '2500', 'entertainment', 'true', '2026-02-27 16:15:32.745378+00'), ('758dfdc6-115c-45a6-a804-939e2cb01f01', 'Безплатно кафе', 'Ваучер за едно кафе по избор от партньорска кафенета в твоя град.', '400', 'food', 'true', '2026-02-27 16:15:32.745378+00'), ('789af6ee-88fa-4fab-a709-377837bcd9be', 'Платнена торба за пазар', 'Здрава торба за многократна употреба — по-малко боклук, повече стил.', '500', 'merch', 'true', '2026-02-27 16:15:32.745378+00'), ('7acbf585-a219-4ed0-8386-dfd846fcf6b3', 'Метална бутилка за вода', 'Термо бутилка 500 мл — запазва топлина и студ до 12 часа.', '1700', 'merch', 'true', '2026-02-27 16:15:32.745378+00'), ('8e5d69c2-7583-401a-a426-b05229e8afd1', 'Абонамент за подкаст платформа', 'Един месец безплатен достъп до premium подкасти и аудиокниги.', '1200', 'lifestyle', 'true', '2026-02-27 16:15:32.745378+00'), ('9767c5bc-fb7e-4878-ab8b-119560dcb3c1', '10€ ваучер за ресторант', 'Отстъпка от 20 лева при поръчка в избран ресторант от нашата мрежа.', '1500', 'food', 'true', '2026-02-27 16:15:32.745378+00'), ('b1eb6203-186b-4b57-9130-41f9d04cdbff', 'Билет за кино', 'Един билет за прожекция по избор в партньорска кино верига.', '1300', 'entertainment', 'true', '2026-02-27 16:15:32.745378+00'), ('bf40c608-5d60-43c6-b2fc-8784c4269250', 'Плодово смути', 'Освежаващ натурален смути от партньорска здравословна барче.', '750', 'food', 'true', '2026-02-27 16:15:32.745378+00'), ('c7ca6caa-9d62-4152-a992-9af6678cac8b', 'Книга по избор', 'Ваучер за книга до 10€ от партньорска книжарница.', '1900', 'lifestyle', 'true', '2026-02-27 16:15:32.745378+00'), ('ccb68f99-51e1-4be5-b360-12113d452ebc', 'Кутия домашни бисквити', 'Ръчно изработени бисквити от местна пекарна — подарък за теб или близък.', '850', 'food', 'true', '2026-02-27 16:15:32.745378+00'), ('d62c4e57-eec8-43d6-a5b5-fb6c4c521063', 'Безплатна тренировка', 'Безплатен вход за тренировка в партньорска зала за фитнес.', '1100', 'health', 'true', '2026-02-27 16:15:32.745378+00'), ('e51a0a5a-aa4c-4f2e-86ee-a7fa7dc406a3', 'Тефтер от преработена хартия', 'Тефтер А5 изработен от 100% рециклирана хартия с твърди корици.', '950', 'merch', 'true', '2026-02-27 16:15:32.745378+00');
