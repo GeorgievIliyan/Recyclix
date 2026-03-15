@@ -159,6 +159,8 @@ npm --version && node --version
     /
     # администрация
     /admin/panel
+    # табло на мениджър на организация
+    /org/dashboard
     # главни
     /app/dashboard
     /app/map
