@@ -60,7 +60,7 @@ NEXT_PUBLIC_API_URL=http://localhost:3000
 
 1. Clone the repository:
     ```bash
-    git clone <your-repo-url>
+    git clone https://github.com/GeorgievIliyan/Recyclix.git
     cd Recyclix
     ```
 
