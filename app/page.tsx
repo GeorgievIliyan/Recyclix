@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase-browser";
 import { isDev } from "@/lib/isDev";
 import Pricing from "./components/homepage/Pricing";
@@ -14,7 +14,81 @@ import HowItWorks from "./components/homepage/HowItWorks";
 import Impact from "./components/homepage/Impact";
 import Quote from "./components/homepage/Quote";
 
-const CACHE_DURATION = 2 * 60 * 60 * 1000;
+const CACHE_DURATION = 1 * 60 * 60 * 1000;
+
+// Хук за анимация при скролиране
+function useScrollReveal(threshold = 0.15) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [threshold]);
+
+  return { ref, visible };
+}
+
+// Компонент за анимирано появяване при скролиране
+function Reveal({
+  children,
+  delay = 0,
+  className = "",
+}: {
+  children: React.ReactNode;
+  delay?: number;
+  className?: string;
+}) {
+  const { ref, visible } = useScrollReveal();
+  return (
+    <div
+      ref={ref}
+      className={className}
+      style={{
+        opacity: visible ? 1 : 0,
+        transform: visible ? "translateY(0)" : "translateY(28px)",
+        transition: `opacity 0.65s ease ${delay}ms, transform 0.65s cubic-bezier(0.22, 1, 0.36, 1) ${delay}ms`,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+// Лента за прогрес на скролиране
+function ScrollProgressBar() {
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrolled = window.scrollY;
+      const maxScroll =
+        document.documentElement.scrollHeight - window.innerHeight;
+      setProgress(maxScroll > 0 ? (scrolled / maxScroll) * 100 : 0);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  return (
+    <div
+      className="fixed top-0 left-0 z-50 h-[2px] bg-gradient-to-r from-green-400 via-emerald-400 to-teal-400 transition-all duration-100"
+      style={{ width: `${progress}%` }}
+      aria-hidden="true"
+    />
+  );
+}
 
 export default function Home() {
   const [totalUsers, setTotalUsers] = useState<number | string>("...");
@@ -252,6 +326,9 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-zinc-50 via-zinc-100 to-zinc-200 dark:from-zinc-950 dark:via-zinc-900 dark:to-black">
+      {/* Лента за прогрес на скролиране */}
+      <ScrollProgressBar />
+
       {/* Навигация */}
       <HomepageNavigation />
 
@@ -263,30 +340,44 @@ export default function Home() {
       />
 
       {/* Функции */}
-      <Feature />
+      <Reveal>
+        <Feature />
+      </Reveal>
 
       {/* Как работи */}
-      <HowItWorks />
+      <Reveal delay={60}>
+        <HowItWorks />
+      </Reveal>
 
       {/* Въздействие */}
-      <Impact
-        totalCO2Reduction={Number(totalC02Reduction)}
-        totalGlassMetalRecycled={Number(totalGlassMetalRecycled)}
-        totalPaperRecycled={Number(totalPaperRecycled)}
-        totalPlasticRecycled={Number(totalPlasticRecycled)}
-      />
+      <Reveal>
+        <Impact
+          totalCO2Reduction={Number(totalC02Reduction)}
+          totalGlassMetalRecycled={Number(totalGlassMetalRecycled)}
+          totalPaperRecycled={Number(totalPaperRecycled)}
+          totalPlasticRecycled={Number(totalPlasticRecycled)}
+        />
+      </Reveal>
 
-      {/* цитат */}
-      <Quote />
+      {/* Цитат */}
+      <Reveal delay={40}>
+        <Quote />
+      </Reveal>
 
       {/* Секция за интелигентни кошове */}
-      <SmartBins />
+      <Reveal>
+        <SmartBins />
+      </Reveal>
 
       {/* Секция за абонаментни планове */}
-      <Pricing />
+      <Reveal>
+        <Pricing />
+      </Reveal>
 
       {/* Започнете секция */}
-      <CallToAction />
+      <Reveal delay={60}>
+        <CallToAction />
+      </Reveal>
 
       {/* Футър */}
       <HomepageFooter />

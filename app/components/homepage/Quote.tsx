@@ -1,3 +1,5 @@
+import { Quote as QuoteIcon } from "lucide-react";
+
 const Quote = () => {
   return (
     <div className="relative py-12 px-4">
@@ -7,21 +9,30 @@ const Quote = () => {
           <div className="absolute top-0 left-0 w-48 h-48 bg-gradient-to-br from-[#00CD56]/15 to-transparent rounded-full blur-3xl" />
           <div className="absolute bottom-0 right-0 w-48 h-48 bg-gradient-to-tl from-emerald-400/15 to-transparent rounded-full blur-3xl" />
 
+          {/* Декоративни кавички на фона */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none" aria-hidden="true">
+            <QuoteIcon
+              className="text-[#00CD56]/5 dark:text-[#00CD56]/4"
+              style={{ width: 320, height: 320 }}
+              strokeWidth={1}
+            />
+          </div>
+
           <div className="relative z-10 text-center max-w-3xl mx-auto">
-            <div className="inline-block p-3 bg-gradient-to-br from-[#00CD56]/20 to-emerald-400/20 rounded-2xl mb-6">
-              <svg
-                className="w-12 h-12 text-[#00CD56]"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
-              </svg>
+            <div className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-br from-[#00CD56]/20 to-emerald-400/20 rounded-2xl mb-6 ring-1 ring-[#00CD56]/25">
+              <QuoteIcon className="w-6 h-6 text-[#00CD56]" strokeWidth={2} />
             </div>
-            <p className="text-xl md:text-2xl text-zinc-700 dark:text-zinc-300 mb-6 italic leading-relaxed">
+
+            <p className="text-xl md:text-2xl text-zinc-700 dark:text-zinc-300 mb-8 italic leading-relaxed tracking-wide">
               "Всяко малко действие има значение. Когато рециклираме заедно,
               създаваме по-чисто и по-устойчиво бъдеще за следващите поколения."
             </p>
-            <div className="h-1 w-24 bg-gradient-to-r from-[#00CD56] via-emerald-500 to-[#00b849] rounded-full mx-auto shadow-lg shadow-[#00CD56]/30" />
+
+            <div className="flex items-center justify-center gap-3">
+              <div className="h-px w-12 bg-gradient-to-r from-transparent to-[#00CD56]/60 rounded-full" />
+              <div className="h-1.5 w-24 bg-gradient-to-r from-[#00CD56] via-emerald-500 to-[#00b849] rounded-full shadow-lg shadow-[#00CD56]/30" />
+              <div className="h-px w-12 bg-gradient-to-l from-transparent to-[#00CD56]/60 rounded-full" />
+            </div>
           </div>
         </div>
       </div>
