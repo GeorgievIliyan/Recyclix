@@ -77,19 +77,6 @@ type UserData = {
   currentStreak: number;
 };
 
-type UserProfile = {
-  id: string;
-  xp: number;
-  level: number;
-  trust_score: number;
-  streak: number;
-  badges: string[];
-  app_role: "user" | "platform_admin";
-  organization_id?: string;
-  organization_role?: "member" | "org_admin";
-  username?: string;
-};
-
 export default function DashboardPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -98,7 +85,6 @@ export default function DashboardPage() {
   const [activityData, setActivityData] = useState<ActivityPoint[]>([]);
   const [materialsData, setMaterialsData] = useState<MaterialPoint[]>([]);
   const [recentActivities, setRecentActivities] = useState<RecentActivityItem[]>([]);
-  const [userProfiles, setUserProfiles] = useState<UserProfile[]>([]);
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -130,18 +116,12 @@ export default function DashboardPage() {
           .eq("user_id", userId)
           .order("created_at", { ascending: false });
 
-          console.log("User ID:", userId);
-          console.log("Events error:", eventsError);
-          console.log("Events data:", events);
-          console.log("Events count:", events?.length);
+        console.log("User ID:", userId);
+        console.log("Events error:", eventsError);
+        console.log("Events data:", events);
+        console.log("Events count:", events?.length);
 
         const typedEvents = events as RecyclingEvent[];
-
-        const { data: profiles = [] } = await supabase
-          .from("user_profiles")
-          .select("id, xp, level, trust_score, streak, badges, app_role, organization_id, organization_role, username");
-
-        setUserProfiles((profiles ?? []) as UserProfile[]);
 
         const calculateStreak = () => {
           if (!typedEvents.length) return 0;
@@ -170,7 +150,6 @@ export default function DashboardPage() {
           return streak;
         };
 
-        // Use event.count instead of counting rows
         const totalItems = typedEvents.reduce((sum, e) => sum + (e.count ?? 1), 0);
         const totalPoints = typedEvents.reduce((sum, e) => sum + e.points, 0);
         const co2Saved = typedEvents.reduce((sum, e) => sum + e.co2_saved, 0);
@@ -193,7 +172,6 @@ export default function DashboardPage() {
               month: "short",
             });
             acc[day] ??= { date: day, items: 0 };
-            // Accumulate by count instead of incrementing by 1
             acc[day].items += e.count ?? 1;
             return acc;
           },
@@ -203,7 +181,6 @@ export default function DashboardPage() {
 
         const materialMap = typedEvents.reduce<Record<string, number>>(
           (acc, e) => {
-            // Accumulate by count instead of incrementing by 1
             acc[e.material] = (acc[e.material] ?? 0) + (e.count ?? 1);
             return acc;
           },
@@ -334,7 +311,7 @@ export default function DashboardPage() {
           </div>
 
           {/* класация */}
-          <Leaderboard users={userProfiles} currentUserId={user?.id} />
+          <Leaderboard currentUserId={user?.id} />
 
           {/* значки */}
           <BadgesGallery
