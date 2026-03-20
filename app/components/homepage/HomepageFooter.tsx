@@ -89,6 +89,14 @@ const HomepageFooter = () => {
                   Администрация
                 </a>
               </li>
+              <li>
+                <a
+                  href="/org/panel"
+                  className="text-zinc-600 dark:text-zinc-400 hover:text-[#00CD56] dark:hover:text-[#00CD56] transition duration-150"
+                >
+                  Мениджмънт
+                </a>
+              </li>
             </ul>
           </div>
         </div>
