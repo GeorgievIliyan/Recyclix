@@ -24,21 +24,8 @@ export default function LoginPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Проверка дали потребителят вече е влязъл и преенасочване веднага
   useEffect(() => {
-    const checkUser = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (data.session) {
-        // Потребителят вече е влязъл, преенасочване назад
-        if (window.history.length > 1) {
-          router.back();
-        } else {
-          router.push("/app/dashboard");
-        }
-      }
-    };
-
-    checkUser();
+    router.replace("/app/dashboard");
   }, [router]);
 
   // Проверка за съобщение след регистрация
@@ -100,7 +87,7 @@ export default function LoginPage() {
       setPasswordShown(false);
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo: `${window.location.origin}/app/map` },
+        options: { redirectTo: `${window.location.origin}/app/dashboard` },
       });
 
       if (error) setMessage(error.message);
@@ -137,14 +124,14 @@ export default function LoginPage() {
                 return (
                   <div
                     className={`mb-6 p-4 rounded-xl border flex items-center justify-between ${isSuccess
-                        ? "bg-[#00CD56]/10 border-[#00CD56]/30 dark:bg-[#00CD56]/20 dark:border-[#00CD56]/40"
-                        : "bg-red-50/80 border-red-200/50 dark:bg-red-900/20 dark:border-red-800/50"
+                      ? "bg-[#00CD56]/10 border-[#00CD56]/30 dark:bg-[#00CD56]/20 dark:border-[#00CD56]/40"
+                      : "bg-red-50/80 border-red-200/50 dark:bg-red-900/20 dark:border-red-800/50"
                       }`}
                   >
                     <div
                       className={`text-sm font-medium flex flex-row gap-3 items-center ${isSuccess
-                          ? "text-[#00CD56]"
-                          : "text-red-600 dark:text-red-400"
+                        ? "text-[#00CD56]"
+                        : "text-red-600 dark:text-red-400"
                         }`}
                     >
                       {isSuccess ? (

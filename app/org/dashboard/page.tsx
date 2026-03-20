@@ -730,7 +730,7 @@ export function OrganizationDashboard() {
               onClick={loadData}
               className="p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
               aria-label="начало"
-              href="/dashboard"
+              href="/app/dashboard"
             >
               <Home className="w-4.5 h-4.5 text-neutral-500 dark:text-neutral-400" />
             </a>

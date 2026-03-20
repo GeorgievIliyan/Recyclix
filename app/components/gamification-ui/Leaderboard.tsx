@@ -1,6 +1,5 @@
-import { Trophy, Medal, Crown, TrendingUp, Flame, Shield } from "lucide-react";
+import { Trophy, Medal, Crown, TrendingUp, Shield } from "lucide-react";
 import { computeLevelFromXp } from "./GamificationProgress";
-
 
 interface UserProfile {
   id: string;
@@ -20,17 +19,6 @@ interface LeaderboardProps {
   currentUserId?: string;
 }
 
-const MOCK_USERS: UserProfile[] = [
-  { id: "1", xp: 4800, level: 8, trust_score: 4.9, streak: 21, badges: ["🏆", "🔥", "⚡"], app_role: "user", username: "aleksandra_m" },
-  { id: "2", xp: 3950, level: 7, trust_score: 4.7, streak: 14, badges: ["🌟", "🔥"], app_role: "platform_admin", username: "viktor_d" },
-  { id: "3", xp: 3100, level: 6, trust_score: 4.5, streak: 9, badges: ["💎"], app_role: "user", organization_role: "org_admin", username: "petya_n" },
-  { id: "4", xp: 2200, level: 5, trust_score: 4.2, streak: 7, badges: ["⚡", "🎯"], app_role: "user", username: "ivan_k" },
-  { id: "5", xp: 1750, level: 4, trust_score: 3.9, streak: 5, badges: ["🎯"], app_role: "user", organization_role: "member", username: "maria_s" },
-  { id: "6", xp: 1200, level: 3, trust_score: 3.6, streak: 3, badges: [], app_role: "user", username: "georgi_t" },
-  { id: "7", xp: 820, level: 2, trust_score: 3.1, streak: 2, badges: [], app_role: "user", username: "elena_v" },
-];
-
-
 const RANK_COLORS = [
   "from-yellow-400 via-amber-400 to-yellow-500",
   "from-zinc-300 via-slate-300 to-zinc-400",
@@ -41,12 +29,6 @@ const RANK_GLOW = [
   "shadow-yellow-500/20",
   "shadow-zinc-400/20",
   "shadow-amber-600/20",
-];
-
-const RANK_ICONS = [
-  <Crown className="h-4 w-4 text-yellow-500" key="crown" />,
-  <Medal className="h-4 w-4 text-zinc-400" key="silver" />,
-  <Medal className="h-4 w-4 text-amber-600" key="bronze" />,
 ];
 
 function RankBadge({ rank }: { rank: number }) {
@@ -94,6 +76,18 @@ function XpBar({ xp }: { xp: number }) {
         className="h-full bg-gradient-to-r from-green-400 to-emerald-500 rounded-full transition-all duration-500"
         style={{ width: `${pct}%` }}
       />
+    </div>
+  );
+}
+
+function EmptyState() {
+  return (
+    <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+      <div className="p-3 bg-zinc-100 dark:bg-zinc-800 rounded-full mb-3">
+        <Trophy className="h-7 w-7 text-zinc-400 dark:text-zinc-600" />
+      </div>
+      <p className="text-sm font-medium text-card-foreground">Няма участници</p>
+      <p className="text-xs text-muted-foreground mt-1">Класацията ще се попълни скоро.</p>
     </div>
   );
 }
@@ -173,12 +167,6 @@ function LeaderboardRow({
         )}
       </div>
 
-      {/* Дневна редица */}
-      <div className="relative z-10 flex-shrink-0 flex items-center gap-1">
-        <Flame className="h-3.5 w-3.5 text-orange-400 flex-shrink-0" />
-        <span className="text-xs sm:text-sm font-semibold text-orange-500">{user.streak}</span>
-      </div>
-
       {/* Точки */}
       <div className="relative z-10 flex-shrink-0 text-right min-w-[60px] sm:min-w-[80px]">
         <p className="text-sm sm:text-base font-bold text-green-600 dark:text-green-400">
@@ -191,9 +179,7 @@ function LeaderboardRow({
 }
 
 export function Leaderboard({ users, currentUserId }: LeaderboardProps) {
-  const resolvedUsers = users && users.length > 0 ? users : MOCK_USERS;
-  const resolvedCurrentUserId = currentUserId;
-  const sorted = [...resolvedUsers].sort((a, b) => b.xp - a.xp);
+  const sorted = [...(users ?? [])].sort((a, b) => b.xp - a.xp);
 
   return (
     <div className="relative w-full h-fit bg-white/70 dark:bg-zinc-900 backdrop-blur-xl dark:backdrop-blur-none rounded-xl border border-zinc-200/50 dark:border-zinc-800 shadow-md hover:shadow-xl hover:border-green-500/30 transition-all duration-300 overflow-hidden">
@@ -208,39 +194,42 @@ export function Leaderboard({ users, currentUserId }: LeaderboardProps) {
           </h3>
           <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-100/80 dark:bg-zinc-800/60 border border-zinc-200/50 dark:border-zinc-700/50">
             <TrendingUp className="h-3 w-3 text-green-500" />
-            <span className="text-xs font-medium text-muted-foreground">{resolvedUsers.length} участника</span>
+            <span className="text-xs font-medium text-muted-foreground">{sorted.length} участника</span>
           </div>
         </div>
 
-        {/* Заглавия на колони */}
-        <div className="mt-3 flex items-center gap-2 sm:gap-3 md:gap-4 px-3 sm:px-4 md:px-5">
-          <div className="w-8 flex-shrink-0" />
-          <div className="w-9 sm:w-10 flex-shrink-0" />
-          <div className="flex-1 min-w-0">
-            <span className="text-[11px] font-medium text-muted-foreground/60 uppercase tracking-wider">Потребител</span>
+        {/* Заглавия на колони — only shown when there are users */}
+        {sorted.length > 0 && (
+          <div className="mt-3 flex items-center gap-2 sm:gap-3 md:gap-4 px-3 sm:px-4 md:px-5">
+            <div className="w-8 flex-shrink-0" />
+            <div className="w-9 sm:w-10 flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <span className="text-[11px] font-medium text-muted-foreground/60 uppercase tracking-wider">Потребител</span>
+            </div>
+            <div className="hidden md:block flex-shrink-0 w-16">
+              <span className="text-[11px] font-medium text-muted-foreground/60 uppercase tracking-wider">Значки</span>
+            </div>
+            <div className="flex-shrink-0 min-w-[60px] sm:min-w-[80px] text-right">
+              <span className="text-[11px] font-medium text-muted-foreground/60 uppercase tracking-wider">Точки</span>
+            </div>
           </div>
-          <div className="hidden md:block flex-shrink-0 w-16">
-            <span className="text-[11px] font-medium text-muted-foreground/60 uppercase tracking-wider">Значки</span>
-          </div>
-          <div className="flex-shrink-0">
-            <span className="text-[11px] font-medium text-muted-foreground/60 uppercase tracking-wider">Редица</span>
-          </div>
-          <div className="flex-shrink-0 min-w-[60px] sm:min-w-[80px] text-right">
-            <span className="text-[11px] font-medium text-muted-foreground/60 uppercase tracking-wider">Точки</span>
-          </div>
-        </div>
+        )}
       </div>
 
       {/* Редове */}
       <div className="relative z-10 p-2 sm:p-3 md:p-4 space-y-1">
-        {sorted.map((user, i) => (
-          <LeaderboardRow
-            key={user.id}
-            user={user}
-            rank={i + 1}
-            isCurrentUser={user.id === resolvedCurrentUserId}
-          />
-        ))}
+        {sorted.length === 0 ? (
+          <EmptyState />
+        ) : (
+          sorted.map((user, i) => (
+            <LeaderboardRow
+              key={user.id}
+              user={user}
+              rank={i + 1}
+              isCurrentUser={user.id === currentUserId}
+            />
+          ))
+        )}
       </div>
     </div>
   );
