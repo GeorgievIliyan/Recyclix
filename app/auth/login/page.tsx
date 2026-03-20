@@ -25,7 +25,13 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    router.replace("/app/dashboard");
+    const checkUser = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        router.replace("/app/dashboard");
+      }
+    };
+    checkUser();
   }, [router]);
 
   // Проверка за съобщение след регистрация

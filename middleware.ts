@@ -7,7 +7,7 @@ const isProd = process.env.NODE_ENV === "production";
 const ratelimit = isProd
   ? new Ratelimit({
       redis: Redis.fromEnv(),
-      limiter: Ratelimit.slidingWindow(26, "1 m"),
+      limiter: Ratelimit.slidingWindow(200, "1 m"),
     })
   : null;
 
