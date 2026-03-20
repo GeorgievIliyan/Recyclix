@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 interface UserProfile {
   id: string;
   xp: number;
-  level: number;
+  level: number; // Полето от базата данни — не го ползваме директно за показване
   trust_score: number;
   streak: number;
   badges: number[];
@@ -54,10 +54,10 @@ function Avatar({ initials, rank }: { initials: string; rank: number }) {
     rank === 1
       ? "ring-2 ring-yellow-400 ring-offset-2 ring-offset-white dark:ring-offset-zinc-900"
       : rank === 2
-      ? "ring-2 ring-zinc-300 ring-offset-2 ring-offset-white dark:ring-offset-zinc-900"
-      : rank === 3
-      ? "ring-2 ring-amber-500 ring-offset-2 ring-offset-white dark:ring-offset-zinc-900"
-      : "";
+        ? "ring-2 ring-zinc-300 ring-offset-2 ring-offset-white dark:ring-offset-zinc-900"
+        : rank === 3
+          ? "ring-2 ring-amber-500 ring-offset-2 ring-offset-white dark:ring-offset-zinc-900"
+          : "";
 
   return (
     <div
@@ -69,6 +69,7 @@ function Avatar({ initials, rank }: { initials: string; rank: number }) {
 }
 
 function XpBar({ xp }: { xp: number }) {
+  // Изчисляваме прогреса към следващото ниво от общия XP
   const { currentXp, xpForNextLevel } = computeLevelFromXp(xp);
   const pct = Math.min((currentXp / xpForNextLevel) * 100, 100);
   return (
@@ -129,6 +130,11 @@ function LeaderboardRow({
   rank: number;
   isCurrentUser: boolean;
 }) {
+  // ПОПРАВКА: Изчисляваме нивото директно от XP вместо да ползваме
+  // user.level от базата данни, което може да е остаряло/несинхронизирано.
+  // Така нивото и XP лентата винаги ползват една и съща формула.
+  const { level } = computeLevelFromXp(user.xp);
+
   const rawName = user.username ?? `Потребител ${user.id.slice(0, 4)}`;
   const name = rawName.length > 18 ? rawName.slice(0, 18) + "…" : rawName;
   const initials = rawName.slice(0, 1).toUpperCase();
@@ -145,12 +151,12 @@ function LeaderboardRow({
         ${isPodium && !isCurrentUser ? "hover:bg-amber-50/30 dark:hover:bg-amber-900/10" : ""}
       `}
     >
-      {/* Място */}
+      {/* Място в класацията */}
       <div className="relative z-10 flex-shrink-0 w-8">
         <RankBadge rank={rank} />
       </div>
 
-      {/* Икона */}
+      {/* Аватар с инициали */}
       <div className="relative z-10">
         <Avatar initials={initials} rank={rank} />
         {rank === 1 && (
@@ -158,7 +164,7 @@ function LeaderboardRow({
         )}
       </div>
 
-      {/* Име и бързи статистики */}
+      {/* Име и XP лента с ниво */}
       <div className="relative z-10 flex-1 min-w-0">
         <div className="flex items-center gap-1.5 flex-wrap">
           <p className={`text-sm sm:text-base font-semibold truncate ${isCurrentUser ? "text-green-600 dark:text-green-400" : "text-card-foreground"}`}>
@@ -179,19 +185,21 @@ function LeaderboardRow({
           )}
         </div>
         <div className="flex items-center gap-2 mt-0.5">
+          {/* XpBar също ползва computeLevelFromXp вътрешно — синхронизирано */}
           <XpBar xp={user.xp} />
+          {/* Показваме изчисленото ниво, не user.level от БД */}
           <span className="text-[11px] text-muted-foreground hidden sm:inline">
-            Ниво {user.level}
+            Ниво {level}
           </span>
         </div>
       </div>
 
-      {/* Значки — брой спечелени значки */}
+      {/* Брой спечелени значки */}
       <div className="relative z-10 hidden md:flex items-center flex-shrink-0 w-16">
         <BadgeCount count={badgeCount} />
       </div>
 
-      {/* Точки */}
+      {/* Общи точки (XP) */}
       <div className="relative z-10 flex-shrink-0 text-right min-w-[60px] sm:min-w-[80px]">
         <p className="text-sm sm:text-base font-bold text-green-600 dark:text-green-400">
           {user.xp.toLocaleString()}
@@ -206,7 +214,7 @@ export function Leaderboard({ currentUserId }: LeaderboardProps) {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Зареждане на потребителите от Supabase
+  // Зареждане на потребителите от Supabase, сортирани по XP низходящо
   useEffect(() => {
     const fetchUsers = async () => {
       const { data, error } = await supabase
@@ -222,11 +230,12 @@ export function Leaderboard({ currentUserId }: LeaderboardProps) {
     fetchUsers();
   }, []);
 
+  // Сортираме отново от страна на клиента като предпазна мярка
   const sorted = [...users].sort((a, b) => b.xp - a.xp);
 
   return (
     <div className="relative w-full h-fit bg-white/70 dark:bg-zinc-900 backdrop-blur-xl dark:backdrop-blur-none rounded-xl border border-zinc-200/50 dark:border-zinc-800 shadow-md hover:shadow-xl hover:border-green-500/30 transition-all duration-300 overflow-hidden">
-      {/* Заглавие */}
+      {/* Заглавна лента */}
       <div className="relative z-10 p-3 sm:p-4 md:p-6 border-b border-zinc-200/50 dark:border-zinc-800/50">
         <div className="flex items-center justify-between gap-3">
           <h3 className="text-base sm:text-lg md:text-xl font-semibold flex items-center gap-2 sm:gap-3 text-card-foreground">
@@ -261,13 +270,13 @@ export function Leaderboard({ currentUserId }: LeaderboardProps) {
         )}
       </div>
 
-      {/* Редове */}
+      {/* Редове с потребители */}
       <div className="relative z-10 p-2 sm:p-3 md:p-4 space-y-1">
         {loading ? (
           // Скелет при зареждане
           Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />)
         ) : sorted.length === 0 ? (
-          // Празно състояние
+          // Празно състояние — няма потребители
           <EmptyState />
         ) : (
           // Редове с потребители
