@@ -1,5 +1,7 @@
-import { Trophy, Medal, Crown, TrendingUp, Shield } from "lucide-react";
+import { Trophy, TrendingUp, Shield, Award } from "lucide-react";
 import { computeLevelFromXp } from "./GamificationProgress";
+import { supabase } from "@/lib/supabase-browser";
+import { useEffect, useState } from "react";
 
 interface UserProfile {
   id: string;
@@ -7,7 +9,7 @@ interface UserProfile {
   level: number;
   trust_score: number;
   streak: number;
-  badges: string[];
+  badges: number[];
   app_role: "user" | "platform_admin";
   organization_id?: string;
   organization_role?: "member" | "org_admin";
@@ -15,7 +17,6 @@ interface UserProfile {
 }
 
 interface LeaderboardProps {
-  users: UserProfile[];
   currentUserId?: string;
 }
 
@@ -80,6 +81,18 @@ function XpBar({ xp }: { xp: number }) {
   );
 }
 
+function BadgeCount({ count }: { count: number }) {
+  if (count === 0) {
+    return <span className="text-xs text-muted-foreground/40">—</span>;
+  }
+  return (
+    <div className="flex items-center gap-1">
+      <Award className="h-3.5 w-3.5 text-amber-500 flex-shrink-0" />
+      <span className="text-xs font-semibold text-amber-600 dark:text-amber-400">{count}</span>
+    </div>
+  );
+}
+
 function EmptyState() {
   return (
     <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
@@ -88,6 +101,21 @@ function EmptyState() {
       </div>
       <p className="text-sm font-medium text-card-foreground">Няма участници</p>
       <p className="text-xs text-muted-foreground mt-1">Класацията ще се попълни скоро.</p>
+    </div>
+  );
+}
+
+function SkeletonRow() {
+  return (
+    <div className="flex items-center gap-2 sm:gap-3 md:gap-4 px-3 sm:px-4 md:px-5 py-2.5 sm:py-3 rounded-xl">
+      <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 animate-pulse flex-shrink-0" />
+      <div className="w-9 h-9 rounded-full bg-zinc-100 dark:bg-zinc-800 animate-pulse flex-shrink-0" />
+      <div className="flex-1 space-y-1.5">
+        <div className="h-3.5 w-32 bg-zinc-100 dark:bg-zinc-800 rounded animate-pulse" />
+        <div className="h-1.5 w-24 bg-zinc-100 dark:bg-zinc-800 rounded animate-pulse" />
+      </div>
+      <div className="hidden md:block h-3.5 w-8 bg-zinc-100 dark:bg-zinc-800 rounded animate-pulse" />
+      <div className="h-4 w-14 bg-zinc-100 dark:bg-zinc-800 rounded animate-pulse" />
     </div>
   );
 }
@@ -105,6 +133,7 @@ function LeaderboardRow({
   const name = rawName.length > 18 ? rawName.slice(0, 18) + "…" : rawName;
   const initials = rawName.slice(0, 1).toUpperCase();
   const isPodium = rank <= 3;
+  const badgeCount = Array.isArray(user.badges) ? user.badges.length : 0;
 
   return (
     <div
@@ -157,14 +186,9 @@ function LeaderboardRow({
         </div>
       </div>
 
-      {/* Значки */}
-      <div className="relative z-10 hidden md:flex items-center gap-0.5 flex-shrink-0">
-        {user.badges.slice(0, 3).map((b, i) => (
-          <span key={i} className="text-base leading-none">{b}</span>
-        ))}
-        {user.badges.length === 0 && (
-          <span className="text-xs text-muted-foreground/40">—</span>
-        )}
+      {/* Значки — брой спечелени значки */}
+      <div className="relative z-10 hidden md:flex items-center flex-shrink-0 w-16">
+        <BadgeCount count={badgeCount} />
       </div>
 
       {/* Точки */}
@@ -178,8 +202,27 @@ function LeaderboardRow({
   );
 }
 
-export function Leaderboard({ users, currentUserId }: LeaderboardProps) {
-  const sorted = [...(users ?? [])].sort((a, b) => b.xp - a.xp);
+export function Leaderboard({ currentUserId }: LeaderboardProps) {
+  const [users, setUsers] = useState<UserProfile[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Зареждане на потребителите от Supabase
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const { data, error } = await supabase
+        .from("user_profiles")
+        .select("id, xp, level, trust_score, streak, badges, app_role, organization_id, organization_role, username")
+        .order("xp", { ascending: false })
+        .limit(50);
+
+      if (!error && data) setUsers(data);
+      setLoading(false);
+    };
+
+    fetchUsers();
+  }, []);
+
+  const sorted = [...users].sort((a, b) => b.xp - a.xp);
 
   return (
     <div className="relative w-full h-fit bg-white/70 dark:bg-zinc-900 backdrop-blur-xl dark:backdrop-blur-none rounded-xl border border-zinc-200/50 dark:border-zinc-800 shadow-md hover:shadow-xl hover:border-green-500/30 transition-all duration-300 overflow-hidden">
@@ -194,12 +237,14 @@ export function Leaderboard({ users, currentUserId }: LeaderboardProps) {
           </h3>
           <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-100/80 dark:bg-zinc-800/60 border border-zinc-200/50 dark:border-zinc-700/50">
             <TrendingUp className="h-3 w-3 text-green-500" />
-            <span className="text-xs font-medium text-muted-foreground">{sorted.length} участника</span>
+            <span className="text-xs font-medium text-muted-foreground">
+              {loading ? "…" : `${sorted.length} участника`}
+            </span>
           </div>
         </div>
 
-        {/* Заглавия на колони — only shown when there are users */}
-        {sorted.length > 0 && (
+        {/* Заглавия на колони — показват се само при налични потребители */}
+        {(loading || sorted.length > 0) && (
           <div className="mt-3 flex items-center gap-2 sm:gap-3 md:gap-4 px-3 sm:px-4 md:px-5">
             <div className="w-8 flex-shrink-0" />
             <div className="w-9 sm:w-10 flex-shrink-0" />
@@ -218,9 +263,14 @@ export function Leaderboard({ users, currentUserId }: LeaderboardProps) {
 
       {/* Редове */}
       <div className="relative z-10 p-2 sm:p-3 md:p-4 space-y-1">
-        {sorted.length === 0 ? (
+        {loading ? (
+          // Скелет при зареждане
+          Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />)
+        ) : sorted.length === 0 ? (
+          // Празно състояние
           <EmptyState />
         ) : (
+          // Редове с потребители
           sorted.map((user, i) => (
             <LeaderboardRow
               key={user.id}
