@@ -1068,7 +1068,7 @@ function SuggestionDetails({
             ))}
           </div>
         )}
-
+        {/*
         {(suggestion.old_value !== undefined ||
           suggestion.new_value !== undefined) && (
           <div className="grid grid-cols-2 gap-3 mb-4">
@@ -1093,7 +1093,7 @@ function SuggestionDetails({
               </p>
             </div>
           </div>
-        )}
+        )} */}
 
         <div className="flex items-center gap-4 text-xs text-neutral-500 dark:text-neutral-400">
           <div className="flex items-center gap-1.5">
