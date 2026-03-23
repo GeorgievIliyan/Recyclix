@@ -326,7 +326,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-zinc-50 via-zinc-100 to-zinc-200 dark:from-zinc-950 dark:via-zinc-900 dark:to-black">
-      {/* Лента за прогрес на скролиране */}
       <ScrollProgressBar />
 
       {/* Навигация */}
@@ -374,7 +373,7 @@ export default function Home() {
         <Pricing />
       </Reveal>
 
-      {/* Започнете секция */}
+      {/* Започнете сега секция */}
       <Reveal delay={60}>
         <CallToAction />
       </Reveal>

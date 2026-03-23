@@ -141,7 +141,7 @@ async function getUserInfo(
     .maybeSingle();
 
   return {
-    email: "Анонимен", // email is ignored now
+    email: "Анонимен",
     username: data?.username || "Анонимен",
   };
 }
@@ -2041,7 +2041,13 @@ export function AdminRoute({ children }: { children: ReactNode }) {
   }
 
   // при неавторизиран достъп
-  if (status === "unauthorized") {
+    if (status === "unauthorized") {
+    if (debugInfo.reason === "no_session") {
+      if (typeof window !== "undefined") {
+        window.location.replace("/auth/login");
+      }
+      return null;
+    }
     return (
       <div className="min-h-screen flex items-center justify-center bg-neutral-50 dark:bg-neutral-900">
         <div className="text-center max-w-sm mx-auto p-8">
@@ -2052,27 +2058,14 @@ export function AdminRoute({ children }: { children: ReactNode }) {
             Достъп отказан
           </h2>
           <p className="text-sm text-neutral-500 mb-5">
-            {debugInfo.reason === "no_session"
-              ? "Няма активна сесия. Моля, влезте в профила си."
-              : "Нямате администраторски права за тази страница."}
+            Нямате администраторски права за тази страница.
           </p>
-
-          {debugInfo.reason === "no_session" && (
-            <a
-              href="/auth/login"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-sm font-medium transition-colors shadow-sm shadow-emerald-500/30"
-            >
-              Отиди на вход
-            </a>
-          )}
-          {debugInfo.reason === "not_admin" && (
-            <a
-              href="/"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-sm font-medium transition-colors shadow-sm shadow-emerald-500/30"
-            >
-              Върни се начало
-            </a>
-          )}
+          <a
+            href="/"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-sm font-medium transition-colors shadow-sm shadow-emerald-500/30"
+          >
+            Върни се начало
+          </a>
         </div>
       </div>
     );

@@ -96,7 +96,9 @@ export interface OrgStats {
 //извличане на организацията на текущия потребител
 async function fetchOrganization(): Promise<Organization> {
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("User is not authenticated");
+  if (!user) {
+    throw new Error("NO_SESSION");
+  }
 
   const { data, error } = await supabase
     .from("organizations")
@@ -637,7 +639,7 @@ export function OrganizationDashboard() {
         window.matchMedia("(prefers-color-scheme: dark)").matches;
       setDarkMode(isDark);
       if (isDark) document.documentElement.classList.add("dark");
-    } catch {}
+    } catch { }
   }, []);
 
   const toggleDarkMode = () => {
@@ -662,8 +664,12 @@ export function OrganizationDashboard() {
       setBins(binsData);
       setReports(reportsData);
       setStats(statsData);
-    } catch (e) {
-      console.error("OrganizationDashboard loadData error:", e);
+    } catch (e: any) {
+      if (e?.message === "NO_SESSION") {
+        window.location.replace("/auth/login");
+        return;
+      }
+      if (isDev) console.error("OrganizationDashboard loadData error:", e);
     } finally {
       setLoading(false);
     }
@@ -703,7 +709,7 @@ export function OrganizationDashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5">
-              <Settings2 className="text-green-500 h-6 w-6"/>
+              <Settings2 className="text-green-500 h-6 w-6" />
               <span className="font-semibold text-neutral-900 dark:text-white text-lg ml-1">
                 Контролен панел
               </span>
@@ -769,15 +775,15 @@ export function OrganizationDashboard() {
                       key={tab.key}
                       onClick={() => setActiveTab(tab.key)}
                       className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${isActive
-                          ? "bg-emerald-500 text-white shadow-sm shadow-emerald-500/30"
-                          : "text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700 hover:text-neutral-700 dark:hover:text-neutral-200"
+                        ? "bg-emerald-500 text-white shadow-sm shadow-emerald-500/30"
+                        : "text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700 hover:text-neutral-700 dark:hover:text-neutral-200"
                         }`}
                     >
                       <Icon className="w-3.5 h-3.5" />
                       <span>{tab.label}</span>
                       <span className={`ml-0.5 px-1.5 py-0.5 rounded-full text-xs font-semibold ${isActive
-                          ? "bg-white/20 text-white"
-                          : "bg-neutral-200 dark:bg-neutral-600 text-neutral-600 dark:text-neutral-300"
+                        ? "bg-white/20 text-white"
+                        : "bg-neutral-200 dark:bg-neutral-600 text-neutral-600 dark:text-neutral-300"
                         }`}>
                         {tab.count}
                       </span>
