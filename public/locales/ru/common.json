@@ -1,0 +1,13 @@
+{
+  "userNotFound": "Пользователь не найден",
+  "activeAccount": "Активная учетная запись",
+  "accountDetails": "Данные учетной записи",
+  "email": "Электронная почта",
+  "registrationDate": "Дата регистрации",
+  "security": "Безопасность",
+  "status": "Статус",
+  "lastPasswordChange": "Последняя смена пароля",
+  "neverChanged": "Никогда не менялось",
+  "changePassword": "Сменить пароль",
+  "editProfile": "Редактировать профиль"
+}

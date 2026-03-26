@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import { RecyclingLoader } from "@/app/components/ui/RecyclingLoader";
 import { LogoutButton } from "@/app/components/ui/LogoutButton";
 import { Navigation } from "@/app/components/ui/Navigation";
 import { useRouter } from "next/navigation";
+import LanguageSelector from '@/app/components/other/LanguageSelector';
 
 interface UserProfile {
   id: string;
@@ -19,6 +21,8 @@ interface UserProfile {
 }
 
 export default function ProfilePage() {
+
+  const { t } = useTranslation('common');
 
   const router = useRouter();
 
@@ -51,14 +55,12 @@ export default function ProfilePage() {
             .join("") ?? "",
       });
 
-      // последната промяна на парола
       const { data: profile } = await supabase
         .from("user_profiles")
         .select("password_changed_at")
         .eq("id", user.id)
         .single();
 
-      // Ако е null — паролата никога не е сменяна след регистрацията
       setLastPasswordChange(profile?.password_changed_at ?? null);
 
       setLoading(false);
@@ -74,7 +76,7 @@ export default function ProfilePage() {
       </div>
     );
 
-  if (!user) return <p className="p-4 text-center">Не е намерен потребител</p>;
+  if (!user) return <p className="p-4 text-center">{t('userNotFound')}</p>;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-neutral-100 to-zinc-100 dark:from-neutral-950 dark:via-neutral-900 dark:to-zinc-900">
@@ -95,8 +97,11 @@ export default function ProfilePage() {
                 </h1>
                 <p className="mt-1 flex items-center justify-center gap-2 text-sm text-muted-foreground sm:justify-start">
                   <span className="inline-block size-2 rounded-full bg-gradient-to-r from-green-400 to-green-500 shadow-sm shadow-green-500/50"></span>
-                  Активен акаунт
+                  {t('activeAccount')}
                 </p>
+                <div className="mt-3 flex justify-center sm:justify-start"> {/* 👈 added */}
+                  <LanguageSelector />
+                </div>
               </div>
             </div>
           </CardContent>
@@ -109,19 +114,19 @@ export default function ProfilePage() {
               <div className="p-1.5 rounded-lg bg-gradient-to-br from-green-400/10 to-green-500/10">
                 <TextAlignStart className="w-5 h-5 text-green-500" />
               </div>
-              <p>Данни за акаунта</p>
+              <p>{t('accountDetails')}</p>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-1 p-3 rounded-lg hover:bg-gradient-to-r hover:from-green-500/5 hover:to-transparent transition-colors duration-200">
-              <p className="text-sm font-medium text-muted-foreground">Имейл</p>
+              <p className="text-sm font-medium text-muted-foreground">{t('email')}</p>
               <p className="text-sm sm:text-base md:text-lg text-foreground">
                 {user.email}
               </p>
             </div>
             <div className="space-y-1 p-3 rounded-lg hover:bg-gradient-to-r hover:from-green-500/5 hover:to-transparent transition-colors duration-200">
               <p className="text-sm font-medium text-muted-foreground">
-                Дата на регистрация
+                {t('registrationDate')}
               </p>
               <p className="text-base text-foreground">
                 {new Date(user.created_at).toLocaleDateString("bg-BG", {
@@ -141,24 +146,24 @@ export default function ProfilePage() {
               <div className="p-1.5 rounded-lg bg-gradient-to-br from-green-400/10 to-green-500/10">
                 <Lock className="w-5 h-5 text-green-500" />
               </div>
-              <p>Сигурност</p>
+              <p>{t('security')}</p>
             </CardTitle>
           </CardHeader>
           <CardContent className="mt-0 pt-0 space-y-4">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between p-3 rounded-lg hover:bg-gradient-to-r hover:from-green-500/5 hover:to-transparent transition-colors duration-200">
               <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">
-                  Статус
+                  {t('status')}
                 </p>
                 <p className="text-base text-foreground">
-                  Последна промяна:{" "}
+                  {t('lastPasswordChange')}:{" "}
                   {lastPasswordChange
                     ? new Date(lastPasswordChange).toLocaleDateString("bg-BG", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })
-                    : "Никога не е сменяна"}
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })
+                    : t('neverChanged')}
                 </p>
               </div>
 
@@ -168,7 +173,7 @@ export default function ProfilePage() {
                 className="w-full sm:w-auto bg-transparent hover:bg-gradient-to-r hover:from-green-500/10 hover:to-transparent hover:border-green-500/40 transition-all duration-200"
               >
                 <Lock className="mr-1 size-4" />
-                Промени парола
+                {t('changePassword')}
               </Button>
             </div>
           </CardContent>
@@ -177,7 +182,7 @@ export default function ProfilePage() {
         {/* Бутони */}
         <div className="flex flex-col gap-3 sm:flex-row">
           <Button className="group w-full text-white dark:text-white sm:flex-1 bg-gradient-to-r from-green-400 via-green-500 to-emerald-600 hover:from-green-500 hover:via-green-600 hover:to-emerald-700 transition-all duration-200 items-center hover:shadow-lg hover:shadow-green-500/20">
-            Редактирай профил
+            {t('editProfile')}
             <SquarePen className="h-4 w-4 transition-transform duration-200" />
           </Button>
           <LogoutButton />

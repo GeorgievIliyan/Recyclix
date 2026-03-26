@@ -1,0 +1,13 @@
+{
+  "userNotFound": "Usuario no encontrado",
+  "activeAccount": "Cuenta activa",
+  "accountDetails": "Detalles de la cuenta",
+  "email": "Correo electrónico",
+  "registrationDate": "Fecha de registro",
+  "security": "Seguridad",
+  "status": "Estado",
+  "lastPasswordChange": "Último cambio de contraseña",
+  "neverChanged": "Nunca cambiado",
+  "changePassword": "Cambiar contraseña",
+  "editProfile": "Editar perfil"
+}

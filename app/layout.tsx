@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "leaflet/dist/leaflet.css";
 import { Providers } from "./providers";
+import { TranslationProvider } from "./app/i18n/TranslationProvider";
 
 // Шрифтове
 const geistSans = Geist({
@@ -41,7 +42,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-neutral-50 dark:bg-neutral-900 select-none`}
       >
-        <Providers>{children}</Providers>
+        <Providers>
+          <TranslationProvider>
+            {children}
+          </TranslationProvider>
+        </Providers>
       </body>
     </html>
   );

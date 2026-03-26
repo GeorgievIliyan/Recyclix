@@ -1,0 +1,13 @@
+{
+  "userNotFound": "Не е намерен потребител",
+  "activeAccount": "Активен акаунт",
+  "accountDetails": "Данни за акаунта",
+  "email": "Имейл",
+  "registrationDate": "Дата на регистрация",
+  "security": "Сигурност",
+  "status": "Статус",
+  "lastPasswordChange": "Последна промяна",
+  "neverChanged": "Никога не е сменяна",
+  "changePassword": "Промени парола",
+  "editProfile": "Редактирай профил"
+}
