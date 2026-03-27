@@ -9,5 +9,84 @@
   "lastPasswordChange": "Последна промяна",
   "neverChanged": "Никога не е сменяна",
   "changePassword": "Промени парола",
-  "editProfile": "Редактирай профил"
+  "editProfile": "Редактирай профил",
+  "logout": "Изход",
+  "rewards": {
+    "header": {
+      "xpPoints": "{{xp}} XP точки"
+    },
+    "heading": {
+      "titlePrefix": "Магазин за ",
+      "titleHighlight": "награди",
+      "subtitle": "Обмени своите XP точки за продукти, ваучери и преживявания с по-малък отпечатък върху природата."
+    },
+    "progress": {
+      "level": "Ниво {{level}}",
+      "xp": "XP",
+      "remaining": "Още {{remaining}} XP до ниво {{nextLevel}}"
+    },
+    "claim": {
+      "successTitle": "Наградата е твоя!",
+      "message": "Ето твоя уникален код за {{reward}}.",
+      "done": "Готово"
+    },
+    "card": {
+      "claiming": "Обработване…",
+      "claimNow": "Вземи сега",
+      "needsXp": "Нужни са {{xp}} XP още"
+    },
+    "empty": {
+      "title": "Все още няма добавени награди.",
+      "description": "Увери се, че таблицата rewards съдържа редове с"
+    },
+    "promo": {
+      "title": "Искаш още XP?",
+      "subtitle": "Завършвай дневните задачи и рециклирай редовно.",
+      "cta": "Към задачите"
+    },
+    "categories": {
+      "merch": "Мърчандайз",
+      "entertainment": "Забавление",
+      "lifestyle": "Лайфстайл",
+      "health": "Здраве",
+      "food": "Храна",
+      "general": "Общи"
+    }
+  },
+  "recyclingActivity": {
+    "title": "Активност",
+    "subtitle": "Последните 3 дни",
+    "barName": "боклука"
+  },
+  "claim": {
+    "loading": {
+      "title": "Проверка на кода..."
+    },
+    "unauthenticated": {
+      "title": "Влезте в профила си",
+      "subtitle": "За да вземете точките, трябва да сте влезли в своя профил.",
+      "login": "Вход в профил"
+    },
+    "claimed": {
+      "title": "Вече използван",
+      "subtitle": "Този QR код вече е бил сканиран и не може да се използва повторно."
+    },
+    "expired": {
+      "title": "Изтекъл код",
+      "subtitle": "QR кодът е изтекъл и вече не е валиден."
+    },
+    "invalid": {
+      "title": "Невалиден код",
+      "subtitle": "QR кодът не съществува или е грешен."
+    },
+    "success": {
+      "title": "Успешно сканиран код!",
+      "pointsEarned": "Спечелени точки",
+      "totalXp": "Общо XP"
+    },
+    "buttons": {
+      "dashboard": "Начало",
+      "back": "Назад"
+    }
+  }
 }

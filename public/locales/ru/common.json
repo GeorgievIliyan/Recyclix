@@ -9,5 +9,84 @@
   "lastPasswordChange": "Последняя смена пароля",
   "neverChanged": "Никогда не менялось",
   "changePassword": "Сменить пароль",
-  "editProfile": "Редактировать профиль"
+  "editProfile": "Редактировать профиль",
+  "logout": "Выйти",
+  "rewards": {
+    "header": {
+      "xpPoints": "{{xp}} XP очков"
+    },
+    "heading": {
+      "titlePrefix": "Магазин ",
+      "titleHighlight": "награды",
+      "subtitle": "Обменивайте свои XP на товары, купоны и экологичные впечатления."
+    },
+    "progress": {
+      "level": "Уровень {{level}}",
+      "xp": "XP",
+      "remaining": "Осталось {{remaining}} XP до уровня {{nextLevel}}"
+    },
+    "claim": {
+      "successTitle": "Награда твоя!",
+      "message": "Вот ваш уникальный код для {{reward}}.",
+      "done": "Готово"
+    },
+    "card": {
+      "claiming": "Обработка…",
+      "claimNow": "Забрать сейчас",
+      "needsXp": "Не хватает {{xp}} XP"
+    },
+    "empty": {
+      "title": "Пока нет добавленных наград.",
+      "description": "Убедитесь, что таблица rewards содержит строки с"
+    },
+    "promo": {
+      "title": "Хотите больше XP?",
+      "subtitle": "Выполняйте ежедневные задания и регулярно перерабатывайте.",
+      "cta": "К заданиям"
+    },
+    "categories": {
+      "merch": "Мерч",
+      "entertainment": "Развлечения",
+      "lifestyle": "Образ жизни",
+      "health": "Здоровье",
+      "food": "Еда",
+      "general": "Общее"
+    }
+  },
+  "recyclingActivity": {
+    "title": "Активность",
+    "subtitle": "Последние 3 дня",
+    "barName": "мусор"
+  },
+  "claim": {
+    "loading": {
+      "title": "Проверка кода..."
+    },
+    "unauthenticated": {
+      "title": "Войдите в аккаунт",
+      "subtitle": "Чтобы получить очки, нужно войти в систему.",
+      "login": "Войти"
+    },
+    "claimed": {
+      "title": "Уже использовано",
+      "subtitle": "Этот QR-код уже был отсканирован и не может быть использован повторно."
+    },
+    "expired": {
+      "title": "Код истек",
+      "subtitle": "QR-код истек и больше не действителен."
+    },
+    "invalid": {
+      "title": "Неверный код",
+      "subtitle": "QR-код не существует или неверен."
+    },
+    "success": {
+      "title": "Код успешно сканирован!",
+      "pointsEarned": "Заработанные очки",
+      "totalXp": "Всего XP"
+    },
+    "buttons": {
+      "dashboard": "Домой",
+      "back": "Назад"
+    }
+  }
 }

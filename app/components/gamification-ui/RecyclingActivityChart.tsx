@@ -12,6 +12,7 @@ import {
 import colors from "tailwindcss/colors";
 import { Zap } from "lucide-react";
 import { useEffect, useState, useId } from "react";
+import { useTranslation } from "react-i18next";
 
 interface ActivityData {
   date: string;
@@ -23,6 +24,9 @@ interface RecyclingActivityChartProps {
 }
 
 export function RecyclingActivityChart({ data }: RecyclingActivityChartProps) {
+  const { t } = useTranslation("common");
+
+  // променливи
   const [isDarkMode, setIsDarkMode] = useState(false);
   const barGradientId = useId();
 
@@ -60,10 +64,10 @@ export function RecyclingActivityChart({ data }: RecyclingActivityChartProps) {
         </div>
         <div>
           <h3 className="text-base sm:text-lg md:text-xl font-semibold text-foreground dark:text-neutral-100">
-            Активност
+            {t("recyclingActivity.title")}
           </h3>
           <p className="text-[11px] sm:text-xs md:text-sm text-muted-foreground dark:text-neutral-400">
-            Последните 3 дни
+            {t("recyclingActivity.subtitle")}
           </p>
         </div>
       </div>
@@ -128,7 +132,7 @@ export function RecyclingActivityChart({ data }: RecyclingActivityChartProps) {
 
             <Bar
               dataKey="items"
-              name="боклука"
+              name={t("recyclingActivity.barName")}
               fill={`url(#${barGradientId})`}
               radius={[6, 6, 0, 0]}
               maxBarSize={50}

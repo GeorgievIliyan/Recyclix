@@ -9,5 +9,84 @@
   "lastPasswordChange": "Last password change",
   "neverChanged": "Never changed",
   "changePassword": "Change password",
-  "editProfile": "Edit profile"
+  "editProfile": "Edit profile",
+  "logout": "Log out",
+  "rewards": {
+    "header": {
+      "xpPoints": "{{xp}} XP points"
+    },
+    "heading": {
+      "titlePrefix": "Rewards ",
+      "titleHighlight": "shop",
+      "subtitle": "Exchange your XP points for products, vouchers, and eco-friendly experiences."
+    },
+    "progress": {
+      "level": "Level {{level}}",
+      "xp": "XP",
+      "remaining": "{{remaining}} XP to level {{nextLevel}}"
+    },
+    "claim": {
+      "successTitle": "Your reward is ready!",
+      "message": "Here is your unique code for {{reward}}.",
+      "done": "Done"
+    },
+    "card": {
+      "claiming": "Processing…",
+      "claimNow": "Claim now",
+      "needsXp": "Need {{xp}} more XP"
+    },
+    "empty": {
+      "title": "No rewards added yet.",
+      "description": "Make sure the rewards table contains rows with"
+    },
+    "promo": {
+      "title": "Want more XP?",
+      "subtitle": "Complete daily tasks and recycle regularly.",
+      "cta": "Go to tasks"
+    },
+    "categories": {
+      "merch": "Merch",
+      "entertainment": "Entertainment",
+      "lifestyle": "Lifestyle",
+      "health": "Health",
+      "food": "Food",
+      "general": "General"
+    }
+  },
+  "recyclingActivity": {
+    "title": "Activity",
+    "subtitle": "Last 3 days",
+    "barName": "trash"
+  },
+  "claim": {
+    "loading": {
+      "title": "Checking code..."
+    },
+    "unauthenticated": {
+      "title": "Sign in to your account",
+      "subtitle": "To claim points, you need to be signed in.",
+      "login": "Sign in"
+    },
+    "claimed": {
+      "title": "Already claimed",
+      "subtitle": "This QR code has already been scanned and cannot be used again."
+    },
+    "expired": {
+      "title": "Expired code",
+      "subtitle": "The QR code has expired and is no longer valid."
+    },
+    "invalid": {
+      "title": "Invalid code",
+      "subtitle": "The QR code does not exist or is incorrect."
+    },
+    "success": {
+      "title": "Code scanned successfully!",
+      "pointsEarned": "Points earned",
+      "totalXp": "Total XP"
+    },
+    "buttons": {
+      "dashboard": "Home",
+      "back": "Back"
+    }
+  }
 }

@@ -7,6 +7,8 @@ import {
 } from "lucide-react";
 import { Navigation } from "@/app/components/ui/Navigation";
 import { createClient } from "@supabase/supabase-js";
+import { useTranslation } from "react-i18next";
+import { SimpleSpinningRecycling, SpinningRecyclingLoader } from "@/app/components/ui/RecyclingLoader";
 
 interface Reward {
   id: string;
@@ -40,8 +42,8 @@ const supabase = createClient(
 );
 
 // Помощни функции
-function fmt(n: number) {
-  return new Intl.NumberFormat("bg-BG").format(n);
+function fmt(n: number, locale = "bg-BG") {
+  return new Intl.NumberFormat(locale).format(n);
 }
 
 function computeLevelFromXp(totalXp: number) {
@@ -76,6 +78,7 @@ const CATEGORY_ICONS: Record<string, React.ReactNode> = {
 
 // Лента за напредък на XP
 function XpProgressBar({ totalXp }: { totalXp: number }) {
+  const { t, i18n } = useTranslation();
   const { level, currentXp, xpForNextLevel } = computeLevelFromXp(totalXp);
   const pct = Math.min(100, (currentXp / xpForNextLevel) * 100);
   return (
@@ -83,11 +86,11 @@ function XpProgressBar({ totalXp }: { totalXp: number }) {
       <div className="flex items-center justify-between text-sm text-zinc-500 dark:text-zinc-400">
         <span className="flex items-center gap-2">
           <TrendingUp className="h-4 w-4 text-green-500 dark:text-green-400" />
-          Ниво <strong className="text-zinc-900 dark:text-white ml-1 text-base">{level}</strong>
+          {t("rewards.progress.level", { level })}
         </span>
         <span className="text-sm">
-          <strong className="text-green-600 dark:text-green-400 text-base">{fmt(currentXp)}</strong>
-          <span className="text-zinc-400 dark:text-zinc-500"> / {fmt(xpForNextLevel)} XP</span>
+          <strong className="text-green-600 dark:text-green-400 text-base">{fmt(currentXp, i18n.language)}</strong>
+          <span className="text-zinc-400 dark:text-zinc-500"> / {fmt(xpForNextLevel, i18n.language)} {t("rewards.progress.xp")}</span>
         </span>
       </div>
       {/* Лента за прогрес */}
@@ -104,7 +107,10 @@ function XpProgressBar({ totalXp }: { totalXp: number }) {
         />
       </div>
       <p className="text-center text-xs text-zinc-400 dark:text-zinc-500">
-        Още <strong className="text-zinc-600 dark:text-zinc-300">{fmt(xpForNextLevel - currentXp)}</strong> XP до ниво {level + 1}
+        {t("rewards.progress.remaining", {
+          remaining: fmt(xpForNextLevel - currentXp, i18n.language),
+          nextLevel: level + 1,
+        })}
       </p>
     </div>
   );
@@ -116,6 +122,7 @@ function ClaimModal({ reward, code, onClose }: {
   code: string;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
 
   const handleCopy = useCallback(async () => {
@@ -144,9 +151,9 @@ function ClaimModal({ reward, code, onClose }: {
           </div>
         </div>
         <div className="text-center">
-          <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-1">Наградата е твоя!</h2>
+          <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-1">{t("rewards.claim.successTitle")}</h2>
           <p className="text-zinc-500 dark:text-zinc-400 text-sm">
-            Ето твоя уникален код за <span className="text-zinc-800 dark:text-white font-medium">{reward.title}</span>.
+            {t("rewards.claim.message", { reward: reward.title })}
           </p>
         </div>
         {/* Код за копиране */}
@@ -164,7 +171,7 @@ function ClaimModal({ reward, code, onClose }: {
           className="w-full py-2.5 rounded-xl text-sm font-semibold text-white hover:opacity-90 transition-opacity"
           style={{ backgroundImage: "linear-gradient(135deg,#4ade80,#22c55e,#059669)" }}
         >
-          Готово
+          {t("rewards.claim.done")}
         </button>
       </div>
     </div>
@@ -178,6 +185,7 @@ function RewardCard({ reward, userXP, isClaiming, onClaim }: {
   isClaiming: boolean;
   onClaim: (r: Reward) => void;
 }) {
+  const { t, i18n } = useTranslation();
   const canAfford = userXP >= reward.points_cost;
   const deficit = reward.points_cost - userXP;
 
@@ -224,7 +232,9 @@ function RewardCard({ reward, userXP, isClaiming, onClaim }: {
         </div>
         {/* Категория */}
         <span className="text-[11px] uppercase tracking-widest text-zinc-400 dark:text-zinc-500 font-medium">
-          {CATEGORY_LABELS[reward.category] ?? reward.category}
+          {t(`rewards.categories.${reward.category}`, {
+            defaultValue: CATEGORY_LABELS[reward.category] ?? reward.category,
+          })}
         </span>
         {/* Бутон за взимане */}
         <button
@@ -237,11 +247,11 @@ function RewardCard({ reward, userXP, isClaiming, onClaim }: {
           style={canAfford ? { backgroundImage: "linear-gradient(135deg,#4ade80,#22c55e,#059669)", boxShadow: "0 4px 12px rgba(34,197,94,.15)" } : {}}
         >
           {isClaiming ? (
-            <><span className="h-4 w-4 rounded-full border-2 border-current border-t-transparent animate-spin" /><span>Обработване…</span></>
+            <><span className="h-4 w-4 rounded-full border-2 border-current border-t-transparent animate-spin" /><span>{t("rewards.card.claiming")}</span></>
           ) : canAfford ? (
-            <><Gift className="h-4 w-4" /><span>Вземи сега</span></>
+            <><Gift className="h-4 w-4" /><span>{t("rewards.card.claimNow")}</span></>
           ) : (
-            <><Lock className="h-4 w-4" /><span>Нужни са {fmt(deficit)} XP още</span></>
+            <><Lock className="h-4 w-4" /><span>{t("rewards.card.needsXp", { xp: fmt(deficit, i18n.language) })}</span></>
           )}
         </button>
       </div>
@@ -251,6 +261,8 @@ function RewardCard({ reward, userXP, isClaiming, onClaim }: {
 
 // Главна страница
 export default function RewardsPage() {
+  const { t, i18n } = useTranslation();
+
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [rewards, setRewards] = useState<Reward[]>([]);
   const [loading, setLoading] = useState(true);
@@ -259,6 +271,7 @@ export default function RewardsPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [dbError, setDbError] = useState<string | null>(null);
 
+  // зареждане на данни от базата данни
   useEffect(() => {
     async function load() {
       setDbError(null);
@@ -331,11 +344,11 @@ export default function RewardsPage() {
     }
   }, [userProfile, claimingId, userId]);
 
-  // Екран за зареждане
+  // Екран при зареждане
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-zinc-50 via-white to-zinc-100 dark:from-zinc-950 dark:via-zinc-900 dark:to-black flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-green-500 border-t-transparent rounded-full animate-spin" />
+        <SpinningRecyclingLoader />
       </div>
     );
   }
@@ -347,22 +360,6 @@ export default function RewardsPage() {
     <div className="min-h-screen font-sans bg-gradient-to-br from-zinc-50 via-white to-zinc-100 dark:from-zinc-950 dark:via-zinc-900 dark:to-black">
       <Navigation />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-24">
-
-        {/* Банер за грешка */}
-        {dbError && (
-          <div className="mb-8 flex items-start gap-3 rounded-xl border border-red-300 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 px-5 py-4">
-            <AlertCircle className="h-5 w-5 text-red-500 dark:text-red-400 shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm font-semibold text-red-600 dark:text-red-300">{dbError}</p>
-              <p className="text-xs text-zinc-400 mt-1">
-                Вероятно липсва RLS политика. Изпълни в Supabase SQL Editor:
-              </p>
-              <code className="block mt-2 text-xs text-green-600 dark:text-green-400 bg-zinc-100 dark:bg-black/40 rounded-lg px-3 py-2 font-mono">
-                CREATE POLICY "public read rewards" ON public.rewards FOR SELECT USING (is_available = true);
-              </code>
-            </div>
-          </div>
-        )}
 
         {/* Героична секция */}
         <div className="relative flex flex-col items-center text-center mb-16 px-4">
@@ -378,16 +375,18 @@ export default function RewardsPage() {
           {/* XP значка */}
           <div className="relative z-10 inline-flex items-center gap-2.5 px-5 py-2 rounded-full border border-green-500/30 bg-green-500/10 backdrop-blur-sm mb-6">
             <Sparkles className="h-4 w-4 text-green-500 dark:text-green-400" />
-            <span className="text-sm font-bold tracking-widest text-green-600 dark:text-green-400 uppercase">{fmt(totalXp)} XP точки</span>
+            <span className="text-sm font-bold tracking-widest text-green-600 dark:text-green-400 uppercase">
+              {t("rewards.header.xpPoints", { xp: fmt(totalXp, i18n.language) })}
+            </span>
           </div>
           <h1 className="relative z-10 text-4xl md:text-5xl font-bold tracking-tight text-zinc-900 dark:text-white mb-4">
-            Магазин за{" "}
+            {t("rewards.heading.titlePrefix")}
             <span className="bg-clip-text text-transparent" style={{ backgroundImage: "linear-gradient(135deg,#4ade80 0%,#22c55e 55%,#059669 100%)" }}>
-              награди
+              {t("rewards.heading.titleHighlight")}
             </span>
           </h1>
           <p className="relative z-10 max-w-md text-zinc-500 dark:text-zinc-400 leading-relaxed mb-8">
-            Обмени своите XP точки за продукти, ваучери и преживявания с по-малък отпечатък върху природата.
+            {t("rewards.heading.subtitle")}
           </p>
           {userProfile && (
             <div className="relative z-10 w-full">
@@ -414,9 +413,9 @@ export default function RewardsPage() {
             // Празно състояние
             <div className="flex flex-col items-center text-center py-20 gap-3">
               <Gift className="h-12 w-12 text-zinc-300 dark:text-zinc-700" />
-              <p className="text-zinc-500 dark:text-zinc-400 font-medium">Все още няма добавени награди.</p>
+              <p className="text-zinc-500 dark:text-zinc-400 font-medium">{t("rewards.empty.title")}</p>
               <p className="text-xs text-zinc-400 dark:text-zinc-600 max-w-xs">
-                Увери се, че таблицата rewards съдържа редове с <code className="text-zinc-500 dark:text-zinc-400">is_available = true</code> и че има активна RLS политика за четене.
+                {t("rewards.empty.description")} <code className="text-zinc-500 dark:text-zinc-400">is_available = true</code>.
               </p>
             </div>
           )}
@@ -437,8 +436,8 @@ export default function RewardsPage() {
                 <Recycle className="h-6 w-6" />
               </div>
               <div>
-                <p className="font-semibold text-zinc-900 dark:text-white">Искаш още XP?</p>
-                <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">Завършвай дневните задачи и рециклирай редовно.</p>
+                <p className="font-semibold text-zinc-900 dark:text-white">{t("rewards.promo.title")}</p>
+                <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">{t("rewards.promo.subtitle")}</p>
               </div>
             </div>
             <a
@@ -446,7 +445,7 @@ export default function RewardsPage() {
               className="shrink-0 px-6 py-2.5 rounded-xl text-sm font-semibold text-white hover:opacity-90 transition-opacity"
               style={{ backgroundImage: "linear-gradient(135deg,#4ade80,#22c55e,#059669)", boxShadow: "0 4px 12px rgba(34,197,94,.15)" }}
             >
-              Към задачите
+              {t("rewards.promo.cta")}
             </a>
           </div>
         </div>
