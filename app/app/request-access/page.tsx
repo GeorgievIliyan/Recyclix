@@ -1,7 +1,8 @@
 "use client"
 
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase-browser'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,87 +13,48 @@ import { Building2, Mail, User, MapPin, Globe, MessageSquare, Hash, Phone, Check
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm, SubmitHandler } from 'react-hook-form'
+import { getPreferredLanguage } from '@/lib/utils'
 
 // Данни за държави с изображения на знамена
 const countries = [
-  { code: 'BG', name: 'България', phoneCode: '+359' },
-  { code: 'US', name: 'Съединени щати', phoneCode: '+1' },
-  { code: 'GB', name: 'Обединено кралство', phoneCode: '+44' },
-  { code: 'DE', name: 'Германия', phoneCode: '+49' },
-  { code: 'FR', name: 'Франция', phoneCode: '+33' },
-  { code: 'IT', name: 'Италия', phoneCode: '+39' },
-  { code: 'ES', name: 'Испания', phoneCode: '+34' },
-  { code: 'RO', name: 'Румъния', phoneCode: '+40' },
-  { code: 'GR', name: 'Гърция', phoneCode: '+30' },
-  { code: 'TR', name: 'Турция', phoneCode: '+90' },
-  { code: 'NL', name: 'Нидерландия', phoneCode: '+31' },
-  { code: 'BE', name: 'Белгия', phoneCode: '+32' },
-  { code: 'AT', name: 'Австрия', phoneCode: '+43' },
-  { code: 'CH', name: 'Швейцария', phoneCode: '+41' },
-  { code: 'SE', name: 'Швеция', phoneCode: '+46' },
-  { code: 'NO', name: 'Норвегия', phoneCode: '+47' },
-  { code: 'DK', name: 'Дания', phoneCode: '+45' },
-  { code: 'FI', name: 'Финландия', phoneCode: '+358' },
-  { code: 'PL', name: 'Полша', phoneCode: '+48' },
-  { code: 'CZ', name: 'Чехия', phoneCode: '+420' },
-  { code: 'HU', name: 'Унгария', phoneCode: '+36' },
-  { code: 'RS', name: 'Сърбия', phoneCode: '+381' },
-  { code: 'HR', name: 'Хърватия', phoneCode: '+385' },
-  { code: 'SI', name: 'Словения', phoneCode: '+386' },
-  { code: 'SK', name: 'Словакия', phoneCode: '+421' },
+  { code: 'BG', nameKey: 'countries.BG', phoneCode: '+359' },
+  { code: 'US', nameKey: 'countries.US', phoneCode: '+1' },
+  { code: 'GB', nameKey: 'countries.GB', phoneCode: '+44' },
+  { code: 'DE', nameKey: 'countries.DE', phoneCode: '+49' },
+  { code: 'FR', nameKey: 'countries.FR', phoneCode: '+33' },
+  { code: 'IT', nameKey: 'countries.IT', phoneCode: '+39' },
+  { code: 'ES', nameKey: 'countries.ES', phoneCode: '+34' },
+  { code: 'RO', nameKey: 'countries.RO', phoneCode: '+40' },
+  { code: 'GR', nameKey: 'countries.GR', phoneCode: '+30' },
+  { code: 'TR', nameKey: 'countries.TR', phoneCode: '+90' },
+  { code: 'NL', nameKey: 'countries.NL', phoneCode: '+31' },
+  { code: 'BE', nameKey: 'countries.BE', phoneCode: '+32' },
+  { code: 'AT', nameKey: 'countries.AT', phoneCode: '+43' },
+  { code: 'CH', nameKey: 'countries.CH', phoneCode: '+41' },
+  { code: 'SE', nameKey: 'countries.SE', phoneCode: '+46' },
+  { code: 'NO', nameKey: 'countries.NO', phoneCode: '+47' },
+  { code: 'DK', nameKey: 'countries.DK', phoneCode: '+45' },
+  { code: 'FI', nameKey: 'countries.FI', phoneCode: '+358' },
+  { code: 'PL', nameKey: 'countries.PL', phoneCode: '+48' },
+  { code: 'CZ', nameKey: 'countries.CZ', phoneCode: '+420' },
+  { code: 'HU', nameKey: 'countries.HU', phoneCode: '+36' },
+  { code: 'RS', nameKey: 'countries.RS', phoneCode: '+381' },
+  { code: 'HR', nameKey: 'countries.HR', phoneCode: '+385' },
+  { code: 'SI', nameKey: 'countries.SI', phoneCode: '+386' },
+  { code: 'SK', nameKey: 'countries.SK', phoneCode: '+421' },
 ]
 
 // Типове организации - ТРЯБВА да съвпадат точно с базата данни
 const organizationTypes = [
-  { value: 'municipality', label: 'Община' },
-  { value: 'school', label: 'Училище' },
-  { value: 'company', label: 'Компания' },
-  { value: 'other', label: 'Друго' },
+  { value: 'municipality', labelKey: 'requestAccess.form.organizationTypeOptions.municipality' },
+  { value: 'school', labelKey: 'requestAccess.form.organizationTypeOptions.school' },
+  { value: 'company', labelKey: 'requestAccess.form.organizationTypeOptions.company' },
+  { value: 'ngo', labelKey: 'requestAccess.form.organizationTypeOptions.ngo' },
+  { value: 'other', labelKey: 'requestAccess.form.organizationTypeOptions.other' },
 ]
 
 // Кодове на държави за валидация
 const countryCodes = countries.map(c => c.code)
-
-const formSchema = z.object({
-  organization_name: z.string()
-    .min(2, 'Името на организацията трябва да е поне 2 символа')
-    .max(100, 'Името на организацията не може да бъде повече от 100 символа'),
-  
-  organization_type: z.enum(['municipality', 'school', 'company', 'ngo', 'other'], {
-    errorMap: () => ({ message: 'Моля, изберете валиден тип организация' })
-  } as any),
-  
-  contact_name: z.string()
-    .min(2, 'Името трябва да е поне 2 символа')
-    .max(100, 'Името не може да бъде повече от 100 символа'),
-  
-  contact_email: z.string()
-    .email('Моля, въведете валиден имейл адрес')
-    .max(100, 'Имейлът не може да бъде повече от 100 символа'),
-  
-  intended_bin_count: z.coerce.number()
-    .int('Броят кошове трябва да е цяло число')
-    .min(1, 'Минималният брой кошове е 1')
-    .max(10000, 'Максималният брой кошове е 10,000')
-    .default(1),
-  
-  city: z.string()
-    .max(50, 'Градът не може да бъде повече от 50 символа')
-    .optional()
-    .nullable()
-    .transform(val => val === '' ? null : val),
-  
-  country: z.string()
-    .max(2, 'Невалиден код на държава')
-    .refine(code => countryCodes.includes(code), 'Моля, изберете валидна държава')
-    .optional()
-    .nullable()
-    .default('BG'),
-  
-  message: z.string()
-    .max(1000, 'Съобщението не може да бъде повече от 1000 символа')
-    .default('')
-})
 
 // Дефиниране на типа за формата
 type FormData = {
@@ -105,6 +67,27 @@ type FormData = {
   country: string | null | undefined
   message: string
 }
+
+// Схемата е дефинирана извън компонента, без преводи, за да се избегне hydration грешка
+const formSchema = z.object({
+  organization_name: z.string().min(2).max(100),
+  organization_type: z.enum(['municipality', 'school', 'company', 'ngo', 'other']),
+  contact_name: z.string().min(2).max(100),
+  contact_email: z.string().email().max(100),
+  intended_bin_count: z.coerce.number().int().min(1).max(10000).default(1),
+  city: z.string()
+    .max(50)
+    .optional()
+    .nullable()
+    .transform(val => val === '' ? null : val),
+  country: z.string()
+    .max(2)
+    .refine(code => countryCodes.includes(code))
+    .optional()
+    .nullable()
+    .default('BG'),
+  message: z.string().max(1000).default(''),
+})
 
 // Персонализиран компонент за падащо меню
 interface DropdownProps {
@@ -126,7 +109,7 @@ function Dropdown({ value, onValueChange, options, placeholder, className = "", 
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full h-12 text-[15px] bg-neutral-100 dark:bg-neutral-800 border rounded-md hover:border-muted-foreground/50 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all px-3 flex items-center justify-between ${
+        className={`w-full h-12 text-[15px] bg-background border rounded-md hover:border-muted-foreground/50 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all px-3 flex items-center justify-between ${
           error ? 'border-red-500' : 'border-border'
         }`}
       >
@@ -142,7 +125,7 @@ function Dropdown({ value, onValueChange, options, placeholder, className = "", 
             className="fixed inset-0 z-40" 
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute z-50 w-full mt-1 bg-neutral-100 dark:bg-neutral-800 border border-border rounded-md shadow-lg max-h-60 overflow-auto">
+          <div className="absolute z-50 w-full mt-1 bg-background border border-border rounded-md shadow-lg max-h-60 overflow-auto">
             {options.map((option) => (
               <div
                 key={option.value}
@@ -172,21 +155,22 @@ interface CountryDropdownProps {
   value: string
   onValueChange: (value: string) => void
   type?: 'country' | 'phone'
+  placeholder?: string
   className?: string
   error?: string
 }
 
-function CountryDropdown({ value, onValueChange, type = 'country', className = "", error }: CountryDropdownProps) {
+function CountryDropdown({ value, onValueChange, type = 'country', placeholder, className = "", error }: CountryDropdownProps) {
+  const { t } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
-  
   const selectedCountry = countries.find(c => c.code === value)
-  
+
   return (
     <div className={`relative ${className}`}>
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full h-12 text-[15px] bg-neutral-100 dark:bg-neutral-800 border rounded-md hover:border-muted-foreground/50 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all px-3 flex items-center justify-between ${
+        className={`w-full h-12 text-[15px] bg-background border rounded-md hover:border-muted-foreground/50 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all px-3 flex items-center justify-between ${
           error ? 'border-red-500' : 'border-border'
         }`}
       >
@@ -199,21 +183,18 @@ function CountryDropdown({ value, onValueChange, type = 'country', className = "
               className="w-6 h-4 object-cover border border-border/50"
             />
           )}
-          <span className="text-foreground">
-            {type === 'phone' 
-              ? selectedCountry?.phoneCode 
-              : selectedCountry?.name || 'Изберете държава'}
+          <span className={value ? 'text-foreground' : 'text-muted-foreground'}>
+            {type === 'phone'
+              ? selectedCountry?.phoneCode
+              : selectedCountry ? t(selectedCountry.nameKey) : placeholder || 'Select country'}
           </span>
         </div>
         <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
-      
+
       {isOpen && (
         <>
-          <div 
-            className="fixed inset-0 z-40" 
-            onClick={() => setIsOpen(false)}
-          />
+          <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
           <div className="absolute z-50 w-full mt-1 bg-background border border-border rounded-md shadow-lg max-h-60 overflow-auto">
             {countries.map((country) => (
               <div
@@ -233,26 +214,36 @@ function CountryDropdown({ value, onValueChange, type = 'country', className = "
                     alt={`${country.code} flag`}
                     className="w-6 h-4 object-cover border border-border/50"
                   />
-                  <span>{type === 'phone' ? country.phoneCode : country.name}</span>
+                  <span>{type === 'phone' ? country.phoneCode : t(country.nameKey)}</span>
                 </div>
               </div>
             ))}
           </div>
         </>
       )}
-      {error && (
-        <p className="text-red-500 text-sm mt-1">{error}</p>
-      )}
+      {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
     </div>
   )
 }
 
 export default function RequestAccessPage() {
+  const {t, i18n} = useTranslation()
+
   const router = useRouter()
 
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [serverError, setServerError] = useState<string | null>(null)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const organizationTypeOptions = organizationTypes.map((item) => ({
+    value: item.value,
+    label: t(item.labelKey),
+  }))
 
   const {
     register,
@@ -299,7 +290,7 @@ export default function RequestAccessPage() {
 
       if (supabaseError) {
         console.error('Supabase грешка:', supabaseError)
-        setServerError(`Грешка при изпращане: ${supabaseError.message}`)
+        setServerError(t('requestAccess.errors.submitError', { error: supabaseError.message }))
         setLoading(false)
         return
       }
@@ -309,10 +300,49 @@ export default function RequestAccessPage() {
       
     } catch (err) {
       console.error('Неочаквана грешка:', err)
-      setServerError('Възникна неочаквана грешка. Моля, опитайте отново.')
+      setServerError(t('requestAccess.errors.unexpected'))
       setLoading(false)
     }
   }
+
+  // Превеждане на грешките от Zod на клиента
+  const getFieldError = (field: keyof FormData, type?: string): string | undefined => {
+    const error = errors[field]
+    if (!error) return undefined
+
+    switch (field) {
+      case 'organization_name':
+        return error.type === 'too_small'
+          ? t('requestAccess.validation.organizationName.min')
+          : t('requestAccess.validation.organizationName.max')
+      case 'organization_type':
+        return t('requestAccess.validation.organizationType.invalid')
+      case 'contact_name':
+        return error.type === 'too_small'
+          ? t('requestAccess.validation.contactName.min')
+          : t('requestAccess.validation.contactName.max')
+      case 'contact_email':
+        return error.type === 'invalid_string'
+          ? t('requestAccess.validation.contactEmail.invalid')
+          : t('requestAccess.validation.contactEmail.max')
+      case 'intended_bin_count':
+        if (error.type === 'too_small') return t('requestAccess.validation.intendedBinCount.min')
+        if (error.type === 'too_big') return t('requestAccess.validation.intendedBinCount.max')
+        return t('requestAccess.validation.intendedBinCount.int')
+      case 'city':
+        return t('requestAccess.validation.city.max')
+      case 'country':
+        return error.type === 'too_big'
+          ? t('requestAccess.validation.country.max')
+          : t('requestAccess.validation.country.invalid')
+      case 'message':
+        return t('requestAccess.validation.message.max')
+      default:
+        return error.message as string
+    }
+  }
+
+  if (!mounted) return null
 
   if (submitted) {
     return (
@@ -323,23 +353,23 @@ export default function RequestAccessPage() {
               <CheckCircle2 className="w-12 h-12 text-green-500" />
             </div>
             <CardTitle className="text-2xl font-semibold text-foreground">
-              Заявката е изпратена
+              {t('requestAccess.success.title')}
             </CardTitle>
             <CardDescription className="text-base text-muted-foreground leading-relaxed px-2">
-              Ще прегледаме вашата заявка и ще се свържем с вас по имейл в най-кратък срок.
+              {t('requestAccess.success.subtitle')}
             </CardDescription>
             <div className="flex gap-2">
               <button
                 onClick={() => router.push('/app/dashboard')}
-                className="bg-primary text-primary-foreground px-6 py-3 hover:bg-neutral-400 transition duration-250 rounded-lg font-medium w-full"
+                className="bg-primary text-primary-foreground px-6 py-3 hover:bg-neutral-400 transition duration-200 rounded-lg font-medium w-full"
               >
-                Начално табло
+                {t('requestAccess.success.dashboardButton')}
               </button>
               <button
                 onClick={() => router.back()}
                 className="bg-primary text-primary-foreground hover:text-white hover:bg-red-500 transition duration-250 px-6 py-3 rounded-lg font-medium w-full"
               >
-                Назад
+                {t('requestAccess.success.backButton')}
               </button>
             </div>
           </CardHeader>
@@ -357,10 +387,10 @@ export default function RequestAccessPage() {
             <Building2 className="w-8 h-8 text-green-500" />
           </div>
           <h1 className="text-3xl sm:text-4xl font-meduim text-foreground tracking-tight text-balance">
-            Поръчка на <span className='font-semibold text-green-400 to text-emerald-600'>Smart</span> кошове
+            {t('requestAccess.heading.title')}
           </h1>
           <p className="text-base text-muted-foreground max-w-xl mx-auto text-balance">
-            Попълнете формуляра по-долу и нашият екип ще се свърже с вас скоро
+            {t('requestAccess.heading.subtitle')}
           </p>
         </div>
 
@@ -375,19 +405,19 @@ export default function RequestAccessPage() {
                   className="text-[15px] font-medium text-foreground flex items-center gap-2"
                 >
                   <Building2 className="w-[18px] h-[18px] text-green-500" />
-                  Име на организацията *
+                  {t('requestAccess.form.organizationNameLabel')}
                 </Label>
                 <Input
                   id="organization_name"
                   {...register('organization_name')}
                   required
-                  placeholder="Въведете името на организацията"
+                  placeholder={t('requestAccess.form.organizationNamePlaceholder')}
                   className={`h-12 text-[15px] bg-background border hover:border-muted-foreground/50 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all ${
                     errors.organization_name ? 'border-red-500' : 'border-border'
                   }`}
                 />
                 {errors.organization_name && (
-                  <p className="text-red-500 text-sm">{errors.organization_name.message}</p>
+                  <p className="text-red-500 text-sm">{getFieldError('organization_name')}</p>
                 )}
               </div>
 
@@ -398,14 +428,14 @@ export default function RequestAccessPage() {
                   className="text-[15px] font-medium text-foreground flex items-center gap-2"
                 >
                   <Building2 className="w-[18px] h-[18px] text-green-500" />
-                  Тип организация *
+                  {t('requestAccess.form.organizationTypeLabel')}
                 </Label>
                 <Dropdown
                   value={organizationType || ''}
                   onValueChange={(value) => setValue('organization_type', value as FormData['organization_type'])}
-                  options={organizationTypes}
-                  placeholder="Изберете тип организация"
-                  error={errors.organization_type?.message}
+                  options={organizationTypeOptions}
+                  placeholder={t('requestAccess.form.organizationTypePlaceholder')}
+                  error={getFieldError('organization_type')}
                 />
               </div>
 
@@ -418,19 +448,19 @@ export default function RequestAccessPage() {
                     className="text-[15px] font-medium text-foreground flex items-center gap-2"
                   >
                     <User className="w-[18px] h-[18px] text-green-500" />
-                    Лице за контакт *
+                    {t('requestAccess.form.contactNameLabel')}
                   </Label>
                   <Input
                     id="contact_name"
                     {...register('contact_name')}
                     required
-                    placeholder="Вашето име"
+                    placeholder={t('requestAccess.form.contactNamePlaceholder')}
                     className={`h-12 text-[15px] bg-background border hover:border-muted-foreground/50 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all ${
                       errors.contact_name ? 'border-red-500' : 'border-border'
                     }`}
                   />
                   {errors.contact_name && (
-                    <p className="text-red-500 text-sm">{errors.contact_name.message}</p>
+                    <p className="text-red-500 text-sm">{getFieldError('contact_name')}</p>
                   )}
                 </div>
 
@@ -441,20 +471,20 @@ export default function RequestAccessPage() {
                     className="text-[15px] font-medium text-foreground flex items-center gap-2"
                   >
                     <Mail className="w-[18px] h-[18px] text-green-500" />
-                    Имейл *
+                    {t('requestAccess.form.contactEmailLabel')}
                   </Label>
                   <Input
                     id="contact_email"
                     {...register('contact_email')}
                     type="email"
                     required
-                    placeholder="your@email.com"
+                    placeholder={t('requestAccess.form.contactEmailPlaceholder')}
                     className={`h-12 text-[15px] bg-background border hover:border-muted-foreground/50 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all ${
                       errors.contact_email ? 'border-red-500' : 'border-border'
                     }`}
                   />
                   {errors.contact_email && (
-                    <p className="text-red-500 text-sm">{errors.contact_email.message}</p>
+                    <p className="text-red-500 text-sm">{getFieldError('contact_email')}</p>
                   )}
                 </div>
               </div>
@@ -468,18 +498,18 @@ export default function RequestAccessPage() {
                     className="text-[15px] font-medium text-foreground flex items-center gap-2"
                   >
                     <MapPin className="w-[18px] h-[18px] text-green-500" />
-                    Град
+                    {t('requestAccess.form.cityLabel')}
                   </Label>
                   <Input
                     id="city"
                     {...register('city')}
-                    placeholder="София"
+                    placeholder={t('requestAccess.form.cityPlaceholder')}
                     className={`h-12 text-[15px] bg-background border hover:border-muted-foreground/50 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all ${
                       errors.city ? 'border-red-500' : 'border-border'
                     }`}
                   />
                   {errors.city && (
-                    <p className="text-red-500 text-sm">{errors.city.message}</p>
+                    <p className="text-red-500 text-sm">{getFieldError('city')}</p>
                   )}
                 </div>
 
@@ -490,13 +520,14 @@ export default function RequestAccessPage() {
                     className="text-[15px] font-medium text-foreground flex items-center gap-2"
                   >
                     <Globe className="w-[18px] h-[18px] text-green-500" />
-                    Държава
+                    {t('requestAccess.form.countryLabel')}
                   </Label>
                   <CountryDropdown
                     value={country}
                     onValueChange={(value) => setValue('country', value)}
                     type="country"
-                    error={errors.country?.message}
+                    placeholder={t('requestAccess.form.countryPlaceholder')}
+                    error={getFieldError('country')}
                   />
                 </div>
               </div>
@@ -508,7 +539,7 @@ export default function RequestAccessPage() {
                   className="text-[15px] font-medium text-foreground flex items-center gap-2"
                 >
                   <Hash className="w-[18px] h-[18px] text-green-500" />
-                  Желан брой кошове *
+                  {t('requestAccess.form.intendedBinCountLabel')}
                 </Label>
                 <Input
                   id="intended_bin_count"
@@ -516,13 +547,13 @@ export default function RequestAccessPage() {
                   type="number"
                   min={1}
                   required
-                  placeholder="10"
+                  placeholder={t('requestAccess.form.intendedBinCountPlaceholder')}
                   className={`h-12 text-[15px] bg-background border hover:border-muted-foreground/50 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all ${
                     errors.intended_bin_count ? 'border-red-500' : 'border-border'
                   }`}
                 />
                 {errors.intended_bin_count && (
-                  <p className="text-red-500 text-sm">{errors.intended_bin_count.message}</p>
+                  <p className="text-red-500 text-sm">{getFieldError('intended_bin_count')}</p>
                 )}
               </div>
 
@@ -533,19 +564,19 @@ export default function RequestAccessPage() {
                   className="text-[15px] font-medium text-foreground flex items-center gap-2"
                 >
                   <MessageSquare className="w-[18px] h-[18px] text-green-500" />
-                  Съобщение
+                  {t('requestAccess.form.messageLabel')}
                 </Label>
                 <Textarea
                   id="message"
                   {...register('message')}
-                  placeholder="Споделете допълнителна информация за вашата организация и нуждите ви..."
+                  placeholder={t('requestAccess.form.messagePlaceholder')}
                   rows={4}
                   className={`text-[15px] bg-background border hover:border-muted-foreground/50 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all resize-none py-3 ${
                     errors.message ? 'border-red-500' : 'border-border'
                   }`}
                 />
                 {errors.message && (
-                  <p className="text-red-500 text-sm">{errors.message.message}</p>
+                  <p className="text-red-500 text-sm">{getFieldError('message')}</p>
                 )}
               </div>
 
@@ -565,10 +596,10 @@ export default function RequestAccessPage() {
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    Изпращане...
+                    {t('requestAccess.form.button.sending')}
                   </span>
                 ) : (
-                  'Изпрати заявка'
+                  t('requestAccess.form.button.submit')
                 )}
               </Button>
             </form>
@@ -577,7 +608,7 @@ export default function RequestAccessPage() {
 
         {/* Бележка в долната част */}
         <p className="text-center text-[13px] text-muted-foreground mt-5">
-          Всички полета, маркирани с <span className="text-green-500 font-semibold">*</span>, са задължителни
+          {t('requestAccess.form.requiredFieldsNotice', { asterisk: '*' })}
         </p>
       </div>
     </div>

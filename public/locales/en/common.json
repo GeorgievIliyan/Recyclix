@@ -88,5 +88,267 @@
       "dashboard": "Home",
       "back": "Back"
     }
+  },
+  "countries": {
+    "BG": "Bulgaria",
+    "US": "United States",
+    "GB": "United Kingdom",
+    "DE": "Germany",
+    "FR": "France",
+    "IT": "Italy",
+    "ES": "Spain",
+    "RO": "Romania",
+    "GR": "Greece",
+    "TR": "Turkey",
+    "NL": "Netherlands",
+    "BE": "Belgium",
+    "AT": "Austria",
+    "CH": "Switzerland",
+    "SE": "Sweden",
+    "NO": "Norway",
+    "DK": "Denmark",
+    "FI": "Finland",
+    "PL": "Poland",
+    "CZ": "Czech Republic",
+    "HU": "Hungary",
+    "RS": "Serbia",
+    "HR": "Croatia",
+    "SI": "Slovenia",
+    "SK": "Slovakia"
+  },
+  "requestAccess": {
+    "heading": {
+      "title": "Order Smart bins",
+      "subtitle": "Fill the form below and our team will contact you soon."
+    },
+    "form": {
+      "organizationNameLabel": "Organization name *",
+      "organizationNamePlaceholder": "Enter organization name",
+      "organizationTypeLabel": "Organization type *",
+      "organizationTypePlaceholder": "Select organization type",
+      "organizationTypeOptions": {
+        "municipality": "Municipality",
+        "school": "School",
+        "company": "Company",
+        "ngo": "NGO",
+        "other": "Other"
+      },
+      "contactNameLabel": "Contact person *",
+      "contactNamePlaceholder": "Your name",
+      "contactEmailLabel": "Email *",
+      "contactEmailPlaceholder": "your@email.com",
+      "cityLabel": "City",
+      "cityPlaceholder": "Sofia",
+      "countryLabel": "Country",
+      "intendedBinCountLabel": "Desired bin count *",
+      "intendedBinCountPlaceholder": "10",
+      "messageLabel": "Message",
+      "messagePlaceholder": "Share additional information about your organization and your needs...",
+      "button": {
+        "submit": "Submit request",
+        "sending": "Sending..."
+      },
+      "requiredFieldsNotice": "All fields marked with {{asterisk}} are required"
+    },
+    "success": {
+      "title": "Request sent",
+      "subtitle": "We will review your request and contact you by email as soon as possible.",
+      "dashboardButton": "Dashboard",
+      "backButton": "Back"
+    },
+    "errors": {
+      "submitError": "Error sending request: {{error}}",
+      "unexpected": "An unexpected error occurred. Please try again."
+    },
+    "validation": {
+      "organizationName": {
+        "min": "Organization name must be at least 2 characters",
+        "max": "Organization name cannot exceed 100 characters"
+      },
+      "organizationType": {
+        "invalid": "Please select a valid organization type"
+      },
+      "contactName": {
+        "min": "Name must be at least 2 characters",
+        "max": "Name cannot exceed 100 characters"
+      },
+      "contactEmail": {
+        "invalid": "Please enter a valid email address",
+        "max": "Email cannot exceed 100 characters"
+      },
+      "intendedBinCount": {
+        "int": "Bin count must be an integer",
+        "min": "Minimum bin count is 1",
+        "max": "Maximum bin count is 10,000"
+      },
+      "city": {
+        "max": "City cannot exceed 50 characters"
+      },
+      "country": {
+        "max": "Invalid country code",
+        "invalid": "Please select a valid country"
+      },
+      "message": {
+        "max": "Message cannot exceed 1000 characters"
+      }
+    }
+  },
+  "notFound": {
+    "notFound": "Not Found",
+    "sorry": "We couldn't find this page for you",
+    "dashboard": "Dashboard",
+    "homepage": "Homepage"
+  },
+  "nav": {
+    "home": "Home",
+    "features": "Features",
+    "howItWorks": "How it works",
+    "impact": "Impact",
+    "pricing": "Pricing",
+    "login": "Login",
+    "register": "Register"
+  },
+  "hero": {
+    "title": "Recycle for a better future",
+    "subtitle": "Join our recycling platform and help protect the environment. Easy, fast and effective.",
+    "cta": "Get started",
+    "login": "Login",
+    "stats": {
+      "users": "Active users",
+      "kg": "kg",
+      "recycled": "Recycled materials",
+      "bins": "Recycling points"
+    }
+  },
+  "features": {
+    "title": "Why choose Recyclix?",
+    "subtitle": "We make recycling easy, rewarding and fun for everyone",
+    "items": [
+      {
+        "title": "Easy recycling",
+        "desc": "Find the nearest recycling points and learn what can be recycled with our interactive map."
+      },
+      {
+        "title": "Earn rewards",
+        "desc": "Earn points and rewards for every recycling drop-off. Redeem your points for vouchers and discounts."
+      },
+      {
+        "title": "Join the community",
+        "desc": "Share experiences, inspire others and participate in recycling challenges."
+      }
+    ]
+  },
+  "howItWorks": {
+    "title": "How does it work?",
+    "subtitle": "Start recycling with Recyclix in just 3 easy steps",
+    "steps": [
+      {
+        "title": "Sign up",
+        "desc": "Create a free account in less than a minute and start tracking your recycling progress."
+      },
+      {
+        "title": "Find a point",
+        "desc": "Use our interactive map to find the nearest recycling point to you."
+      },
+      {
+        "title": "Earn points",
+        "desc": "Recycle materials and automatically earn points that you can redeem for rewards."
+      }
+    ]
+  },
+  "impact": {
+    "title": "Your impact matters",
+    "subtitle": "Together we can make a difference for the planet",
+    "ecological": {
+      "title": "Ecological impact",
+      "co2": "CO2 saved",
+      "water": "Water saved",
+      "energy": "Energy saved"
+    },
+    "materials": {
+      "title": "Recycled materials",
+      "plastic": "Plastic",
+      "paper": "Paper",
+      "glassMetal": "Metal & glass"
+    },
+    "units": {
+      "kg": "kg",
+      "liters": "liters"
+    }
+  },
+  "quote": {
+    "text": "\"Every small action matters. When we recycle together, we create a cleaner and more sustainable future for the next generations.\""
+  },
+  "smartBins": {
+    "title": "containers & bins",
+    "imageAlt": "Smart recycling bin",
+    "desc": "Our smart bins combine automatic material recognition, connected IoT infrastructure and real-time data processing. They record every correct disposal precisely and transparently, turning the recycling process into an effective, measurable and motivating experience.",
+    "features": [
+      "Automatic material recognition",
+      "Real-time statistics and tracking",
+      "Smart fill-level notifications",
+      "Eco-friendly and energy efficient"
+    ]
+  },
+  "pricing": {
+    "title": "Choose your plan",
+    "subtitle": "The perfect plan for your smart recycling",
+    "perMonth": "month",
+    "popular": "Popular",
+    "choosePlan": "Choose plan",
+    "contactUs": "Contact us",
+    "starter": {
+      "name": "Starter",
+      "audience": "For small businesses",
+      "features": [
+        "Up to 100 kg recycling per month",
+        "Basic statistics and reports",
+        "Basic admin dashboard"
+      ]
+    },
+    "pro": {
+      "name": "Pro",
+      "audience": "For medium businesses and institutions",
+      "features": [
+        "Up to 500 kg recycling per month",
+        "Advanced statistics and reports",
+        "Priority 24/7 support",
+        "Access to exclusive challenges"
+      ]
+    },
+    "business": {
+      "name": "Business Super",
+      "audience": "For companies and organizations",
+      "features": [
+        "Corporate control dashboard",
+        "Detailed analytics and reports",
+        "Multi-user accounts",
+        "API integration",
+        "Custom challenges"
+      ]
+    }
+  },
+  "cta": {
+    "title": "Ready to make a change?",
+    "subtitle": "Join thousands of users who are already making a difference. Start recycling today!",
+    "button": "Start for free"
+  },
+  "footer": {
+    "tagline": "The recycling platform that makes protecting the environment easy and rewarding.",
+    "rights": "All rights reserved.",
+    "quickLinks": {
+      "title": "Quick links",
+      "features": "Features",
+      "howItWorks": "How it works",
+      "impact": "Impact",
+      "pricing": "Pricing"
+    },
+    "account": {
+      "title": "Account",
+      "login": "Login",
+      "register": "Register",
+      "admin": "Administration",
+      "management": "Management"
+    }
   }
 }

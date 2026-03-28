@@ -52,11 +52,13 @@
       "food": "Essen",
       "general": "Allgemein"
     }
-  },  "recyclingActivity": {
+  },
+  "recyclingActivity": {
     "title": "Aktivität",
     "subtitle": "Letzte 3 Tage",
     "barName": "Müll"
-  },  "claim": {
+  },
+  "claim": {
     "loading": {
       "title": "Code wird geprüft..."
     },
@@ -85,6 +87,268 @@
     "buttons": {
       "dashboard": "Startseite",
       "back": "Zurück"
+    }
+  },
+  "countries": {
+    "BG": "Bulgarien",
+    "US": "Vereinigte Staaten",
+    "GB": "Vereinigtes Königreich",
+    "DE": "Deutschland",
+    "FR": "Frankreich",
+    "IT": "Italien",
+    "ES": "Spanien",
+    "RO": "Rumänien",
+    "GR": "Griechenland",
+    "TR": "Türkei",
+    "NL": "Niederlande",
+    "BE": "Belgien",
+    "AT": "Österreich",
+    "CH": "Schweiz",
+    "SE": "Schweden",
+    "NO": "Norwegen",
+    "DK": "Dänemark",
+    "FI": "Finnland",
+    "PL": "Polen",
+    "CZ": "Tschechische Republik",
+    "HU": "Ungarn",
+    "RS": "Serbien",
+    "HR": "Kroatien",
+    "SI": "Slowenien",
+    "SK": "Slowakei"
+  },
+  "requestAccess": {
+    "heading": {
+      "title": "Bestellung von Smart-Containern",
+      "subtitle": "Füllen Sie das untenstehende Formular aus und unser Team wird Sie bald kontaktieren."
+    },
+    "form": {
+      "organizationNameLabel": "Name der Organisation *",
+      "organizationNamePlaceholder": "Geben Sie den Namen der Organisation ein",
+      "organizationTypeLabel": "Organisationstyp *",
+      "organizationTypePlaceholder": "Wählen Sie den Organisationstyp",
+      "organizationTypeOptions": {
+        "municipality": "Gemeinde",
+        "school": "Schule",
+        "company": "Unternehmen",
+        "ngo": "NGO",
+        "other": "Andere"
+      },
+      "contactNameLabel": "Ansprechpartner *",
+      "contactNamePlaceholder": "Ihr Name",
+      "contactEmailLabel": "E-Mail *",
+      "contactEmailPlaceholder": "Ihre@email.com",
+      "cityLabel": "Stadt",
+      "cityPlaceholder": "Sofia",
+      "countryLabel": "Land",
+      "intendedBinCountLabel": "Gewünschte Containeranzahl *",
+      "intendedBinCountPlaceholder": "10",
+      "messageLabel": "Nachricht",
+      "messagePlaceholder": "Teilen Sie zusätzliche Informationen zu Ihrer Organisation und Ihren Bedürfnissen mit...",
+      "button": {
+        "submit": "Anfrage senden",
+        "sending": "Sende..."
+      },
+      "requiredFieldsNotice": "Alle mit {{asterisk}} gekennzeichneten Felder sind erforderlich"
+    },
+    "success": {
+      "title": "Anfrage gesendet",
+      "subtitle": "Wir werden Ihre Anfrage prüfen und Sie so bald wie möglich per E-Mail kontaktieren.",
+      "dashboardButton": "Dashboard",
+      "backButton": "Zurück"
+    },
+    "errors": {
+      "submitError": "Fehler beim Senden der Anfrage: {{error}}",
+      "unexpected": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
+    },
+    "validation": {
+      "organizationName": {
+        "min": "Der Organisationsname muss mindestens 2 Zeichen lang sein",
+        "max": "Der Organisationsname darf nicht länger als 100 Zeichen sein"
+      },
+      "organizationType": {
+        "invalid": "Bitte wählen Sie einen gültigen Organisationstyp aus"
+      },
+      "contactName": {
+        "min": "Der Name muss mindestens 2 Zeichen lang sein",
+        "max": "Der Name darf nicht länger als 100 Zeichen sein"
+      },
+      "contactEmail": {
+        "invalid": "Bitte geben Sie eine gültige E-Mail-Adresse ein",
+        "max": "Die E-Mail darf nicht länger als 100 Zeichen sein"
+      },
+      "intendedBinCount": {
+        "int": "Die Anzahl der Behälter muss eine ganze Zahl sein",
+        "min": "Minimale Anzahl Behälter ist 1",
+        "max": "Maximale Anzahl Behälter ist 10.000"
+      },
+      "city": {
+        "max": "Die Stadt darf nicht länger als 50 Zeichen sein"
+      },
+      "country": {
+        "max": "Ungültiger Ländercode",
+        "invalid": "Bitte wählen Sie ein gültiges Land aus"
+      },
+      "message": {
+        "max": "Die Nachricht darf nicht länger als 1000 Zeichen sein"
+      }
+    }
+  },
+  "notFound": {
+    "notFound": "Nicht gefunden",
+    "sorry": "Wir konnten diese Seite nicht für dich finden",
+    "dashboard": "Dashboard",
+    "homepage": "Startseite"
+  },
+  "nav": {
+    "home": "Startseite",
+    "features": "Vorteile",
+    "howItWorks": "So funktioniert es",
+    "impact": "Wirkung",
+    "pricing": "Preise",
+    "login": "Anmelden",
+    "register": "Registrieren"
+  },
+  "hero": {
+    "title": "Recyceln für eine bessere Zukunft",
+    "subtitle": "Treten Sie unserer Recycling-Plattform bei und helfen Sie, die Umwelt zu schützen. Einfach, schnell und effektiv.",
+    "cta": "Jetzt starten",
+    "login": "Anmelden",
+    "stats": {
+      "users": "Aktive Nutzer",
+      "kg": "kg",
+      "recycled": "Recycelte Materialien",
+      "bins": "Recyclingpunkte"
+    }
+  },
+  "features": {
+    "title": "Warum Recyclix wählen?",
+    "subtitle": "Wir machen Recycling einfach, lohnend und spaßig für alle",
+    "items": [
+      {
+        "title": "Einfaches Recycling",
+        "desc": "Finden Sie die nächsten Recyclingpunkte und erfahren Sie, was mit unserer interaktiven Karte recycelt werden kann."
+      },
+      {
+        "title": "Prämien verdienen",
+        "desc": "Verdienen Sie Punkte und Prämien für jede Recyclingabgabe. Lösen Sie Ihre Punkte gegen Gutscheine und Rabatte ein."
+      },
+      {
+        "title": "Community beitreten",
+        "desc": "Erfahrungen teilen, andere inspirieren und an Recycling-Challenges teilnehmen."
+      }
+    ]
+  },
+  "howItWorks": {
+    "title": "Wie funktioniert es?",
+    "subtitle": "Starten Sie mit Recyclix in nur 3 einfachen Schritten",
+    "steps": [
+      {
+        "title": "Registrieren",
+        "desc": "Erstellen Sie in weniger als einer Minute ein kostenloses Konto und verfolgen Sie Ihren Recyclingfortschritt."
+      },
+      {
+        "title": "Punkt finden",
+        "desc": "Nutzen Sie unsere interaktive Karte, um den nächsten Recyclingpunkt in Ihrer Nähe zu finden."
+      },
+      {
+        "title": "Punkte sammeln",
+        "desc": "Recyceln Sie Materialien und sammeln Sie automatisch Punkte, die Sie gegen Prämien einlösen können."
+      }
+    ]
+  },
+  "impact": {
+    "title": "Ihre Wirkung zählt",
+    "subtitle": "Gemeinsam können wir einen Unterschied für den Planeten machen",
+    "ecological": {
+      "title": "Ökologische Wirkung",
+      "co2": "CO2 eingespart",
+      "water": "Wasser eingespart",
+      "energy": "Energie eingespart"
+    },
+    "materials": {
+      "title": "Recycelte Materialien",
+      "plastic": "Kunststoff",
+      "paper": "Papier",
+      "glassMetal": "Metall & Glas"
+    },
+    "units": {
+      "kg": "kg",
+      "liters": "Liter"
+    }
+  },
+  "quote": {
+    "text": "\"Jede kleine Aktion zählt. Wenn wir gemeinsam recyceln, schaffen wir eine sauberere und nachhaltigere Zukunft für die nächsten Generationen.\""
+  },
+  "smartBins": {
+    "title": "Container & Behälter",
+    "imageAlt": "Intelligenter Recyclingbehälter",
+    "desc": "Unsere intelligenten Behälter kombinieren automatische Materialerkennung, vernetzte IoT-Infrastruktur und Echtzeit-Datenverarbeitung. Sie erfassen jede korrekte Entsorgung präzise und transparent und verwandeln den Recyclingprozess in ein effektives, messbares und motivierendes Erlebnis.",
+    "features": [
+      "Automatische Materialerkennung",
+      "Echtzeit-Statistiken und Tracking",
+      "Intelligente Füllstandsmeldungen",
+      "Umweltfreundlich und energieeffizient"
+    ]
+  },
+  "pricing": {
+    "title": "Wählen Sie Ihren Plan",
+    "subtitle": "Der perfekte Plan für Ihr intelligentes Recycling",
+    "perMonth": "Monat",
+    "popular": "Beliebt",
+    "choosePlan": "Plan wählen",
+    "contactUs": "Kontaktieren Sie uns",
+    "starter": {
+      "name": "Starter",
+      "audience": "Für kleine Unternehmen",
+      "features": [
+        "Bis zu 100 kg Recycling pro Monat",
+        "Grundlegende Statistiken und Berichte",
+        "Einfaches Admin-Dashboard"
+      ]
+    },
+    "pro": {
+      "name": "Pro",
+      "audience": "Für mittlere Unternehmen und Institutionen",
+      "features": [
+        "Bis zu 500 kg Recycling pro Monat",
+        "Erweiterte Statistiken und Berichte",
+        "Prioritäts-Support 24/7",
+        "Zugang zu exklusiven Challenges"
+      ]
+    },
+    "business": {
+      "name": "Business Super",
+      "audience": "Für Unternehmen und Organisationen",
+      "features": [
+        "Unternehmens-Kontroll-Dashboard",
+        "Detaillierte Analysen und Berichte",
+        "Mehrbenutzerkonten",
+        "API-Integration",
+        "Individuelle Challenges"
+      ]
+    }
+  },
+  "cta": {
+    "title": "Bereit, etwas zu verändern?",
+    "subtitle": "Schließen Sie sich Tausenden von Nutzern an, die bereits einen Unterschied machen. Starten Sie heute mit dem Recycling!",
+    "button": "Kostenlos starten"
+  },
+  "footer": {
+    "tagline": "Die Recycling-Plattform, die den Umweltschutz einfach und lohnend macht.",
+    "rights": "Alle Rechte vorbehalten.",
+    "quickLinks": {
+      "title": "Schnelllinks",
+      "features": "Vorteile",
+      "howItWorks": "So funktioniert es",
+      "impact": "Wirkung",
+      "pricing": "Preise"
+    },
+    "account": {
+      "title": "Konto",
+      "login": "Anmelden",
+      "register": "Registrieren",
+      "admin": "Verwaltung",
+      "management": "Management"
     }
   }
 }

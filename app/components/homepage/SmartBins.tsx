@@ -1,6 +1,16 @@
 import { Check } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const SmartBins = () => {
+  const { t } = useTranslation();
+
+  const features = [
+    t("smartBins.features.0"),
+    t("smartBins.features.1"),
+    t("smartBins.features.2"),
+    t("smartBins.features.3"),
+  ];
+
   return (
     <div
       id="smart-bins"
@@ -14,7 +24,7 @@ const SmartBins = () => {
             <div className="relative backdrop-blur-xl bg-gradient-to-br from-white/90 via-white/80 to-zinc-50/90 dark:from-zinc-900/70 dark:via-zinc-900/60 dark:to-zinc-800/70 rounded-3xl p-8 border border-zinc-200/50 dark:border-zinc-800/50 shadow-xl overflow-hidden">
               <img
                 src="/assets/smart_bin.png"
-                alt="Интелигентен контейнер за рециклиране"
+                alt={t("smartBins.imageAlt")}
                 className="w-full h-auto rounded-2xl"
               />
             </div>
@@ -24,22 +34,13 @@ const SmartBins = () => {
               <span className="text-green-400 to text-emerald-600 font-semibold">
                 Smart
               </span>{" "}
-              контейнери <br></br> и кошове
+              {t("smartBins.title")}
             </h2>
             <p className="text-lg text-zinc-600 dark:text-zinc-400 mb-6 leading-relaxed">
-              Нашите интелигентни контейнери комбинират автоматично разпознаване
-              на материали, свързана IoT инфраструктура и обработка на данни в
-              реално време. Те отчитат всяко правилно изхвърляне прецизно и
-              прозрачно, като превръщат процеса на рециклиране в ефективно,
-              измеримо и мотивиращо изживяване.
+              {t("smartBins.desc")}
             </p>
             <ul className="space-y-4">
-              {[
-                "Автоматично разпознаване на материали",
-                "Реално време статистика и проследяване",
-                "Интелигентно уведомяване при запълване",
-                "Екологично чисти и енергийно ефективни",
-              ].map((feature, i) => (
+              {features.map((feature, i) => (
                 <li key={i} className="flex items-center gap-3">
                   <div className="w-6 h-6 bg-gradient-to-br from-[#00CD56] to-[#00b849] rounded-full flex items-center justify-center flex-shrink-0">
                     <Check className="w-4 h-4 text-white" />

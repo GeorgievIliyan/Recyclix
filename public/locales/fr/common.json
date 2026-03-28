@@ -88,5 +88,267 @@
       "dashboard": "Accueil",
       "back": "Retour"
     }
+  },
+  "countries": {
+    "BG": "Bulgarie",
+    "US": "États-Unis",
+    "GB": "Royaume-Uni",
+    "DE": "Allemagne",
+    "FR": "France",
+    "IT": "Italie",
+    "ES": "Espagne",
+    "RO": "Roumanie",
+    "GR": "Grèce",
+    "TR": "Turquie",
+    "NL": "Pays-Bas",
+    "BE": "Belgique",
+    "AT": "Autriche",
+    "CH": "Suisse",
+    "SE": "Suède",
+    "NO": "Norvège",
+    "DK": "Danemark",
+    "FI": "Finlande",
+    "PL": "Pologne",
+    "CZ": "République tchèque",
+    "HU": "Hongrie",
+    "RS": "Serbie",
+    "HR": "Croatie",
+    "SI": "Slovénie",
+    "SK": "Slovaquie"
+  },
+  "requestAccess": {
+    "heading": {
+      "title": "Commande de bacs intelligents",
+      "subtitle": "Remplissez le formulaire ci-dessous et notre équipe vous contactera bientôt."
+    },
+    "form": {
+      "organizationNameLabel": "Nom de l'organisation *",
+      "organizationNamePlaceholder": "Entrez le nom de l'organisation",
+      "organizationTypeLabel": "Type d'organisation *",
+      "organizationTypePlaceholder": "Sélectionnez le type d'organisation",
+      "organizationTypeOptions": {
+        "municipality": "Municipalité",
+        "school": "École",
+        "company": "Entreprise",
+        "ngo": "ONG",
+        "other": "Autre"
+      },
+      "contactNameLabel": "Personne de contact *",
+      "contactNamePlaceholder": "Votre nom",
+      "contactEmailLabel": "Email *",
+      "contactEmailPlaceholder": "votre@email.com",
+      "cityLabel": "Ville",
+      "cityPlaceholder": "Sofia",
+      "countryLabel": "Pays",
+      "intendedBinCountLabel": "Nombre de bacs souhaité *",
+      "intendedBinCountPlaceholder": "10",
+      "messageLabel": "Message",
+      "messagePlaceholder": "Partagez des informations supplémentaires sur votre organisation et vos besoins...",
+      "button": {
+        "submit": "Envoyer la demande",
+        "sending": "Envoi..."
+      },
+      "requiredFieldsNotice": "Tous les champs marqués de {{asterisk}} sont obligatoires"
+    },
+    "success": {
+      "title": "Demande envoyée",
+      "subtitle": "Nous examinerons votre demande et vous contacterons par e-mail dès que possible.",
+      "dashboardButton": "Tableau de bord",
+      "backButton": "Retour"
+    },
+    "errors": {
+      "submitError": "Erreur lors de l'envoi de la demande : {{error}}",
+      "unexpected": "Une erreur inattendue est survenue. Veuillez réessayer."
+    },
+    "validation": {
+      "organizationName": {
+        "min": "Le nom de l'organisation doit comporter au moins 2 caractères",
+        "max": "Le nom de l'organisation ne peut pas dépasser 100 caractères"
+      },
+      "organizationType": {
+        "invalid": "Veuillez choisir un type d'organisation valide"
+      },
+      "contactName": {
+        "min": "Le nom doit comporter au moins 2 caractères",
+        "max": "Le nom ne peut pas dépasser 100 caractères"
+      },
+      "contactEmail": {
+        "invalid": "Veuillez saisir une adresse e-mail valide",
+        "max": "L'e-mail ne peut pas dépasser 100 caractères"
+      },
+      "intendedBinCount": {
+        "int": "Le nombre de bacs doit être un entier",
+        "min": "Le nombre minimum de bacs est 1",
+        "max": "Le nombre maximum de bacs est 10 000"
+      },
+      "city": {
+        "max": "La ville ne peut pas dépasser 50 caractères"
+      },
+      "country": {
+        "max": "Code pays invalide",
+        "invalid": "Veuillez sélectionner un pays valide"
+      },
+      "message": {
+        "max": "Le message ne peut pas dépasser 1000 caractères"
+      }
+    }
+  },
+  "notFound": {
+    "notFound": "Page introuvable",
+    "sorry": "Nous n'avons pas pu trouver cette page pour vous",
+    "dashboard": "Tableau de bord",
+    "homepage": "Page d'accueil"
+  },
+  "nav": {
+    "home": "Accueil",
+    "features": "Avantages",
+    "howItWorks": "Comment ça marche",
+    "impact": "Impact",
+    "pricing": "Tarifs",
+    "login": "Connexion",
+    "register": "S'inscrire"
+  },
+  "hero": {
+    "title": "Recyclez pour un meilleur avenir",
+    "subtitle": "Rejoignez notre plateforme de recyclage et contribuez à la protection de l'environnement. Simple, rapide et efficace.",
+    "cta": "Commencer maintenant",
+    "login": "Connexion",
+    "stats": {
+      "users": "Utilisateurs actifs",
+      "kg": "kg",
+      "recycled": "Matériaux recyclés",
+      "bins": "Points de recyclage"
+    }
+  },
+  "features": {
+    "title": "Pourquoi choisir Recyclix ?",
+    "subtitle": "Nous rendons le recyclage facile, gratifiant et amusant pour tous",
+    "items": [
+      {
+        "title": "Recyclage facile",
+        "desc": "Trouvez les points de recyclage les plus proches et découvrez ce qui peut être recyclé grâce à notre carte interactive."
+      },
+      {
+        "title": "Gagnez des récompenses",
+        "desc": "Gagnez des points et des récompenses pour chaque dépôt de recyclage. Échangez vos points contre des bons et des réductions."
+      },
+      {
+        "title": "Rejoignez la communauté",
+        "desc": "Partagez vos expériences, inspirez les autres et participez à des défis de recyclage."
+      }
+    ]
+  },
+  "howItWorks": {
+    "title": "Comment ça marche ?",
+    "subtitle": "Commencez à recycler avec Recyclix en seulement 3 étapes simples",
+    "steps": [
+      {
+        "title": "Inscrivez-vous",
+        "desc": "Créez un compte gratuit en moins d'une minute et commencez à suivre vos progrès en matière de recyclage."
+      },
+      {
+        "title": "Trouvez un point",
+        "desc": "Utilisez notre carte interactive pour trouver le point de recyclage le plus proche de chez vous."
+      },
+      {
+        "title": "Gagnez des points",
+        "desc": "Recyclez des matériaux et gagnez automatiquement des points échangeables contre des récompenses."
+      }
+    ]
+  },
+  "impact": {
+    "title": "Votre impact compte",
+    "subtitle": "Ensemble, nous pouvons faire la différence pour la planète",
+    "ecological": {
+      "title": "Impact écologique",
+      "co2": "CO2 économisé",
+      "water": "Eau économisée",
+      "energy": "Énergie économisée"
+    },
+    "materials": {
+      "title": "Matériaux recyclés",
+      "plastic": "Plastique",
+      "paper": "Papier",
+      "glassMetal": "Métal & verre"
+    },
+    "units": {
+      "kg": "kg",
+      "liters": "litres"
+    }
+  },
+  "quote": {
+    "text": "\"Chaque petite action compte. Quand nous recyclons ensemble, nous créons un avenir plus propre et plus durable pour les générations futures.\""
+  },
+  "smartBins": {
+    "title": "conteneurs & bacs",
+    "imageAlt": "Conteneur de recyclage intelligent",
+    "desc": "Nos conteneurs intelligents combinent la reconnaissance automatique des matériaux, une infrastructure IoT connectée et un traitement des données en temps réel. Ils enregistrent chaque dépôt correct avec précision et transparence, transformant le processus de recyclage en une expérience efficace, mesurable et motivante.",
+    "features": [
+      "Reconnaissance automatique des matériaux",
+      "Statistiques et suivi en temps réel",
+      "Notifications intelligentes de remplissage",
+      "Écologique et économe en énergie"
+    ]
+  },
+  "pricing": {
+    "title": "Choisissez votre plan",
+    "subtitle": "Le plan parfait pour votre recyclage intelligent",
+    "perMonth": "mois",
+    "popular": "Populaire",
+    "choosePlan": "Choisir ce plan",
+    "contactUs": "Nous contacter",
+    "starter": {
+      "name": "Débutant",
+      "audience": "Pour les petites entreprises",
+      "features": [
+        "Jusqu'à 100 kg de recyclage par mois",
+        "Statistiques et rapports de base",
+        "Tableau de bord administrateur simple"
+      ]
+    },
+    "pro": {
+      "name": "Pro",
+      "audience": "Pour les moyennes entreprises et institutions",
+      "features": [
+        "Jusqu'à 500 kg de recyclage par mois",
+        "Statistiques et rapports avancés",
+        "Support prioritaire 24/7",
+        "Accès aux défis exclusifs"
+      ]
+    },
+    "business": {
+      "name": "Business Super",
+      "audience": "Pour les entreprises et organisations",
+      "features": [
+        "Tableau de bord de contrôle d'entreprise",
+        "Analyses et rapports détaillés",
+        "Comptes multi-utilisateurs",
+        "Intégration API",
+        "Défis personnalisés"
+      ]
+    }
+  },
+  "cta": {
+    "title": "Prêt à faire la différence ?",
+    "subtitle": "Rejoignez des milliers d'utilisateurs qui font déjà la différence. Commencez à recycler aujourd'hui !",
+    "button": "Commencer gratuitement"
+  },
+  "footer": {
+    "tagline": "La plateforme de recyclage qui rend la protection de l'environnement facile et gratifiante.",
+    "rights": "Tous droits réservés.",
+    "quickLinks": {
+      "title": "Liens rapides",
+      "features": "Avantages",
+      "howItWorks": "Comment ça marche",
+      "impact": "Impact",
+      "pricing": "Tarifs"
+    },
+    "account": {
+      "title": "Compte",
+      "login": "Connexion",
+      "register": "S'inscrire",
+      "admin": "Administration",
+      "management": "Gestion"
+    }
   }
 }
