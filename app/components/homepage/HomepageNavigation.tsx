@@ -24,7 +24,7 @@ const HomepageNavigation = () => {
   }, []);
 
   if (!mounted) {
-    return null; // or skeleton
+    return null;
   }
 
   const currentLang = languages.find((l) => l.code === i18n.language) ?? languages[0];
@@ -44,9 +44,7 @@ const HomepageNavigation = () => {
   ];
 
   return (
-    // 1. Added `overflow-x-hidden w-full` to prevent the nav itself from exceeding viewport width
-    <nav className="fixed top-0 left-0 right-0 z-50 w-full overflow-x-hidden backdrop-blur-xl bg-white/80 dark:bg-zinc-900/60 border-b border-zinc-200/50 dark:border-zinc-800/50">
-      {/* 2. Changed `lg:px-0` → `px-4 sm:px-6 lg:px-8` so there's always horizontal padding on all sizes */}
+    <nav className="fixed top-0 left-0 right-0 z-50 w-full backdrop-blur-xl bg-white/80 dark:bg-zinc-900/60 border-b border-zinc-200/50 dark:border-zinc-800/50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
 
@@ -127,7 +125,6 @@ const HomepageNavigation = () => {
               {langOpen && (
                 <div>
                   <div className="fixed inset-0 z-40" onClick={() => setLangOpen(false)} />
-                  {/* 3. Changed `right-0` → `right-0 max-w-[calc(100vw-1rem)]` so the dropdown never escapes the viewport */}
                   <div className="absolute right-0 z-50 mt-1.5 w-36 max-w-[calc(100vw-1rem)] bg-white dark:bg-zinc-900 border border-zinc-200/70 dark:border-zinc-700/70 rounded-xl shadow-lg overflow-hidden">
                     {languages.map((lang) => (
                       <button
@@ -163,8 +160,7 @@ const HomepageNavigation = () => {
       </div>
 
       {mobileMenuOpen && (
-        // 4. Added `w-full overflow-hidden` to strictly contain the panel within the nav's width
-        <div className="md:hidden w-full overflow-hidden border-t border-zinc-200/50 dark:border-zinc-800/50">
+        <div className="md:hidden w-full overflow-x-hidden border-t border-zinc-200/50 dark:border-zinc-800/50">
           <div className="px-4 py-3 backdrop-blur-sm bg-white/80 dark:bg-zinc-900/5">
             <div className="space-y-2">
               {navLinks.map(([href, label]) => (
