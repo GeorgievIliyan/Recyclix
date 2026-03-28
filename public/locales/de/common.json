@@ -350,5 +350,54 @@
       "admin": "Verwaltung",
       "management": "Management"
     }
+  },
+  "auth": {
+    "login": {
+      "loginTitle": "Melden Sie sich in Ihrem Konto an",
+      "welcomeMessage": "Willkommen zurück!",
+      "email": "E-Mail",
+      "password": "Passwort",
+      "login": "Anmelden",
+      "orContinueWith": "oder fortfahren mit",
+      "loginWithGoogle": "Mit Google anmelden",
+      "dontHaveAnAccount": "Haben Sie kein Konto?",
+      "registerHere": "Hier registrieren"
+    },
+    "register": {
+      "invalidLogin": "Ungültige Anmeldedaten",
+      "invalidInput": "Ungültige Eingabe oder Benutzer existiert nicht",
+      "emailRequired": "E-Mail und Passwort sind erforderlich.",
+      "invalidEmail": "Bitte geben Sie eine gültige E-Mail-Adresse ein.",
+      "passwordTooShort": "Das Passwort muss mindestens 6 Zeichen lang sein.",
+      "passwordTooLong": "Das Passwort ist zu lang.",
+      "invalidPassword": "Ungültiges Passwort.",
+      "unexpectedError": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
+      "registrationFailed": "Registrierung fehlgeschlagen.",
+      "registrationSuccess": "Registrierung erfolgreich! Bitte prüfen Sie Ihre E-Mails, um Ihr Konto vor dem Login zu bestätigen.",
+      "redirectingGoogle": "Weiterleitung zu Google...",
+      "googleRegisterFailed": "Google-Registrierung fehlgeschlagen.",
+      "createAccount": "Konto erstellen",
+      "startRecycling": "Starten Sie heute mit dem intelligenten Recycling",
+      "fullName": "Vollständiger Name",
+      "email": "E-Mail",
+      "password": "Passwort",
+      "passwordStrength": "Passwortstärke",
+      "veryWeak": "Sehr schwach",
+      "weak": "Schwach",
+      "medium": "Mittel",
+      "good": "Gut",
+      "strong": "Stark",
+      "passwordRequirements": [
+        "Mindestens 8 Zeichen",
+        "Mindestens ein Großbuchstabe (A–Z)",
+        "Mindestens eine Zahl (0–9)",
+        "Mindestens ein Sonderzeichen (!@#…)"
+      ],
+      "register": "Registrieren",
+      "orContinueWith": "oder fortfahren mit",
+      "googleRegister": "Mit Google registrieren",
+      "alreadyHaveAccount": "Sie haben bereits ein Konto?",
+      "loginHere": "Hier einloggen"
+    }
   }
 }

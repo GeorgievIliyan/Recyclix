@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { useState, useEffect } from "react";
 
 interface ImpactProps {
   totalCO2Reduction: number | 0;
@@ -28,6 +29,16 @@ const Impact = ({
   totalPaperRecycled,
 }: ImpactProps) => {
   const { t } = useTranslation();
+
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <div id="impact" className="relative py-20 px-4">

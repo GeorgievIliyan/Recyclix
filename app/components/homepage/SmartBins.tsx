@@ -1,5 +1,6 @@
 import { Check } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useState, useEffect } from "react";
 
 const SmartBins = () => {
   const { t } = useTranslation();
@@ -10,6 +11,16 @@ const SmartBins = () => {
     t("smartBins.features.2"),
     t("smartBins.features.3"),
   ];
+
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <div

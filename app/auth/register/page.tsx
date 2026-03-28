@@ -353,7 +353,7 @@ function RegisterPage() {
                           key={i}
                           className={`h-1 flex-1 rounded-full transition-all duration-300 ${
                             i < strength.score
-                              ? `${strength.barColor} shadow-sm shadow-[#00CD56]/30`
+                              ? `${strength.barColor}`
                               : "bg-neutral-200 dark:bg-neutral-700"
                           }`}
                         />

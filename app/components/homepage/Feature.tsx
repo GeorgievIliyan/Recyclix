@@ -1,7 +1,18 @@
 import { useTranslation } from "react-i18next";
+import { useState, useEffect } from "react";
 
 const Feature = () => {
   const { t } = useTranslation();
+
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
 
   const features = [
     {

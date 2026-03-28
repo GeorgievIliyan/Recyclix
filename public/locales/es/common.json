@@ -350,5 +350,54 @@
       "admin": "Administración",
       "management": "Gestión"
     }
+  },
+  "auth": {
+    "login": {
+      "loginTitle": "Inicia sesión en tu cuenta",
+      "welcomeMessage": "¡Bienvenido de nuevo!",
+      "email": "Correo electrónico",
+      "password": "Contraseña",
+      "login": "Iniciar sesión",
+      "orContinueWith": "o continuar con",
+      "loginWithGoogle": "Iniciar sesión con Google",
+      "dontHaveAnAccount": "¿No tienes una cuenta?",
+      "registerHere": "Regístrate aquí"
+    },
+    "register": {
+      "invalidLogin": "Credenciales de inicio de sesión inválidas",
+      "invalidInput": "Entrada inválida o el usuario no existe",
+      "emailRequired": "Correo electrónico y contraseña son obligatorios.",
+      "invalidEmail": "Por favor, introduce una dirección de correo válida.",
+      "passwordTooShort": "La contraseña debe tener al menos 6 caracteres.",
+      "passwordTooLong": "La contraseña es demasiado larga.",
+      "invalidPassword": "Contraseña inválida.",
+      "unexpectedError": "Ocurrió un error inesperado. Por favor, inténtalo de nuevo.",
+      "registrationFailed": "Registro fallido.",
+      "registrationSuccess": "¡Registro exitoso! Por favor, revisa tu correo para confirmar tu cuenta antes de iniciar sesión.",
+      "redirectingGoogle": "Redirigiendo a Google...",
+      "googleRegisterFailed": "Registro con Google fallido.",
+      "createAccount": "Crear cuenta",
+      "startRecycling": "Comienza el reciclaje inteligente hoy",
+      "fullName": "Nombre completo",
+      "email": "Correo electrónico",
+      "password": "Contraseña",
+      "passwordStrength": "Fortaleza de la contraseña",
+      "veryWeak": "Muy débil",
+      "weak": "Débil",
+      "medium": "Media",
+      "good": "Buena",
+      "strong": "Fuerte",
+      "passwordRequirements": [
+        "Al menos 8 caracteres",
+        "Al menos una letra mayúscula (A–Z)",
+        "Al menos un número (0–9)",
+        "Al menos un carácter especial (!@#…)"
+      ],
+      "register": "Registrarse",
+      "orContinueWith": "o continuar con",
+      "googleRegister": "Registrarse con Google",
+      "alreadyHaveAccount": "¿Ya tienes una cuenta?",
+      "loginHere": "Inicia sesión aquí"
+    }
   }
 }

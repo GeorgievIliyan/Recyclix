@@ -1,8 +1,19 @@
 import { Quote as QuoteIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useState, useEffect } from "react";
 
 const Quote = () => {
   const { t } = useTranslation();
+
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <div className="relative py-12 px-4">

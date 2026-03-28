@@ -1,5 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useState, useEffect } from "react";
 
 interface HeroProps {
   totalUsers: number;
@@ -9,6 +10,16 @@ interface HeroProps {
 
 const Hero = ({ totalUsers, totalBins, totalKgRecycled }: HeroProps) => {
   const { t } = useTranslation();
+
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <div

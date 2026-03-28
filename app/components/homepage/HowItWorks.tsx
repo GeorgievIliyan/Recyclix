@@ -1,6 +1,8 @@
 import { LogIn, Sparkles, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import { useEffect, useState } from "react";
+
 const HowItWorks = () => {
   const { t } = useTranslation();
 
@@ -24,6 +26,16 @@ const HowItWorks = () => {
       desc: t("howItWorks.steps.2.desc"),
     },
   ];
+
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <div

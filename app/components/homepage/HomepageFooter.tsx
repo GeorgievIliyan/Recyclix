@@ -1,7 +1,18 @@
 import { useTranslation } from "react-i18next";
+import { useState, useEffect } from "react";
 
 const HomepageFooter = () => {
   const { t } = useTranslation();
+
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <footer className="relative border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">

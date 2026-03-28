@@ -19,7 +19,13 @@ const HomepageNavigation = () => {
   const [mounted, setMounted] = useState(false);
   const { t, i18n } = useTranslation();
 
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null; // or skeleton
+  }
 
   const currentLang = languages.find((l) => l.code === i18n.language) ?? languages[0];
 

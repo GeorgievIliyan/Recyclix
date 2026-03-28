@@ -350,5 +350,61 @@
       "admin": "Администрация",
       "management": "Мениджмънт"
     }
+  },
+  "auth": {
+    "login": {
+      "loginTitle": "Влезте в своя профил",
+      "welcomeMessage": "Добре дошли отново!",
+      "email": "Имейл",
+      "password": "Парола",
+      "login": "Вход",
+      "orContinueWith": "или продължете с",
+      "loginWithGoogle": "Влизане с Google",
+      "dontHaveAnAccount": "Нямате акаунт?",
+      "registerHere": "Регистрирайте се тук"
+    },
+    "register": {
+      "pageTitle": "Създайте акаунт",
+      "welcomeMessage": "Започнете умното рециклиране днес",
+      "fullNameLabel": "Потребителско име",
+      "fullNamePlaceholder": "Иван Иванов",
+      "emailLabel": "Имейл",
+      "emailPlaceholder": "vashe.ime@example.com",
+      "passwordLabel": "Парола",
+      "passwordPlaceholder": "••••••••",
+      "passwordStrength": "Сила на паролата",
+      "passwordRequirements": {
+        "minChars": "Поне 8 символа",
+        "uppercase": "Поне една главна буква (A–Z)",
+        "number": "Поне една цифра (0–9)",
+        "specialChar": "Поне един специален символ (!@#…)"
+      },
+      "registerButton": "Регистрация",
+      "registering": "Създаване на акаунт...",
+      "orContinueWith": "или продължете с",
+      "registerWithGoogle": "Регистрация с Google",
+      "alreadyHaveAccount": "Вече имате акаунт?",
+      "loginHere": "Влезте тук",
+      "messages": {
+        "invalidCredentials": "Грешна парола или имейл",
+        "invalidInput": "Грешни данни или потребителят несъществува",
+        "requiredFields": "Имейл и парола са задължителни.",
+        "invalidEmail": "Моля, въведете валиден имейл адрес.",
+        "passwordTooShort": "Паролата трябва да е най-малко 6 знака.",
+        "passwordTooLong": "Паролата е твърде дълга.",
+        "registrationSuccess": "Регистрацията е успешна! Моля, проверете имейла си, за да потвърдите акаунта си преди влизане.",
+        "registrationFailed": "Регистрацията неуспешна.",
+        "unexpectedError": "Възникна неочаквана грешка. Моля, опитайте отново.",
+        "googleRedirect": "Пренасочване към Google...",
+        "googleFail": "Неуспешна регистрация с Google."
+      },
+      "passwordStrengthLevels": {
+        "0": "Много слаба",
+        "1": "Слаба",
+        "2": "Средна",
+        "3": "Добра",
+        "4": "Силна"
+      }
+    }
   }
 }

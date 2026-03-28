@@ -4,6 +4,8 @@ import { supabase } from "@/lib/supabase-browser";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, CircleCheck, OctagonAlert, X, LogIn } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { RecyclingLoader } from "@/app/components/ui/RecyclingLoader";
 
 const translateMessage = (message: string) => {
   if (message.toLowerCase() == "invalid login credentials") {
@@ -16,6 +18,7 @@ const translateMessage = (message: string) => {
 
 export default function LoginPage() {
   const router = useRouter();
+  const { i18n, t } = useTranslation()
 
   // Състояния за имейл, парола, съобщения и зареждане
   const [email, setEmail] = useState("");
@@ -23,6 +26,11 @@ export default function LoginPage() {
   const [passwordShown, setPasswordShown] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -34,7 +42,7 @@ export default function LoginPage() {
     checkUser();
   }, [router]);
 
-  // Проверка за съобщение след регистрация
+  // Проверка за съобщение след вход
   useEffect(() => {
     const msg = sessionStorage.getItem("registrationMessage");
     if (msg) {
@@ -42,6 +50,14 @@ export default function LoginPage() {
       sessionStorage.removeItem("registrationMessage");
     }
   }, []);
+
+  if (!mounted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <RecyclingLoader />
+      </div>
+    );
+  }
 
   const handleTogglePassword = () => {
     setPasswordShown(!passwordShown);
@@ -114,10 +130,10 @@ export default function LoginPage() {
             {/* Заглавие и подзаглавие */}
             <div className="text-center mb-8">
               <h1 className="text-4xl font-bold bg-gradient-to-r from-neutral-900 via-neutral-800 to-neutral-900 dark:from-white dark:via-neutral-100 dark:to-white bg-clip-text text-transparent mb-2">
-                Влезте в своя профил
+                {t("auth.login.loginTitle")}
               </h1>
               <p className="text-neutral-600 dark:text-neutral-400 text-sm">
-                Добре дошли обратно! Моля, въведете вашите данни
+                {t("auth.login.welcomeMessage")}
               </p>
             </div>
 
@@ -161,7 +177,7 @@ export default function LoginPage() {
               {/* Имейл */}
               <div>
                 <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                  Емайл
+                  {t("auth.login.email")}
                 </label>
                 <input
                   type="email"
@@ -175,7 +191,7 @@ export default function LoginPage() {
               {/* Парола */}
               <div>
                 <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                  Парола
+                  {t("auth.login.password")}
                 </label>
 
                 <div className="relative">
@@ -214,7 +230,7 @@ export default function LoginPage() {
                 "Влизане..."
               ) : (
                 <span className="flex items-center justify-center gap-2">
-                  Вход <LogIn className="h-4 w-4" />
+                  {t("auth.login.login")} <LogIn className="h-4 w-4" />
                 </span>
               )}
             </button>
@@ -226,7 +242,7 @@ export default function LoginPage() {
               </div>
               <div className="relative flex justify-center text-sm">
                 <span className="px-4 bg-white/80 dark:bg-neutral-900/80 text-neutral-500 dark:text-neutral-400 backdrop-blur-sm">
-                  или продължете с
+                  {t("auth.login.orContinueWith")}
                 </span>
               </div>
             </div>
@@ -255,17 +271,17 @@ export default function LoginPage() {
                   d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                 />
               </svg>
-              Влизане с Google
+              {t("auth.login.loginWithGoogle")}
             </button>
 
             {/* Линк за регистрация */}
             <p className="text-center text-sm text-neutral-600 dark:text-neutral-400 mt-6">
-              Нямате акаунт?{" "}
+              {t("auth.login.dontHaveAnAccount")}{" "}
               <a
                 href="/auth/register"
                 className="text-[#00CD56] hover:text-[#00b849] dark:text-[#00CD56] dark:hover:text-[#00e862] font-semibold transition-colors duration-200 hover:underline"
               >
-                Регистрирайте се тук
+                {t("auth.login.registerHere")}
               </a>
             </p>
           </div>

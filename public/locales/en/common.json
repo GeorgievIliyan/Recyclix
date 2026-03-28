@@ -350,5 +350,54 @@
       "admin": "Administration",
       "management": "Management"
     }
+  },
+  "auth": {
+    "login": {
+      "loginTitle": "Log in to your account",
+      "welcomeMessage": "Welcome back!",
+      "email": "Email",
+      "password": "Password",
+      "login": "Log in",
+      "orContinueWith": "or continue with",
+      "loginWithGoogle": "Log in with Google",
+      "dontHaveAnAccount": "Don't have an account?",
+      "registerHere": "Register here"
+    },
+    "register": {
+      "invalidLogin": "Invalid login credentials",
+      "invalidInput": "Invalid input or user does not exist",
+      "emailRequired": "Email and password are required.",
+      "invalidEmail": "Please enter a valid email address.",
+      "passwordTooShort": "Password must be at least 6 characters.",
+      "passwordTooLong": "Password is too long.",
+      "invalidPassword": "Invalid password.",
+      "unexpectedError": "An unexpected error occurred. Please try again.",
+      "registrationFailed": "Registration failed.",
+      "registrationSuccess": "Registration successful! Please check your email to confirm your account before logging in.",
+      "redirectingGoogle": "Redirecting to Google...",
+      "googleRegisterFailed": "Google registration failed.",
+      "createAccount": "Create Account",
+      "startRecycling": "Start smart recycling today",
+      "fullName": "Full Name",
+      "email": "Email",
+      "password": "Password",
+      "passwordStrength": "Password Strength",
+      "veryWeak": "Very Weak",
+      "weak": "Weak",
+      "medium": "Medium",
+      "good": "Good",
+      "strong": "Strong",
+      "passwordRequirements": [
+        "At least 8 characters",
+        "At least one uppercase letter (A–Z)",
+        "At least one number (0–9)",
+        "At least one special character (!@#…)"
+      ],
+      "register": "Register",
+      "orContinueWith": "or continue with",
+      "googleRegister": "Register with Google",
+      "alreadyHaveAccount": "Already have an account?",
+      "loginHere": "Login here"
+    }
   }
 }
