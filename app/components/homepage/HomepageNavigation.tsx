@@ -44,11 +44,13 @@ const HomepageNavigation = () => {
   ];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-white/80 dark:bg-zinc-900/60 border-b border-zinc-200/50 dark:border-zinc-800/50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-0">
+    // 1. Added `overflow-x-hidden w-full` to prevent the nav itself from exceeding viewport width
+    <nav className="fixed top-0 left-0 right-0 z-50 w-full overflow-x-hidden backdrop-blur-xl bg-white/80 dark:bg-zinc-900/60 border-b border-zinc-200/50 dark:border-zinc-800/50">
+      {/* 2. Changed `lg:px-0` → `px-4 sm:px-6 lg:px-8` so there's always horizontal padding on all sizes */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <img src="/logos/logo.svg" alt="Logo" className="aspect-1/1 h-7" />
             <span className="text-2xl font-bold bg-gradient-to-r from-green-400 to-emerald-500 bg-clip-text text-transparent">
               Recyclix
@@ -125,7 +127,8 @@ const HomepageNavigation = () => {
               {langOpen && (
                 <div>
                   <div className="fixed inset-0 z-40" onClick={() => setLangOpen(false)} />
-                  <div className="absolute right-0 z-50 mt-1.5 w-36 bg-white dark:bg-zinc-900 border border-zinc-200/70 dark:border-zinc-700/70 rounded-xl shadow-lg overflow-hidden">
+                  {/* 3. Changed `right-0` → `right-0 max-w-[calc(100vw-1rem)]` so the dropdown never escapes the viewport */}
+                  <div className="absolute right-0 z-50 mt-1.5 w-36 max-w-[calc(100vw-1rem)] bg-white dark:bg-zinc-900 border border-zinc-200/70 dark:border-zinc-700/70 rounded-xl shadow-lg overflow-hidden">
                     {languages.map((lang) => (
                       <button
                         key={lang.code}
@@ -160,13 +163,15 @@ const HomepageNavigation = () => {
       </div>
 
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-zinc-200/50 dark:border-zinc-800/50">
+        // 4. Added `w-full overflow-hidden` to strictly contain the panel within the nav's width
+        <div className="md:hidden w-full overflow-hidden border-t border-zinc-200/50 dark:border-zinc-800/50">
           <div className="px-4 py-3 backdrop-blur-sm bg-white/80 dark:bg-zinc-900/5">
             <div className="space-y-2">
               {navLinks.map(([href, label]) => (
                 <a
                   key={href}
                   href={href}
+                  onClick={() => setMobileMenuOpen(false)}
                   className="block py-2 px-3 text-zinc-700 dark:text-zinc-300 hover:text-[#00CD56] hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-all font-medium"
                 >
                   {label}

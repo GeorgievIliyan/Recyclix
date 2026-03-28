@@ -92,10 +92,9 @@ export function Navigation({ className }: { className?: string }) {
       {/* За мобилни у-ва*/}
       <div
         className={cn(
-          "md:hidden fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] transition-all duration-300 ease-in-out",
+          "md:hidden fixed bottom-8 left-4 right-4 z-[100] flex justify-center transition-all duration-300 ease-in-out",
           isVisible ? "translate-y-0 opacity-100" : "translate-y-24 opacity-0",
-        )}
-      >
+        )}>
         <nav
           className={cn(
             "flex items-center gap-10 px-9 py-3 rounded-full",
@@ -147,6 +146,6 @@ export function Navigation({ className }: { className?: string }) {
           })}
         </nav>
       </div>
-    </LayoutGroup>
+    </LayoutGroup >
   );
 }

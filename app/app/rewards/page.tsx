@@ -137,7 +137,7 @@ function ClaimModal({ reward, code, onClose }: {
     <div role="dialog" aria-modal="true" className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Затъмнен фон */}
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-md rounded-2xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-zinc-900 p-8 flex flex-col gap-6 shadow-xl">
+      <div className="relative w-full max-w-md rounded-2xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-zinc-900 p-8 flex flex-col gap-6 shadow-xl overflow-hidden">
         <button onClick={onClose} className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-700 dark:hover:text-white transition-colors">
           <X className="h-5 w-5" />
         </button>
@@ -361,12 +361,12 @@ export default function RewardsPage() {
       <Navigation />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-24">
 
-        {/* Героична секция */}
+        {/* Hero секция */}
         <div className="relative flex flex-col items-center text-center mb-16 px-4">
           {/* Декоративен градиент зад заглавието */}
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2 w-[150%] max-w-2xl h-72 opacity-10 dark:opacity-15"
+            className="pointer-events-none absolute -top-20 left-0 right-0 h-72 opacity-10 dark:opacity-15"
             style={{
               background: "radial-gradient(ellipse at center,#4ade80 0%,#16a34a 40%,transparent 70%)",
               filter: "blur(80px)",

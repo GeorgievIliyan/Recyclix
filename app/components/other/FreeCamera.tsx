@@ -165,7 +165,7 @@ export function FreeCamera({ task }: { task: string }) {
       if (json.material?.toLowerCase() === "unknown") { setError("Материала не може да бъде разпознат. Моля, опитайте отново!"); return; }
       const translated = { ...json, material: json.material ? translateMaterial(json.material) : json.material };
       setResult(translated);
-      await logToSchema(json); // log original English material to DB
+      await logToSchema(json);
       generateQRCode(json.points);
     } catch (e: any) { setError(e.message || "Network error"); }
     finally { setLoading(false); }

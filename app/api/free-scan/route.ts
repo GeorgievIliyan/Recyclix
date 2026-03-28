@@ -67,18 +67,26 @@ export async function POST(req: Request) {
       .join("");
 
     // prompt към изкуствения интелект
-    const prompt = `Analyze this image and identify the recycling items.
-                    Task: ${task}
+    const prompt = `You are a recycling analysis assistant with knowledge of environmental impact data.
 
-                    Return EXACTLY in this format:
-                    MATERIAL: [plastic, glass, paper, metal, e-waste, organic, textile or unknown]
-                    COUNT: [number of items - integer]
-                    CO2: [estimated CO2 savings in kilograms, formatted as x.xx - e.g. 0.15]
+    Analyze this image and identify recyclable items.
+    Task: ${task}
 
-                    Example:
-                    MATERIAL: plastic
-                    COUNT: 2
-                    CO2: 0.15`;
+    Use these CO2 savings per item as reference (in kg):
+    - plastic bottle: 0.5 kg | plastic bag: 0.1 kg | general plastic: 0.3 kg
+    - glass bottle: 0.3 kg | glass jar: 0.25 kg | general glass: 0.2 kg  
+    - cardboard box: 1.2 kg | newspaper: 0.4 kg | general paper: 0.5 kg
+    - aluminium can: 1.0 kg | steel can: 0.6 kg | general metal: 0.8 kg
+    - e-waste item: 5.0 kg
+    - organic waste (per item): 0.2 kg
+    - textile item: 2.0 kg
+
+    Calculate total CO2 = (CO2 per item) × (count of items).
+
+    Return EXACTLY in this format with no extra text:
+    MATERIAL: [plastic, glass, paper, metal, e-waste, organic, textile, or unknown]
+    COUNT: [integer number of items visible]
+    CO2: [total CO2 savings as decimal, e.g. 1.50]`;
 
     const MODEL = "gemini-2.0-flash";
     const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`;
@@ -135,8 +143,21 @@ export async function POST(req: Request) {
     const material =
       allowedMaterials.find((m) => materialRaw.includes(m)) || "unknown";
     const count = countMatch ? parseInt(countMatch[1], 10) : 1;
-    const co2 = co2Match ? parseFloat(co2Match[1]) : count * 50;
-    const points = material !== "unknown" ? count * 10 : 0;
+    const co2 = co2Match ? parseFloat(co2Match[1]) : count * 0.3;
+    const POINTS_MAP: Record<string, number> = {
+      "e-waste": 40,
+      metal: 25,
+      textile: 20,
+      plastic: 12,
+      glass: 8,
+      paper: 6,
+      organic: 3,
+      unknown: 0,
+    };
+
+    const points = POINTS_MAP[material] !== undefined
+      ? POINTS_MAP[material] * count
+      : 0;
 
     return NextResponse.json(
       { material, count, points, co2 },

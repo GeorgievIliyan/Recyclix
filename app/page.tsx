@@ -325,7 +325,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-zinc-50 via-zinc-100 to-zinc-200 dark:from-zinc-950 dark:via-zinc-900 dark:to-black">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-zinc-50 via-zinc-100 overflow-x-hidden to-zinc-200 dark:from-zinc-950 dark:via-zinc-900 dark:to-black">
       <ScrollProgressBar />
 
       {/* Навигация */}
