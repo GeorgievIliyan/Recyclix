@@ -23,7 +23,9 @@ const HomepageNavigation = () => {
     setMounted(true);
   }, []);
 
-  if (!mounted) return null;
+  if (!mounted) {
+    return null;
+  }
 
   const currentLang = languages.find((l) => l.code === i18n.language) ?? languages[0];
 
@@ -42,7 +44,6 @@ const HomepageNavigation = () => {
   ];
 
   return (
-    // ОПРАВЕНО: премахнато overflow-x-hidden — клипваше абсолютно позиционираните dropdown-и
     <nav className="fixed top-0 left-0 right-0 z-50 w-full backdrop-blur-xl bg-white/80 dark:bg-zinc-900/60 border-b border-zinc-200/50 dark:border-zinc-800/50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
@@ -129,7 +130,7 @@ const HomepageNavigation = () => {
               {langOpen && (
                 <div>
                   <div className="fixed inset-0 z-40" onClick={() => setLangOpen(false)} />
-                  <div className="absolute right-0 z-50 mt-1.5 w-36 bg-white dark:bg-zinc-900 border border-zinc-200/70 dark:border-zinc-700/70 rounded-xl shadow-lg overflow-hidden">
+                  <div className="absolute right-0 z-50 mt-1.5 w-36 max-w-[calc(100vw-1rem)] bg-white dark:bg-zinc-900 border border-zinc-200/70 dark:border-zinc-700/70 rounded-xl shadow-lg overflow-hidden">
                     {languages.map((lang) => (
                       <button
                         key={lang.code}
@@ -166,7 +167,7 @@ const HomepageNavigation = () => {
 
       {/* Мобилно меню — ОПРАВЕНО: премахнато overflow-hidden, клипваше dropdown-а за езици */}
       {mobileMenuOpen && (
-        <div className="md:hidden w-full border-t border-zinc-200/50 dark:border-zinc-800/50">
+        <div className="md:hidden w-full overflow-x-hidden border-t border-zinc-200/50 dark:border-zinc-800/50">
           <div className="px-4 py-3 backdrop-blur-sm bg-white/80 dark:bg-zinc-900/5">
             <div className="space-y-2">
               {navLinks.map(([href, label]) => (
