@@ -209,13 +209,17 @@
     "register": "Registrieren"
   },
   "hero": {
-    "title": "Recyceln für eine bessere Zukunft",
+    "heading": {
+      "line1": "Recyceln.",
+      "line2": "Messen.",
+      "line3": "Verändern."
+    },
     "subtitle": "Treten Sie unserer Recycling-Plattform bei und helfen Sie, die Umwelt zu schützen. Einfach, schnell und effektiv.",
     "cta": "Jetzt starten",
     "login": "Anmelden",
     "stats": {
       "users": "Aktive Nutzer",
-      "kg": "kg",
+      "kg": "kg.",
       "recycled": "Recycelte Materialien",
       "bins": "Recyclingpunkte"
     }
@@ -364,38 +368,45 @@
       "registerHere": "Hier registrieren"
     },
     "register": {
-      "invalidLogin": "Ungültige Anmeldedaten",
-      "invalidInput": "Ungültige Eingabe oder Benutzer existiert nicht",
-      "emailRequired": "E-Mail und Passwort sind erforderlich.",
-      "invalidEmail": "Bitte geben Sie eine gültige E-Mail-Adresse ein.",
-      "passwordTooShort": "Das Passwort muss mindestens 6 Zeichen lang sein.",
-      "passwordTooLong": "Das Passwort ist zu lang.",
-      "invalidPassword": "Ungültiges Passwort.",
-      "unexpectedError": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
-      "registrationFailed": "Registrierung fehlgeschlagen.",
-      "registrationSuccess": "Registrierung erfolgreich! Bitte prüfen Sie Ihre E-Mails, um Ihr Konto vor dem Login zu bestätigen.",
-      "redirectingGoogle": "Weiterleitung zu Google...",
-      "googleRegisterFailed": "Google-Registrierung fehlgeschlagen.",
-      "createAccount": "Konto erstellen",
-      "startRecycling": "Starten Sie heute mit dem intelligenten Recycling",
-      "fullName": "Vollständiger Name",
-      "email": "E-Mail",
-      "password": "Passwort",
+      "pageTitle": "Konto erstellen",
+      "welcomeMessage": "Starten Sie heute mit dem intelligenten Recycling",
+      "fullNameLabel": "Vollständiger Name",
+      "fullNamePlaceholder": "Geben Sie Ihren vollständigen Namen ein",
+      "emailLabel": "E-Mail",
+      "emailPlaceholder": "Geben Sie Ihre E-Mail ein",
+      "passwordLabel": "Passwort",
+      "passwordPlaceholder": "Geben Sie Ihr Passwort ein",
       "passwordStrength": "Passwortstärke",
-      "veryWeak": "Sehr schwach",
-      "weak": "Schwach",
-      "medium": "Mittel",
-      "good": "Gut",
-      "strong": "Stark",
-      "passwordRequirements": [
-        "Mindestens 8 Zeichen",
-        "Mindestens ein Großbuchstabe (A–Z)",
-        "Mindestens eine Zahl (0–9)",
-        "Mindestens ein Sonderzeichen (!@#…)"
-      ],
-      "register": "Registrieren",
+      "passwordStrengthLevels": {
+        "0": "Sehr schwach",
+        "1": "Schwach",
+        "2": "Mittel",
+        "3": "Gut",
+        "4": "Stark"
+      },
+      "passwordRequirements": {
+        "minChars": "Mindestens 8 Zeichen",
+        "uppercase": "Mindestens ein Großbuchstabe (A-Z)",
+        "number": "Mindestens eine Zahl (0-9)",
+        "specialChar": "Mindestens ein Sonderzeichen (!@#...)"
+      },
+      "messages": {
+        "invalidCredentials": "Ungültige Anmeldedaten",
+        "invalidInput": "Ungültige Eingabe",
+        "requiredFields": "E-Mail und Passwort sind erforderlich.",
+        "invalidEmail": "Bitte geben Sie eine gültige E-Mail-Adresse ein.",
+        "passwordTooShort": "Das Passwort muss mindestens 6 Zeichen lang sein.",
+        "passwordTooLong": "Das Passwort ist zu lang.",
+        "unexpectedError": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
+        "registrationFailed": "Registrierung fehlgeschlagen.",
+        "registrationSuccess": "Registrierung erfolgreich! Bitte prüfen Sie Ihre E-Mails, um Ihr Konto vor dem Login zu bestätigen.",
+        "googleRedirect": "Weiterleitung zu Google...",
+        "googleFail": "Google-Registrierung fehlgeschlagen."
+      },
+      "registering": "Registrierung läuft...",
+      "registerButton": "Registrieren",
       "orContinueWith": "oder fortfahren mit",
-      "googleRegister": "Mit Google registrieren",
+      "registerWithGoogle": "Mit Google registrieren",
       "alreadyHaveAccount": "Sie haben bereits ein Konto?",
       "loginHere": "Hier einloggen"
     }

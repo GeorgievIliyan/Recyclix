@@ -23,9 +23,7 @@ const HomepageNavigation = () => {
     setMounted(true);
   }, []);
 
-  if (!mounted) {
-    return null; // or skeleton
-  }
+  if (!mounted) return null;
 
   const currentLang = languages.find((l) => l.code === i18n.language) ?? languages[0];
 
@@ -44,12 +42,12 @@ const HomepageNavigation = () => {
   ];
 
   return (
-    // 1. Added `overflow-x-hidden w-full` to prevent the nav itself from exceeding viewport width
-    <nav className="fixed top-0 left-0 right-0 z-50 w-full overflow-x-hidden backdrop-blur-xl bg-white/80 dark:bg-zinc-900/60 border-b border-zinc-200/50 dark:border-zinc-800/50">
-      {/* 2. Changed `lg:px-0` → `px-4 sm:px-6 lg:px-8` so there's always horizontal padding on all sizes */}
+    // ОПРАВЕНО: премахнато overflow-x-hidden — клипваше абсолютно позиционираните dropdown-и
+    <nav className="fixed top-0 left-0 right-0 z-50 w-full backdrop-blur-xl bg-white/80 dark:bg-zinc-900/60 border-b border-zinc-200/50 dark:border-zinc-800/50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
 
+          {/* Лого */}
           <div className="flex items-center gap-2 shrink-0">
             <img src="/logos/logo.svg" alt="Logo" className="aspect-1/1 h-7" />
             <span className="text-2xl font-bold bg-gradient-to-r from-green-400 to-emerald-500 bg-clip-text text-transparent">
@@ -57,6 +55,7 @@ const HomepageNavigation = () => {
             </span>
           </div>
 
+          {/* Десктоп навигация */}
           <div className="hidden md:flex items-center gap-8">
             {navLinks.map(([href, label]) => (
               <a
@@ -69,6 +68,7 @@ const HomepageNavigation = () => {
             ))}
 
             <div className="flex items-center gap-3">
+              {/* Десктоп падащо меню за езици */}
               <div className="relative">
                 <button
                   type="button"
@@ -76,7 +76,7 @@ const HomepageNavigation = () => {
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all font-medium text-sm"
                 >
                   <Globe className="w-4 h-4" />
-                  <span>{mounted ? currentLang.label : "..."}</span>
+                  <span>{currentLang.label}</span>
                   <ChevronDown className={"w-3.5 h-3.5 transition-transform" + (langOpen ? " rotate-180" : "")} />
                 </button>
 
@@ -113,7 +113,9 @@ const HomepageNavigation = () => {
             </div>
           </div>
 
+          {/* Мобилни бутони вдясно */}
           <div className="md:hidden flex items-center gap-2">
+            {/* Мобилно падащо меню за езици */}
             <div className="relative">
               <button
                 type="button"
@@ -121,14 +123,13 @@ const HomepageNavigation = () => {
                 className="flex items-center gap-1 p-2 rounded-lg text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all text-sm font-medium"
               >
                 <Globe className="w-4 h-4" />
-                <span>{mounted ? currentLang.label : "..."}</span>
+                <span>{currentLang.label}</span>
               </button>
 
               {langOpen && (
                 <div>
                   <div className="fixed inset-0 z-40" onClick={() => setLangOpen(false)} />
-                  {/* 3. Changed `right-0` → `right-0 max-w-[calc(100vw-1rem)]` so the dropdown never escapes the viewport */}
-                  <div className="absolute right-0 z-50 mt-1.5 w-36 max-w-[calc(100vw-1rem)] bg-white dark:bg-zinc-900 border border-zinc-200/70 dark:border-zinc-700/70 rounded-xl shadow-lg overflow-hidden">
+                  <div className="absolute right-0 z-50 mt-1.5 w-36 bg-white dark:bg-zinc-900 border border-zinc-200/70 dark:border-zinc-700/70 rounded-xl shadow-lg overflow-hidden">
                     {languages.map((lang) => (
                       <button
                         key={lang.code}
@@ -145,6 +146,7 @@ const HomepageNavigation = () => {
               )}
             </div>
 
+            {/* Бургер бутон */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 rounded-lg text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
@@ -162,9 +164,9 @@ const HomepageNavigation = () => {
         </div>
       </div>
 
+      {/* Мобилно меню — ОПРАВЕНО: премахнато overflow-hidden, клипваше dropdown-а за езици */}
       {mobileMenuOpen && (
-        // 4. Added `w-full overflow-hidden` to strictly contain the panel within the nav's width
-        <div className="md:hidden w-full overflow-hidden border-t border-zinc-200/50 dark:border-zinc-800/50">
+        <div className="md:hidden w-full border-t border-zinc-200/50 dark:border-zinc-800/50">
           <div className="px-4 py-3 backdrop-blur-sm bg-white/80 dark:bg-zinc-900/5">
             <div className="space-y-2">
               {navLinks.map(([href, label]) => (
@@ -178,7 +180,7 @@ const HomepageNavigation = () => {
                 </a>
               ))}
 
-              <div className="border-t border-zinc-200/50 dark:border-zinc-800/50 my-2"></div>
+              <div className="border-t border-zinc-200/50 dark:border-zinc-800/50 my-2" />
 
               <a
                 href="/auth/login"

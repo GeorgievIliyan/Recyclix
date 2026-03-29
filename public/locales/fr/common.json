@@ -209,13 +209,17 @@
     "register": "S'inscrire"
   },
   "hero": {
-    "title": "Recyclez pour un meilleur avenir",
+    "heading": {
+      "line1": "Recyclez.",
+      "line2": "Mesurez.",
+      "line3": "Changez."
+    },
     "subtitle": "Rejoignez notre plateforme de recyclage et contribuez à la protection de l'environnement. Simple, rapide et efficace.",
-    "cta": "Commencer maintenant",
-    "login": "Connexion",
+    "cta": "Commencer",
+    "login": "Se connecter",
     "stats": {
       "users": "Utilisateurs actifs",
-      "kg": "kg",
+      "kg": "kg.",
       "recycled": "Matériaux recyclés",
       "bins": "Points de recyclage"
     }
@@ -364,38 +368,45 @@
       "registerHere": "Inscrivez-vous ici"
     },
     "register": {
-      "invalidLogin": "Identifiants invalides",
-      "invalidInput": "Entrée invalide ou utilisateur inexistant",
-      "emailRequired": "E-mail et mot de passe requis.",
-      "invalidEmail": "Veuillez entrer une adresse e-mail valide.",
-      "passwordTooShort": "Le mot de passe doit contenir au moins 6 caractères.",
-      "passwordTooLong": "Le mot de passe est trop long.",
-      "invalidPassword": "Mot de passe invalide.",
-      "unexpectedError": "Une erreur inattendue s'est produite. Veuillez réessayer.",
-      "registrationFailed": "Échec de l'inscription.",
-      "registrationSuccess": "Inscription réussie ! Veuillez vérifier votre e-mail pour confirmer votre compte avant de vous connecter.",
-      "redirectingGoogle": "Redirection vers Google...",
-      "googleRegisterFailed": "Échec de l'inscription avec Google.",
-      "createAccount": "Créer un compte",
-      "startRecycling": "Commencez le recyclage intelligent dès aujourd'hui",
-      "fullName": "Nom complet",
-      "email": "E-mail",
-      "password": "Mot de passe",
+      "pageTitle": "Créer un compte",
+      "welcomeMessage": "Commencez le recyclage intelligent dès aujourd'hui",
+      "fullNameLabel": "Nom complet",
+      "fullNamePlaceholder": "Entrez votre nom complet",
+      "emailLabel": "E-mail",
+      "emailPlaceholder": "Entrez votre e-mail",
+      "passwordLabel": "Mot de passe",
+      "passwordPlaceholder": "Entrez votre mot de passe",
       "passwordStrength": "Force du mot de passe",
-      "veryWeak": "Très faible",
-      "weak": "Faible",
-      "medium": "Moyenne",
-      "good": "Bonne",
-      "strong": "Forte",
-      "passwordRequirements": [
-        "Au moins 8 caractères",
-        "Au moins une lettre majuscule (A–Z)",
-        "Au moins un chiffre (0–9)",
-        "Au moins un caractère spécial (!@#…)"
-      ],
-      "register": "S'inscrire",
+      "passwordStrengthLevels": {
+        "0": "Très faible",
+        "1": "Faible",
+        "2": "Moyenne",
+        "3": "Bonne",
+        "4": "Forte"
+      },
+      "passwordRequirements": {
+        "minChars": "Au moins 8 caractères",
+        "uppercase": "Au moins une lettre majuscule (A-Z)",
+        "number": "Au moins un chiffre (0-9)",
+        "specialChar": "Au moins un caractère spécial (!@#...)"
+      },
+      "messages": {
+        "invalidCredentials": "Identifiants invalides",
+        "invalidInput": "Entrée invalide",
+        "requiredFields": "E-mail et mot de passe requis.",
+        "invalidEmail": "Veuillez entrer une adresse e-mail valide.",
+        "passwordTooShort": "Le mot de passe doit contenir au moins 6 caractères.",
+        "passwordTooLong": "Le mot de passe est trop long.",
+        "unexpectedError": "Une erreur inattendue s'est produite. Veuillez réessayer.",
+        "registrationFailed": "Échec de l'inscription.",
+        "registrationSuccess": "Inscription réussie ! Veuillez vérifier votre e-mail pour confirmer votre compte avant de vous connecter.",
+        "googleRedirect": "Redirection vers Google...",
+        "googleFail": "Échec de l'inscription avec Google."
+      },
+      "registering": "Inscription en cours...",
+      "registerButton": "S'inscrire",
       "orContinueWith": "ou continuer avec",
-      "googleRegister": "S'inscrire avec Google",
+      "registerWithGoogle": "S'inscrire avec Google",
       "alreadyHaveAccount": "Vous avez déjà un compte ?",
       "loginHere": "Connectez-vous ici"
     }
