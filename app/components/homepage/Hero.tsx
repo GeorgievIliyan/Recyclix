@@ -78,6 +78,9 @@ const Hero = ({ totalUsers, totalBins, totalKgRecycled }: HeroProps) => {
           <span className="block text-5xl md:text-6xl lg:text-7xl text-zinc-900 dark:text-white">
             {t("hero.heading.line1")}
           </span>
+          <span className="block text-5xl md:text-6xl lg:text-7xl text-zinc-900 dark:text-white">
+            {t("hero.heading.line2")}
+          </span>
           <span
             className="block text-5xl md:text-6xl lg:text-7xl"
             style={{
@@ -88,9 +91,6 @@ const Hero = ({ totalUsers, totalBins, totalKgRecycled }: HeroProps) => {
               backgroundClip: "text",
             }}
           >
-            {t("hero.heading.line2")}
-          </span>
-          <span className="block text-5xl md:text-6xl lg:text-7xl text-zinc-900 dark:text-white">
             {t("hero.heading.line3")}
           </span>
         </h1>
