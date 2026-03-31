@@ -357,13 +357,24 @@
   },
   "auth": {
     "login": {
-      "loginTitle": "Влезте в своя профил",
-      "welcomeMessage": "Добре дошли отново!",
+      "loginTitle": "Влезте в акаунта си",
+      "welcomeMessage": "Добре дошли обратно!",
       "email": "Имейл",
+      "emailPlaceholder": "Въведете вашия имейл",
       "password": "Парола",
-      "login": "Вход",
+      "passwordPlaceholder": "Въведете вашата парола",
+      "messages": {
+        "invalidCredentials": "Грешна парола или имейл",
+        "invalidInput": "Грешни данни или потребителят не съществува",
+        "requiredFields": "Имейл и парола са задължителни.",
+        "invalidEmail": "Моля, въведете валиден имейл адрес.",
+        "unexpectedError": "Възникна неочаквана грешка. Моля, опитайте отново.",
+        "googleFail": "Неуспешен Google вход."
+      },
+      "loggingIn": "Влизане...",
+      "login": "Влез",
       "orContinueWith": "или продължете с",
-      "loginWithGoogle": "Влизане с Google",
+      "loginWithGoogle": "Влезте с Google",
       "dontHaveAnAccount": "Нямате акаунт?",
       "registerHere": "Регистрирайте се тук"
     },

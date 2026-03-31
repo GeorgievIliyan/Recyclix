@@ -360,7 +360,18 @@
       "loginTitle": "Inicia sesión en tu cuenta",
       "welcomeMessage": "¡Bienvenido de nuevo!",
       "email": "Correo electrónico",
+      "emailPlaceholder": "Ingresa tu correo electrónico",
       "password": "Contraseña",
+      "passwordPlaceholder": "Ingresa tu contraseña",
+      "messages": {
+        "invalidCredentials": "Credenciales de inicio de sesión inválidas",
+        "invalidInput": "Datos inválidos o el usuario no existe",
+        "requiredFields": "El correo electrónico y la contraseña son obligatorios.",
+        "invalidEmail": "Por favor, introduce una dirección de correo electrónico válida.",
+        "unexpectedError": "Ocurrió un error inesperado. Por favor, inténtalo de nuevo.",
+        "googleFail": "El inicio de sesión con Google falló."
+      },
+      "loggingIn": "Iniciando sesión...",
       "login": "Iniciar sesión",
       "orContinueWith": "o continuar con",
       "loginWithGoogle": "Iniciar sesión con Google",

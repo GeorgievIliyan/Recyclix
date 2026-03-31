@@ -360,7 +360,18 @@
       "loginTitle": "Войдите в свой аккаунт",
       "welcomeMessage": "С возвращением!",
       "email": "Электронная почта",
+      "emailPlaceholder": "Введите вашу электронную почту",
       "password": "Пароль",
+      "passwordPlaceholder": "Введите ваш пароль",
+      "messages": {
+        "invalidCredentials": "Неверные учётные данные",
+        "invalidInput": "Неверные данные или пользователь не существует",
+        "requiredFields": "Электронная почта и пароль обязательны.",
+        "invalidEmail": "Пожалуйста, введите действительный адрес электронной почты.",
+        "unexpectedError": "Произошла неожиданная ошибка. Пожалуйста, попробуйте снова.",
+        "googleFail": "Вход через Google не удался."
+      },
+      "loggingIn": "Вход...",
       "login": "Войти",
       "orContinueWith": "или продолжить с",
       "loginWithGoogle": "Войти через Google",

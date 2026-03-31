@@ -358,9 +358,20 @@
   "auth": {
     "login": {
       "loginTitle": "Connectez-vous à votre compte",
-      "welcomeMessage": "Bon retour !",
-      "email": "E-mail",
+      "welcomeMessage": "Content de vous revoir !",
+      "email": "Email",
+      "emailPlaceholder": "Entrez votre email",
       "password": "Mot de passe",
+      "passwordPlaceholder": "Entrez votre mot de passe",
+      "messages": {
+        "invalidCredentials": "Identifiants de connexion invalides",
+        "invalidInput": "Données invalides ou utilisateur inexistant",
+        "requiredFields": "L'email et le mot de passe sont obligatoires.",
+        "invalidEmail": "Veuillez entrer une adresse email valide.",
+        "unexpectedError": "Une erreur inattendue s'est produite. Veuillez réessayer.",
+        "googleFail": "La connexion avec Google a échoué."
+      },
+      "loggingIn": "Connexion en cours...",
       "login": "Se connecter",
       "orContinueWith": "ou continuer avec",
       "loginWithGoogle": "Se connecter avec Google",

@@ -360,7 +360,18 @@
       "loginTitle": "Log in to your account",
       "welcomeMessage": "Welcome back!",
       "email": "Email",
+      "emailPlaceholder": "Enter your email",
       "password": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "messages": {
+        "invalidCredentials": "Invalid login credentials",
+        "invalidInput": "Invalid input or user does not exist",
+        "requiredFields": "Email and password are required.",
+        "invalidEmail": "Please enter a valid email address.",
+        "unexpectedError": "An unexpected error occurred. Please try again.",
+        "googleFail": "Google login failed."
+      },
+      "loggingIn": "Logging in...",
       "login": "Log in",
       "orContinueWith": "or continue with",
       "loginWithGoogle": "Log in with Google",

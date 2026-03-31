@@ -357,14 +357,25 @@
   },
   "auth": {
     "login": {
-      "loginTitle": "Melden Sie sich in Ihrem Konto an",
+      "loginTitle": "In Ihr Konto einloggen",
       "welcomeMessage": "Willkommen zurück!",
       "email": "E-Mail",
+      "emailPlaceholder": "Geben Sie Ihre E-Mail ein",
       "password": "Passwort",
-      "login": "Anmelden",
-      "orContinueWith": "oder fortfahren mit",
-      "loginWithGoogle": "Mit Google anmelden",
-      "dontHaveAnAccount": "Haben Sie kein Konto?",
+      "passwordPlaceholder": "Geben Sie Ihr Passwort ein",
+      "messages": {
+        "invalidCredentials": "Ungültige Anmeldedaten",
+        "invalidInput": "Ungültige Daten oder Benutzer existiert nicht",
+        "requiredFields": "E-Mail und Passwort sind erforderlich.",
+        "invalidEmail": "Bitte geben Sie eine gültige E-Mail-Adresse ein.",
+        "unexpectedError": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
+        "googleFail": "Google-Anmeldung fehlgeschlagen."
+      },
+      "loggingIn": "Einloggen...",
+      "login": "Einloggen",
+      "orContinueWith": "oder weiter mit",
+      "loginWithGoogle": "Mit Google einloggen",
+      "dontHaveAnAccount": "Haben Sie noch kein Konto?",
       "registerHere": "Hier registrieren"
     },
     "register": {
