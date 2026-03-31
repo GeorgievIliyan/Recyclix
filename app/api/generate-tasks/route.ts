@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
-// Supabase клиент
 export const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_KEY!,
@@ -10,41 +9,27 @@ export const supabase = createClient(
 
 export const runtime = "edge";
 
-// Валидация на токен
-const ApiTokenSchema = z.object({
-  token: z.string().min(1, "API token is required"),
-});
-
 export const GET = async (req: NextRequest) => {
-  // Валидация на токен-а в хедъра
-  const tokenHeader = req.headers.get("x-api-token");
-  const parsed = ApiTokenSchema.safeParse({ token: tokenHeader });
-
   const isDev = process.env.NODE_ENV === "development";
 
   if (!isDev) {
-    if (!parsed.success || parsed.data.token !== process.env.SECURE_API_KEY) {
-      return NextResponse.json(
-        {
-          error: "Unauthorized",
-          ...(parsed.success
-            ? undefined
-            : {
-                details: parsed.error.issues.map((i) => ({
-                  field: i.path.join("."),
-                  message: i.message,
-                })),
-              }),
-        },
-        { status: 401 },
-      );
+    const tokenHeader = req.headers.get("x-api-token");
+    const authHeader = req.headers.get("authorization");
+
+    // 1. Check your custom key (manual triggers)
+    const isCustomKeyValid = tokenHeader === process.env.SECURE_API_KEY;
+
+    // 2. Check Vercel Cron Secret (automated triggers)
+    const isCronSecretValid = authHeader === `Bearer ${process.env.CRON_SECRET}`;
+
+    if (!isCustomKeyValid && !isCronSecretValid) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
   }
 
   const today = new Date().toISOString().slice(0, 10);
 
   try {
-    // Взимане на всички потребители
     const { data: users, error: usersError } = await supabase
       .from("user_profiles")
       .select("id");
@@ -57,7 +42,6 @@ export const GET = async (req: NextRequest) => {
       });
     }
 
-    // Взимане на задачи
     const { data: tasks, error: tasksError } = await supabase
       .from("tasks_pool")
       .select("id")
@@ -71,12 +55,7 @@ export const GET = async (req: NextRequest) => {
       });
     }
 
-    // Назначаване на задачи
-    const assignmentResults: Array<{
-      userId: string;
-      success: boolean;
-      error?: string;
-    }> = [];
+    const assignmentResults = [];
 
     for (const user of users) {
       const rows = tasks.map((task) => ({
@@ -92,53 +71,29 @@ export const GET = async (req: NextRequest) => {
           ignoreDuplicates: true,
         });
 
-      if (insertError) {
-        assignmentResults.push({
-          userId: user.id,
-          success: false,
-          error: insertError.message,
-        });
-      } else {
-        assignmentResults.push({ userId: user.id, success: true });
-      }
+      assignmentResults.push({
+        userId: user.id,
+        success: !insertError,
+        error: insertError?.message,
+      });
     }
 
     const failedAssignments = assignmentResults.filter((r) => !r.success);
-    if (failedAssignments.length > 0) {
-      console.warn("Failed task assignments:", failedAssignments);
-    }
 
     return NextResponse.json({
       ok: true,
       message: `Assigned ${tasks.length} tasks to ${users.length} users`,
-      failedAssignments:
-        failedAssignments.length > 0 ? failedAssignments : undefined,
+      failedCount: failedAssignments.length,
     });
   } catch (err: any) {
-    console.error("Error assigning daily tasks:", err);
     return NextResponse.json(
-      {
-        ok: false,
-        message: "Internal server error",
-        error: err.message || "Unknown error",
-      },
+      { ok: false, error: err.message || "Internal server error" },
       { status: 500 },
     );
   }
 };
 
-export async function POST(req: NextRequest) {
-  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
-}
-
-export async function PUT(req: NextRequest) {
-  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
-}
-
-export async function DELETE(req: NextRequest) {
-  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
-}
-
-export async function PATCH(req: NextRequest) {
-  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
-}
+export async function POST() { return NextResponse.json({ error: "Method not allowed" }, { status: 405 }); }
+export async function PUT() { return NextResponse.json({ error: "Method not allowed" }, { status: 405 }); }
+export async function DELETE() { return NextResponse.json({ error: "Method not allowed" }, { status: 405 }); }
+export async function PATCH() { return NextResponse.json({ error: "Method not allowed" }, { status: 405 }); }
