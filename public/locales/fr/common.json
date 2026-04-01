@@ -421,5 +421,84 @@
       "alreadyHaveAccount": "Vous avez déjà un compte ?",
       "loginHere": "Connectez-vous ici"
     }
+  },
+  "binScan": {
+    "header": {
+      "title": "Recyclix"
+    },
+    "settings": {
+      "changeCode": "Changer le code",
+      "language": "Langue"
+    },
+    "modes": {
+      "auto": "Auto",
+      "manual": "Manuel"
+    },
+    "login": {
+      "title": "Entrez le code du bac",
+      "subtitle": "Veuillez entrer le code à 6 chiffres pour continuer",
+      "placeholder": "p.ex. 4K3NWX",
+      "button": "Confirmer",
+      "errors": {
+        "emptyCode": "S'il vous plaît, entrez un code!",
+        "notFound": "Code non trouvé!",
+        "databaseError": "Erreur de connexion à la base de données.",
+        "unknownError": "Une erreur inattendue s'est produite."
+      }
+    },
+    "materialSelection": {
+      "title": "Sélection des matériaux",
+      "clear": "Effacer",
+      "materials": {
+        "plastic": "Plastique",
+        "glass": "Verre",
+        "paper": "Papier",
+        "metal": "Métal",
+        "textile": "Textile",
+        "generalWaste": "Déchets généraux",
+        "batteries": "Batteries",
+        "ewaste": "Électronique"
+      }
+    },
+    "camera": {
+      "enableCamera": "Activer la caméra",
+      "cameraNotAvailable": "Activez la caméra pour scanner et la reconnaissance automatique",
+      "scanning": "Balayage...",
+      "analyzing": "Analyse en cours...",
+      "recognizing": "Reconnaissance du matériau...",
+      "verifying": "Vérification du matériau...",
+      "enableCameraBtn": "Activer la caméra",
+      "recognizeBtn": "Reconnaître",
+      "confirmBtn": "Confirmer"
+    },
+    "results": {
+      "correctContainer": "Bon bac",
+      "wrongContainer": "Mauvais bac",
+      "wrongContainerMessage": "Cet article n'appartient pas à cette catégorie!",
+      "generating": "Génération de la récompense...",
+      "scan": "Scannez pour les points",
+      "or": "ou",
+      "claimHere": "Réclamer ici",
+      "validUntil": "Valide jusqu'au:",
+      "stats": {
+        "count": "Nombre",
+        "weight": "Poids",
+        "co2Saved": "CO₂ économisé",
+        "points": "Points"
+      },
+      "units": {
+        "pieces": " pcs.",
+        "kg": " kg",
+        "points": " pts."
+      }
+    }
+  },
+  "languages": {
+    "bg": "Български",
+    "en": "English",
+    "es": "Español",
+    "fr": "Français",
+    "de": "Deutsch",
+    "ru": "Русский"
   }
 }

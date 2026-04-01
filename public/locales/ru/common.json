@@ -421,5 +421,84 @@
       "alreadyHaveAccount": "Уже есть аккаунт?",
       "loginHere": "Войти здесь"
     }
+  },
+  "binScan": {
+    "header": {
+      "title": "Recyclix"
+    },
+    "settings": {
+      "changeCode": "Изменить код",
+      "language": "Язык"
+    },
+    "modes": {
+      "auto": "Авто",
+      "manual": "Ручной"
+    },
+    "login": {
+      "title": "Введите код контейнера",
+      "subtitle": "Пожалуйста, введите 6-значный код для продолжения",
+      "placeholder": "напр. 4K3NWX",
+      "button": "Подтвердить",
+      "errors": {
+        "emptyCode": "Пожалуйста, введите код!",
+        "notFound": "Код не найден!",
+        "databaseError": "Ошибка подключения к базе данных.",
+        "unknownError": "Произошла неожиданная ошибка."
+      }
+    },
+    "materialSelection": {
+      "title": "Выбор материала",
+      "clear": "Очистить",
+      "materials": {
+        "plastic": "Пластик",
+        "glass": "Стекло",
+        "paper": "Бумага",
+        "metal": "Металл",
+        "textile": "Текстиль",
+        "generalWaste": "Общие отходы",
+        "batteries": "Батареи",
+        "ewaste": "Электроника"
+      }
+    },
+    "camera": {
+      "enableCamera": "Включить камеру",
+      "cameraNotAvailable": "Включите камеру для сканирования и автоматического распознавания",
+      "scanning": "Сканирование...",
+      "analyzing": "Анализ...",
+      "recognizing": "Распознавание материала...",
+      "verifying": "Проверка материала...",
+      "enableCameraBtn": "Включить камеру",
+      "recognizeBtn": "Распознать",
+      "confirmBtn": "Подтвердить"
+    },
+    "results": {
+      "correctContainer": "Правильный контейнер",
+      "wrongContainer": "Неправильный контейнер",
+      "wrongContainerMessage": "Этот предмет не относится к этой категории!",
+      "generating": "Создание награды...",
+      "scan": "Сканируйте для получения баллов",
+      "or": "или",
+      "claimHere": "Получить здесь",
+      "validUntil": "Действительно до:",
+      "stats": {
+        "count": "Количество",
+        "weight": "Вес",
+        "co2Saved": "Сэкономлен CO₂",
+        "points": "Баллы"
+      },
+      "units": {
+        "pieces": " шт.",
+        "kg": " кг",
+        "points": " б."
+      }
+    }
+  },
+  "languages": {
+    "bg": "Български",
+    "en": "English",
+    "es": "Español",
+    "fr": "Français",
+    "de": "Deutsch",
+    "ru": "Русский"
   }
 }

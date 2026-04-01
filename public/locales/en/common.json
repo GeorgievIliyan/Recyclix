@@ -421,5 +421,84 @@
       "alreadyHaveAccount": "Already have an account?",
       "loginHere": "Login here"
     }
+  },
+  "binScan": {
+    "header": {
+      "title": "Recyclix"
+    },
+    "settings": {
+      "changeCode": "Change code",
+      "language": "Language"
+    },
+    "modes": {
+      "auto": "Auto",
+      "manual": "Manual"
+    },
+    "login": {
+      "title": "Enter bin code",
+      "subtitle": "Please enter the 6-digit code to continue",
+      "placeholder": "e.g. 4K3NWX",
+      "button": "Confirm",
+      "errors": {
+        "emptyCode": "Please enter a code!",
+        "notFound": "Code not found!",
+        "databaseError": "Database connection error.",
+        "unknownError": "An unexpected error occurred."
+      }
+    },
+    "materialSelection": {
+      "title": "Material selection",
+      "clear": "Clear",
+      "materials": {
+        "plastic": "Plastic",
+        "glass": "Glass",
+        "paper": "Paper",
+        "metal": "Metal",
+        "textile": "Textile",
+        "generalWaste": "General waste",
+        "batteries": "Batteries",
+        "ewaste": "Electronics"
+      }
+    },
+    "camera": {
+      "enableCamera": "Enable camera",
+      "cameraNotAvailable": "Enable the camera for scanning and automatic recognition",
+      "scanning": "Scanning...",
+      "analyzing": "Analyzing...",
+      "recognizing": "Recognizing material...",
+      "verifying": "Verifying material...",
+      "enableCameraBtn": "Enable camera",
+      "recognizeBtn": "Recognize",
+      "confirmBtn": "Confirm"
+    },
+    "results": {
+      "correctContainer": "Correct container",
+      "wrongContainer": "Wrong container",
+      "wrongContainerMessage": "This item does not belong in this category!",
+      "generating": "Generating reward...",
+      "scan": "Scan for points",
+      "or": "or",
+      "claimHere": "Claim here",
+      "validUntil": "Valid until:",
+      "stats": {
+        "count": "Count",
+        "weight": "Weight",
+        "co2Saved": "CO₂ saved",
+        "points": "Points"
+      },
+      "units": {
+        "pieces": " pcs.",
+        "kg": " kg",
+        "points": " pts."
+      }
+    }
+  },
+  "languages": {
+    "bg": "Български",
+    "en": "English",
+    "es": "Español",
+    "fr": "Français",
+    "de": "Deutsch",
+    "ru": "Русский"
   }
 }

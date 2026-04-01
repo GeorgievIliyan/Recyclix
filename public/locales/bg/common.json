@@ -421,5 +421,84 @@
         "4": "Силна"
       }
     }
+  },
+  "binScan": {
+    "header": {
+      "title": "Recyclix"
+    },
+    "settings": {
+      "changeCode": "Смени код",
+      "language": "Език"
+    },
+    "modes": {
+      "auto": "Авто",
+      "manual": "Ръчен"
+    },
+    "login": {
+      "title": "Въведете код на кош",
+      "subtitle": "Моля, въведете 6-цифрения код, за да продължите напред",
+      "placeholder": "Напр. 4K3NWX",
+      "button": "Потвърди",
+      "errors": {
+        "emptyCode": "Моля, въведете код!",
+        "notFound": "Кодът не бе намерен!",
+        "databaseError": "Грешка при връзка с базата данни.",
+        "unknownError": "Възникна неочаквана грешка."
+      }
+    },
+    "materialSelection": {
+      "title": "Избор на материал",
+      "clear": "Изчисти",
+      "materials": {
+        "plastic": "Пластмаса",
+        "glass": "Стъкло",
+        "paper": "Хартия",
+        "metal": "Метал",
+        "textile": "Текстил",
+        "generalWaste": "Битов",
+        "batteries": "Батерии",
+        "ewaste": "Техника"
+      }
+    },
+    "camera": {
+      "enableCamera": "Включи камера",
+      "cameraNotAvailable": "Активирайте камерата за сканиране и автоматично разпознаване",
+      "scanning": "Сканиране...",
+      "analyzing": "Анализиране...",
+      "recognizing": "Разпознаваме материала...",
+      "verifying": "Проверяваме материала...",
+      "enableCameraBtn": "Включи камера",
+      "recognizeBtn": "Разпознай",
+      "confirmBtn": "Потвърди"
+    },
+    "results": {
+      "correctContainer": "Правилен контейнер",
+      "wrongContainer": "Грешен контейнер",
+      "wrongContainerMessage": "Този обект не принадлежи към категорията!",
+      "generating": "Генериране на награда...",
+      "scan": "Сканирай за точки",
+      "or": "или",
+      "claimHere": "Вземи тук",
+      "validUntil": "Валиден до:",
+      "stats": {
+        "count": "Брой",
+        "weight": "Тегло",
+        "co2Saved": "CO₂ спестен",
+        "points": "Точки"
+      },
+      "units": {
+        "pieces": " бр.",
+        "kg": " кг",
+        "points": " т."
+      }
+    }
+  },
+  "languages": {
+    "bg": "Български",
+    "en": "English",
+    "es": "Español",
+    "fr": "Français",
+    "de": "Deutsch",
+    "ru": "Русский"
   }
 }

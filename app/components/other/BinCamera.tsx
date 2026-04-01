@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Scan,
   CameraIcon,
@@ -89,8 +90,10 @@ function translateMaterial(raw: string): string {
 }
 
 export default function BinCamera({ target, binId }: Props) {
+  const { t } = useTranslation("common");
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [mounted, setMounted] = useState(false);
   const [cameraOn, setCameraOn] = useState(false);
   const [prediction, setPrediction] = useState<string | null>(null);
   const [verifyResult, setVerifyResult] = useState<VerifyResult>(null);
@@ -105,13 +108,18 @@ export default function BinCamera({ target, binId }: Props) {
     (!target && prediction && prediction !== "unknown");
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
     startCamera();
     return () => {
       if (videoRef.current?.srcObject) {
         (videoRef.current.srcObject as MediaStream).getTracks().forEach((t) => t.stop());
       }
     };
-  }, []);
+  }, [mounted]);
 
   const startCamera = async () => {
     try {
@@ -241,6 +249,14 @@ export default function BinCamera({ target, binId }: Props) {
     await classifyPhoto(image);
   };
 
+  if (!mounted) {
+    return (
+      <div className="w-full h-full flex items-center justify-center">
+        <SpinningRecyclingLoader />
+      </div>
+    );
+  }
+
   return (
     <div className="w-full h-full flex flex-col gap-4">
       {/* Контейнер за видео */}
@@ -257,7 +273,7 @@ export default function BinCamera({ target, binId }: Props) {
               <CameraIcon className="w-12 h-12 text-primary/40" />
             </div>
             <p className="text-base text-muted-foreground text-center max-w-xs font-medium">
-              Активирайте камерата за сканиране и автоматично разпознаване
+              {t("binScan.camera.cameraNotAvailable")}
             </p>
           </div>
         )}
@@ -268,9 +284,9 @@ export default function BinCamera({ target, binId }: Props) {
             <div className="bg-card rounded-xl p-10 max-w-md w-full border shadow-lg flex flex-col items-center text-center gap-6">
               <SimpleSpinningRecycling />
               <div className="space-y-2">
-                <h3 className="text-2xl font-semibold">Анализиране...</h3>
+                <h3 className="text-2xl font-semibold">{t("binScan.camera.analyzing")}</h3>
                 <p className="text-sm text-muted-foreground">
-                  {target ? "Проверяваме материала..." : "Разпознаваме материала..."}
+                  {target ? t("binScan.camera.verifying") : t("binScan.camera.recognizing")}
                 </p>
               </div>
             </div>
@@ -293,7 +309,7 @@ export default function BinCamera({ target, binId }: Props) {
                 <div className="flex flex-col items-center gap-2">
                   <CheckCircle2 className="w-10 h-10 text-green-500" />
                   <h3 className="text-2xl font-bold">
-                    {target ? "Правилен контейнер" : prediction}
+                    {target ? t("binScan.results.correctContainer") : prediction}
                   </h3>
                 </div>
 
@@ -301,18 +317,18 @@ export default function BinCamera({ target, binId }: Props) {
                 <div className="flex gap-2 w-full">
                   <StatPill
                     icon={<Recycle className="w-4 h-4" />}
-                    label="Брой"
+                    label={t("binScan.results.stats.count")}
                     value={itemCount}
-                    unit=" бр."
+                    unit={t("binScan.results.units.pieces")}
                     border="border-green-500/20"
                     iconColor="text-green-500"
                   />
                   {weightKg > 0 && (
                     <StatPill
                       icon={<Weight className="w-4 h-4" />}
-                      label="Тегло"
+                      label={t("binScan.results.stats.weight")}
                       value={weightKg}
-                      unit=" кг"
+                      unit={t("binScan.results.units.kg")}
                       decimals={2}
                       border="border-sky-500/20"
                       iconColor="text-sky-500"
@@ -321,9 +337,9 @@ export default function BinCamera({ target, binId }: Props) {
                   {co2Saved > 0 && (
                     <StatPill
                       icon={<Wind className="w-4 h-4" />}
-                      label="CO₂ спестен"
+                      label={t("binScan.results.stats.co2Saved")}
                       value={co2Saved}
-                      unit=" кг"
+                      unit={t("binScan.results.units.kg")}
                       decimals={2}
                       border="border-emerald-500/20"
                       iconColor="text-emerald-500"
@@ -332,9 +348,9 @@ export default function BinCamera({ target, binId }: Props) {
                   {(qrData?.points ?? 0) > 0 && (
                     <StatPill
                       icon={<Sparkles className="w-4 h-4" />}
-                      label="Точки"
+                      label={t("binScan.results.stats.points")}
                       value={qrData?.points ?? 0}
-                      unit=" т."
+                      unit={t("binScan.results.units.points")}
                       border="border-amber-500/20"
                       iconColor="text-amber-500"
                     />
@@ -347,13 +363,13 @@ export default function BinCamera({ target, binId }: Props) {
                     <div className="p-5 bg-background/50 dark:bg-[#1D1D1D] rounded-lg">
                       <QRCodeSVG value={qrData.qrUrl} size={180} fgColor="#00CD56" bgColor="transparent" />
                     </div>
-                    <p className="text-sm text-muted-foreground">Сканирай за точки</p>
-                    <p className="text-xs text-muted-foreground/60 -mt-1">или</p>
+                    <p className="text-sm text-muted-foreground">{t("binScan.results.scan")}</p>
+                    <p className="text-xs text-muted-foreground/60 -mt-1">{t("binScan.results.or")}</p>
                     <a href={qrData.qrUrl} className="text-sm font-semibold text-green-500 hover:text-green-400 transition-colors -mt-1">
-                      Вземи тук
+                      {t("binScan.results.claimHere")}
                     </a>
                     <p className="text-xs text-muted-foreground/60 mt-0.5">
-                      Валиден до:{" "}
+                      {t("binScan.results.validUntil")}{" "}
                       {new Date(qrData.expiresAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                     </p>
                   </div>
@@ -362,7 +378,7 @@ export default function BinCamera({ target, binId }: Props) {
                     <div className="p-5 bg-background/50 dark:bg-[#1D1D1D] rounded-lg">
                       <SpinningRecyclingLoader />
                     </div>
-                    <p className="text-base text-muted-foreground">Генериране на награда...</p>
+                    <p className="text-base text-muted-foreground">{t("binScan.results.generating")}</p>
                   </div>
                 )}
               </div>
@@ -383,9 +399,9 @@ export default function BinCamera({ target, binId }: Props) {
               <div className="flex flex-col items-center text-center gap-3">
                 <div className="flex items-center gap-3">
                   <CircleX className="w-9 h-9 text-red-500" />
-                  <h3 className="text-3xl font-semibold text-red-500">Грешен контейнер</h3>
+                  <h3 className="text-3xl font-semibold text-red-500">{t("binScan.results.wrongContainer")}</h3>
                 </div>
-                <p className="text-sm text-muted-foreground">Този обект не принадлежи към категорията!</p>
+                <p className="text-sm text-muted-foreground">{t("binScan.results.wrongContainerMessage")}</p>
               </div>
             </div>
           </div>
@@ -400,7 +416,7 @@ export default function BinCamera({ target, binId }: Props) {
             className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-4 rounded-lg transition-all active:scale-[0.98] shadow-lg"
           >
             <CameraIcon className="w-5 h-5" />
-            <span>Включи камера</span>
+            <span>{t("binScan.camera.enableCameraBtn")}</span>
           </button>
         ) : (
           <button
@@ -409,9 +425,9 @@ export default function BinCamera({ target, binId }: Props) {
             className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 disabled:bg-accent disabled:text-foreground/40 text-primary-foreground font-medium px-6 py-4 rounded-lg transition-all active:scale-[0.98] shadow-lg disabled:cursor-not-allowed"
           >
             {loading ? (
-              <><SimpleSpinningRecycling /><span>Сканиране...</span></>
+              <><SimpleSpinningRecycling /><span>{t("binScan.camera.scanning")}</span></>
             ) : (
-              <><Scan className="w-5 h-5" /><span>{target ? "Потвърди" : "Разпознай"}</span></>
+              <><Scan className="w-5 h-5" /><span>{target ? t("binScan.camera.confirmBtn") : t("binScan.camera.recognizeBtn")}</span></>
             )}
           </button>
         )}

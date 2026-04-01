@@ -3,6 +3,8 @@
 import BinCamera from "@/app/components/other/BinCamera";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase-browser";
+import { useTranslation } from "react-i18next";
+import i18n from "@/app/app/i18n/i18n";
 import {
   InspectionPanel,
   Spool,
@@ -23,6 +25,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import { SpinningRecyclingLoader } from "@/app/components/ui/RecyclingLoader";
 import Logo36 from "@/app/components/ui/Logo36";
 
 type Material = {
@@ -32,75 +35,81 @@ type Material = {
   icon: any;
 };
 
-const materials: Material[] = [
-  {
-    id: "plastic",
-    label: "Пластмаса",
-    color:
-      "bg-gradient-to-br from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700",
-    icon: ShoppingBag,
-  },
-  {
-    id: "glass",
-    label: "Стъкло",
-    color:
-      "bg-gradient-to-br from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700",
-    icon: BottleWine,
-  },
-  {
-    id: "paper",
-    label: "Хартия",
-    color:
-      "bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700",
-    icon: Newspaper,
-  },
-  {
-    id: "metal",
-    label: "Метал",
-    color:
-      "bg-gradient-to-br from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700",
-    icon: InspectionPanel,
-  },
-  {
-    id: "textile",
-    label: "Текстил",
-    color:
-      "bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700",
-    icon: Spool,
-  },
-  {
-    id: "general waste",
-    label: "Битов",
-    color:
-      "bg-gradient-to-br from-neutral-500 to-neutral-600 hover:from-neutral-600 hover:to-neutral-700",
-    icon: Trash2,
-  },
-  {
-    id: "batteries",
-    label: "Батерии",
-    color:
-      "bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700",
-    icon: Battery,
-  },
-  {
-    id: "ewaste",
-    label: "Техника",
-    color:
-      "bg-gradient-to-br from-amber-700 to-amber-800 hover:from-amber-800 hover:to-amber-900",
-    icon: PcCase,
-  },
-];
-
-const STORAGE_KEY = "recycling_bin_code";
-
 export default function Page() {
+  const { t } = useTranslation("common");
+  const [mounted, setMounted] = useState(false);
   const [targetMaterial, setTargetMaterial] = useState<string>("");
   const [mode, setMode] = useState<"auto" | "manual">("auto");
   const [code, setCode] = useState<string>("");
   const [opened, setOpened] = useState<boolean>(false);
   const [codeError, setCodeError] = useState<string | null>(null);
   const [showChangeCode, setShowChangeCode] = useState<boolean>(false);
-  const [isMenuExpanded, setIsMenuExpanded] = useState<boolean>(true); 
+  const [isMenuExpanded, setIsMenuExpanded] = useState<boolean>(true);
+
+  const materials: Material[] = [
+    {
+      id: "plastic",
+      label: t("binScan.materialSelection.materials.plastic"),
+      color:
+        "bg-gradient-to-br from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700",
+      icon: ShoppingBag,
+    },
+    {
+      id: "glass",
+      label: t("binScan.materialSelection.materials.glass"),
+      color:
+        "bg-gradient-to-br from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700",
+      icon: BottleWine,
+    },
+    {
+      id: "paper",
+      label: t("binScan.materialSelection.materials.paper"),
+      color:
+        "bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700",
+      icon: Newspaper,
+    },
+    {
+      id: "metal",
+      label: t("binScan.materialSelection.materials.metal"),
+      color:
+        "bg-gradient-to-br from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700",
+      icon: InspectionPanel,
+    },
+    {
+      id: "textile",
+      label: t("binScan.materialSelection.materials.textile"),
+      color:
+        "bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700",
+      icon: Spool,
+    },
+    {
+      id: "general waste",
+      label: t("binScan.materialSelection.materials.generalWaste"),
+      color:
+        "bg-gradient-to-br from-neutral-500 to-neutral-600 hover:from-neutral-600 hover:to-neutral-700",
+      icon: Trash2,
+    },
+    {
+      id: "batteries",
+      label: t("binScan.materialSelection.materials.batteries"),
+      color:
+        "bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700",
+      icon: Battery,
+    },
+    {
+      id: "ewaste",
+      label: t("binScan.materialSelection.materials.ewaste"),
+      color:
+        "bg-gradient-to-br from-amber-700 to-amber-800 hover:from-amber-800 hover:to-amber-900",
+      icon: PcCase,
+    },
+  ];
+
+  const STORAGE_KEY = "recycling_bin_code";
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const savedCode = localStorage.getItem(STORAGE_KEY);
@@ -144,7 +153,7 @@ export default function Page() {
     }
 
     if (!inputCode) {
-      setCodeError("Моля, въведете код!");
+      setCodeError(t("binScan.login.errors.emptyCode"));
       return;
     }
 
@@ -159,7 +168,7 @@ export default function Page() {
 
       if (error) {
         console.error("Supabase error:", error.message);
-        setCodeError("Грешка при връзка с базата данни.");
+        setCodeError(t("binScan.login.errors.databaseError"));
         return;
       }
 
@@ -168,12 +177,12 @@ export default function Page() {
         setOpened(true);
         localStorage.setItem(STORAGE_KEY, trimmedCode);
       } else {
-        setCodeError("Кодът не бе намерен!");
+        setCodeError(t("binScan.login.errors.notFound"));
         localStorage.removeItem(STORAGE_KEY);
       }
     } catch (err) {
       console.error("Unexpected error:", err);
-      setCodeError("Възникна неочаквана грешка.");
+      setCodeError(t("binScan.login.errors.unknownError"));
     }
   };
 
@@ -199,6 +208,14 @@ export default function Page() {
     };
   }, [showChangeCode]);
 
+  if (!mounted) {
+    return (
+      <div className="h-screen w-full bg-background flex items-center justify-center">
+        <SpinningRecyclingLoader />
+      </div>
+    );
+  }
+
   return (
     <>
       {opened ? (
@@ -207,7 +224,7 @@ export default function Page() {
             <div className="flex items-center gap-3">
               <Logo36 />
               <h1 className="hidden sm:block text-2xl font-bold bg-gradient-to-r from-green-400 to-emerald-500 bg-clip-text text-transparent">
-                Recyclix
+                {t("binScan.header.title")}
               </h1>
             </div>
 
@@ -222,7 +239,7 @@ export default function Page() {
                   }`}
                 >
                   <CameraIcon className="w-4 h-4" />
-                  <span className="hidden sm:block text-sm font-medium">Авто</span>
+                  <span className="hidden sm:block text-sm font-medium">{t("binScan.modes.auto")}</span>
                 </button>
 
                 <button
@@ -234,7 +251,7 @@ export default function Page() {
                   }`}
                 >
                   <MousePointer2 className="w-4 h-4" />
-                  <span className="hidden sm:block text-sm font-medium">Ръчен</span>
+                  <span className="hidden sm:block text-sm font-medium">{t("binScan.modes.manual")}</span>
                 </button>
               </div>
 
@@ -245,24 +262,51 @@ export default function Page() {
                     setShowChangeCode(!showChangeCode);
                   }}
                   className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
-                  title="Настройки"
+                  title="Settings"
                 >
                   <Settings className="w-5 h-5" />
                 </button>
 
                 {showChangeCode && (
                   <div
-                    className="absolute right-0 top-12 bg-card border border-border rounded-lg shadow-lg p-2 min-w-[160px] z-50"
+                    className="absolute right-0 top-12 bg-card border border-border rounded-lg shadow-lg p-4 min-w-[200px] z-50"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <button
-                      onClick={handleClearCode}
-                      className="group w-full px-3 py-2 text-sm text-black dark:text-white hover:bg-red-500/15 hover:text-red-500 rounded-md flex items-center justify-between transition duration-150"
-                    >
-                      <span className="flex items-center gap-1 group-hover:text-red-500 transition-colors">
-                        Смени код
-                      </span>
-                    </button>
+                    <div className="space-y-2">
+                      <button
+                        onClick={handleClearCode}
+                        className="group w-full px-3 py-2 text-sm text-black dark:text-white hover:bg-red-500/15 hover:text-red-500 rounded-md flex items-center justify-between transition duration-150"
+                      >
+                        <span className="flex items-center gap-1 group-hover:text-red-500 transition-colors">
+                          {t("binScan.settings.changeCode")}
+                        </span>
+                      </button>
+                      
+                      <div className="border-t border-border my-1"></div>
+                      
+                      <div className="px-3 py-2">
+                        <p className="text-xs font-semibold text-muted-foreground mb-2">{t("binScan.settings.language")}</p>
+                        <div className="flex flex-col gap-1">
+                          {["bg", "en", "es", "fr", "de", "ru"].map((lang) => (
+                            <button
+                              key={lang}
+                              onClick={() => {
+                                i18n.changeLanguage(lang);
+                                localStorage.setItem("lang", lang);
+                                document.documentElement.lang = lang;
+                              }}
+                              className={`text-left px-2 py-1.5 text-sm rounded transition-colors ${
+                                i18n.language === lang
+                                  ? "bg-primary text-primary-foreground"
+                                  : "hover:bg-muted text-foreground"
+                              }`}
+                            >
+                              {t(`languages.${lang}`)}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
@@ -287,7 +331,7 @@ export default function Page() {
                   className="md:hidden flex items-center justify-between p-4 border-t border-border"
                 >
                   <h2 className="text-md font-semibold tracking-wider text-primary">
-                    Избор на материал
+                    {t("binScan.materialSelection.title")}
                   </h2>
                   {isMenuExpanded ? (
                     <ChevronUp className="w-5 h-5" />
@@ -318,6 +362,7 @@ export default function Page() {
                     targetMaterial={targetMaterial}
                     setTargetMaterial={setTargetMaterial}
                     isExpanded={isMenuExpanded}
+                    t={t}
                   />
                 </div>
               </div>
@@ -329,10 +374,10 @@ export default function Page() {
         <div className="flex h-screen w-screen flex-col items-center justify-center bg-white px-4 antialiased dark:bg-neutral-950">
           <div className="w-full max-w-sm space-y-2 text-center">
             <h1 className="text-3xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-50">
-              Въведете код на кош
+              {t("binScan.login.title")}
             </h1>
             <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-6">
-              Моля, въведете 6-цифрения код, за да продължите напред
+              {t("binScan.login.subtitle")}
             </p>
             {codeError && (
               <span className="text-red-500 bg-red-500/10 rounded-full text-md inline-flex gap-2 py-3 px-3.5">
@@ -342,7 +387,7 @@ export default function Page() {
             <div className="space-y-4">
               <input
                 type="text"
-                placeholder="Напр. 4K3NWX"
+                placeholder={t("binScan.login.placeholder")}
                 value={code}
                 className="flex h-12 w-full rounded-md border border-neutral-200 bg-transparent px-3 py-2 text-center text-lg ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 dark:border-neutral-800 dark:ring-offset-neutral-950 dark:focus-visible:ring-neutral-300"
                 onChange={(e) => setCode(e.target.value)}
@@ -352,7 +397,7 @@ export default function Page() {
                 className="inline-flex gap-1 h-10 w-full items-center justify-center rounded-md bg-[#00CD56] px-4 py-2 text-sm font-medium text-neutral-50 transition-colors hover:bg-[#00CD56]/90"
                 onClick={() => handleCodeSubmit(code)}
               >
-                Потвърди <Check className="w-4 h-4" />
+                {t("binScan.login.button")} <Check className="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -367,6 +412,7 @@ interface MaterialButtonsProps {
   targetMaterial: string;
   setTargetMaterial: (id: string) => void;
   isExpanded: boolean;
+  t: (key: string) => string;
 }
 
 function MaterialButtons({
@@ -374,13 +420,14 @@ function MaterialButtons({
   targetMaterial,
   setTargetMaterial,
   isExpanded,
+  t,
 }: MaterialButtonsProps) {
   return (
     <div className="h-full flex flex-col gap-2">
       <h2
         className={`hidden md:block text-lg font-semibold mb-2 truncate ${!isExpanded && "md:invisible"}`}
       >
-        Избор на материал
+        {t("binScan.materialSelection.title")}
       </h2>
 
       <div className="grid grid-cols-2 gap-2 md:grid-cols-1 md:h-full">
@@ -428,7 +475,7 @@ function MaterialButtons({
           <span
             className={`ml-2 truncate ${!isExpanded ? "md:hidden" : "md:block"}`}
           >
-            Изчисти
+            {t("binScan.materialSelection.clear")}
           </span>
         </button>
       )}

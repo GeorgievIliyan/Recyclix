@@ -421,5 +421,84 @@
       "alreadyHaveAccount": "Sie haben bereits ein Konto?",
       "loginHere": "Hier einloggen"
     }
+  },
+  "binScan": {
+    "header": {
+      "title": "Recyclix"
+    },
+    "settings": {
+      "changeCode": "Code ändern",
+      "language": "Sprache"
+    },
+    "modes": {
+      "auto": "Auto",
+      "manual": "Manuell"
+    },
+    "login": {
+      "title": "Behälterkode eingeben",
+      "subtitle": "Bitte geben Sie den 6-stelligen Code ein, um fortzufahren",
+      "placeholder": "z.B. 4K3NWX",
+      "button": "Bestätigen",
+      "errors": {
+        "emptyCode": "Bitte geben Sie einen Code ein!",
+        "notFound": "Code nicht gefunden!",
+        "databaseError": "Fehler bei der Datenbankverbindung.",
+        "unknownError": "Ein unerwarteter Fehler ist aufgetreten."
+      }
+    },
+    "materialSelection": {
+      "title": "Materialauswahl",
+      "clear": "Löschen",
+      "materials": {
+        "plastic": "Kunststoff",
+        "glass": "Glas",
+        "paper": "Papier",
+        "metal": "Metall",
+        "textile": "Textil",
+        "generalWaste": "Restmüll",
+        "batteries": "Batterien",
+        "ewaste": "Elektronik"
+      }
+    },
+    "camera": {
+      "enableCamera": "Kamera aktivieren",
+      "cameraNotAvailable": "Aktivieren Sie die Kamera zum Scannen und automatischen Erkennen",
+      "scanning": "Wird gescannt...",
+      "analyzing": "Wird analysiert...",
+      "recognizing": "Material wird erkannt...",
+      "verifying": "Material wird überprüft...",
+      "enableCameraBtn": "Kamera aktivieren",
+      "recognizeBtn": "Erkennen",
+      "confirmBtn": "Bestätigen"
+    },
+    "results": {
+      "correctContainer": "Richtiger Behälter",
+      "wrongContainer": "Falscher Behälter",
+      "wrongContainerMessage": "Dieser Gegenstand gehört nicht in diese Kategorie!",
+      "generating": "Belohnung wird generiert...",
+      "scan": "Zum Punkte sammeln einscannen",
+      "or": "oder",
+      "claimHere": "Hier abholen",
+      "validUntil": "Gültig bis:",
+      "stats": {
+        "count": "Anzahl",
+        "weight": "Gewicht",
+        "co2Saved": "CO₂ gespart",
+        "points": "Punkte"
+      },
+      "units": {
+        "pieces": " Stk.",
+        "kg": " kg",
+        "points": " Pkt."
+      }
+    }
+  },
+  "languages": {
+    "bg": "Български",
+    "en": "English",
+    "es": "Español",
+    "fr": "Français",
+    "de": "Deutsch",
+    "ru": "Русский"
   }
 }

@@ -421,5 +421,84 @@
       "alreadyHaveAccount": "¿Ya tienes una cuenta?",
       "loginHere": "Inicia sesión aquí"
     }
+  },
+  "binScan": {
+    "header": {
+      "title": "Recyclix"
+    },
+    "settings": {
+      "changeCode": "Cambiar código",
+      "language": "Idioma"
+    },
+    "modes": {
+      "auto": "Auto",
+      "manual": "Manual"
+    },
+    "login": {
+      "title": "Ingrese código del contenedor",
+      "subtitle": "Por favor, ingrese el código de 6 dígitos para continuar",
+      "placeholder": "p.ej. 4K3NWX",
+      "button": "Confirmar",
+      "errors": {
+        "emptyCode": "¡Por favor, ingrese un código!",
+        "notFound": "¡Código no encontrado!",
+        "databaseError": "Error de conexión a la base de datos.",
+        "unknownError": "Ocurrió un error inesperado."
+      }
+    },
+    "materialSelection": {
+      "title": "Selección de material",
+      "clear": "Limpiar",
+      "materials": {
+        "plastic": "Plástico",
+        "glass": "Vidrio",
+        "paper": "Papel",
+        "metal": "Metal",
+        "textile": "Textil",
+        "generalWaste": "Residuos generales",
+        "batteries": "Baterías",
+        "ewaste": "Electrónica"
+      }
+    },
+    "camera": {
+      "enableCamera": "Habilitar cámara",
+      "cameraNotAvailable": "Habilita la cámara para escanear y reconocimiento automático",
+      "scanning": "Escaneando...",
+      "analyzing": "Analizando...",
+      "recognizing": "Reconociendo material...",
+      "verifying": "Verificando material...",
+      "enableCameraBtn": "Habilitar cámara",
+      "recognizeBtn": "Reconocer",
+      "confirmBtn": "Confirmar"
+    },
+    "results": {
+      "correctContainer": "Contenedor correcto",
+      "wrongContainer": "Contenedor incorrecto",
+      "wrongContainerMessage": "¡Este artículo no pertenece a esta categoría!",
+      "generating": "Generando recompensa...",
+      "scan": "Escanea para obtener puntos",
+      "or": "o",
+      "claimHere": "Reclamar aquí",
+      "validUntil": "Válido hasta:",
+      "stats": {
+        "count": "Cantidad",
+        "weight": "Peso",
+        "co2Saved": "CO₂ ahorrado",
+        "points": "Puntos"
+      },
+      "units": {
+        "pieces": " pzas.",
+        "kg": " kg",
+        "points": " pts."
+      }
+    }
+  },
+  "languages": {
+    "bg": "Български",
+    "en": "English",
+    "es": "Español",
+    "fr": "Français",
+    "de": "Deutsch",
+    "ru": "Русский"
   }
 }
