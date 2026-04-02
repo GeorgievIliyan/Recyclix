@@ -11,6 +11,7 @@
   "changePassword": "Промени парола",
   "editProfile": "Редактирай профил",
   "logout": "Изход",
+  "welcome":"Добре дошъл",
   "rewards": {
     "header": {
       "xpPoints": "{{xp}} XP точки"
@@ -207,6 +208,13 @@
     "pricing": "Цени",
     "login": "Вход",
     "register": "Регистрация"
+  },
+  "navigation": {
+    "dashboard": "Табло",
+    "map": "Карта",
+    "tasks": "Задачи",
+    "rewards": "Награди",
+    "account": "Акаунт"
   },
   "hero": {
     "heading": {
@@ -491,6 +499,71 @@
         "kg": " кг",
         "points": " т."
       }
+    }
+  },
+  "gamification": {
+    "badgesGallery": {
+      "title": "Значки",
+      "description": "Твоите постижения",
+      "emptyMessage": "Все още няма значки",
+      "fetchError": "Грешка при зареждане на значките"
+    },
+    "progress": {
+      "title": "Прогрес",
+      "currentLevel": "Сегашно ниво",
+      "nextLevel": "Следващо ниво",
+      "xpPoints": "XP точки",
+      "xpToNextLevel": "{{xp}} XP до следващо ниво",
+      "keepGoing": "Продължавай",
+      "keepGoingText": "Изпълнявай дневни задачи и получавай XP точки!"
+    },
+    "leaderboard": {
+      "title": "Класация",
+      "emptyTitle": "Няма участници",
+      "emptySubtitle": "Класацията ще се попълни скоро.",
+      "roleAdmin": "Админ",
+      "labelYou": "Ти",
+      "participants": "участника",
+      "user": "Потребител",
+      "badges": "Значки",
+      "points": "Точки",
+      "level": "Ниво"
+    },
+    "mapFilter": {
+      "title": "Филтри"
+    },
+    "recentActivity": {
+      "title": "Скорошна активност",
+      "noActivity": "Няма скорошна активност",
+      "materials": {
+        "paper": "Хартия",
+        "plastic": "Пластмаса",
+        "glass": "Стъкло",
+        "metal": "Метал",
+        "organic": "Органични",
+        "electronics": "Електроника",
+        "textiles": "Текстил",
+        "general": "Общи отпадъци",
+        "cardboard": "Картон",
+        "batteries": "Батерии",
+        "compost": "Компост",
+        "residual": "Остатъчни отпадъци",
+        "bio_waste": "Биоотпадъци",
+        "other": "Други"
+      }
+    },
+    "materialsBreakdown": {
+      "title": "Рециклирани материали",
+      "subtitle": "Разпределени по тип",
+      "noData": "Няма данни"
+    },
+    "stats": {
+      "totalRecycled": "Общи рециклирани",
+      "totalPoints": "Точки общо",
+      "co2Saved": "Спестени CO₂",
+      "currentStreak": "Рекорд",
+      "streakDays": "{{count}} ден",
+      "streakDays_plural": "{{count}} дни"
     }
   },
   "languages": {

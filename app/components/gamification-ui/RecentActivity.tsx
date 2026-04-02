@@ -1,4 +1,7 @@
 import { Clock, Sparkles } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { getPreferredLanguage } from "@/lib/utils";
 
 interface Activity {
   material: string;
@@ -11,22 +14,38 @@ interface RecentActivityProps {
 }
 
 const MATERIAL_TRANSLATIONS: Record<string, string> = {
-  paper: "Хартия",
-  plastic: "Пластмаса",
-  glass: "Стъкло",
-  metal: "Метал",
-  organic: "Органични",
-  electronics: "Електроника",
-  textiles: "Текстил",
-  general: "Общи отпадъци",
+  paper: "gamification.recentActivity.materials.paper",
+  plastic: "gamification.recentActivity.materials.plastic",
+  glass: "gamification.recentActivity.materials.glass",
+  metal: "gamification.recentActivity.materials.metal",
+  organic: "gamification.recentActivity.materials.organic",
+  electronics: "gamification.recentActivity.materials.electronics",
+  textiles: "gamification.recentActivity.materials.textiles",
+  general: "gamification.recentActivity.materials.general",
 };
 
 export function RecentActivity({ activities }: RecentActivityProps) {
+  const { t, i18n } = useTranslation("common");
+  const [mounted, setMounted] = useState(false);
   const hasActivities = activities && activities.length > 0;
 
+  useEffect(() => {
+    const preferredLang = getPreferredLanguage();
+    if (i18n.language !== preferredLang) {
+      i18n.changeLanguage(preferredLang);
+    }
+    document.documentElement.lang = preferredLang;
+    setMounted(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
+
   const formatMaterial = (material: string) => {
-    const translated =
-      MATERIAL_TRANSLATIONS[material.toLowerCase()] || material;
+    const key = MATERIAL_TRANSLATIONS[material.toLowerCase()] || "gamification.recentActivity.materials.general";
+    const translated = t(key);
     return translated.charAt(0).toUpperCase() + translated.slice(1);
   };
 
@@ -37,7 +56,7 @@ export function RecentActivity({ activities }: RecentActivityProps) {
           <div className="p-1.5 sm:p-2 bg-blue-500/10 rounded-lg group-hover:scale-110 transition-transform duration-300">
             <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-blue-500" />
           </div>
-          Скорошна активност
+          {t("gamification.recentActivity.title", { defaultValue: "Скорошна активност" })}
         </h3>
       </div>
       <div className="relative z-10 p-3 sm:p-4 md:p-6">
@@ -73,7 +92,7 @@ export function RecentActivity({ activities }: RecentActivityProps) {
         ) : (
           <div className="py-8 text-center">
             <p className="text-muted-foreground dark:text-gray-400 text-sm">
-              Няма скорошна активност
+              {t("gamification.recentActivity.noActivity", { defaultValue: "Няма скорошна активност" })}
             </p>
           </div>
         )}

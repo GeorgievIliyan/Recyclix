@@ -6,6 +6,8 @@ import { useEffect, useState } from "react";
 import { Recycle, Sparkles, Flame, Calendar } from "lucide-react";
 import { useRouter } from "next/navigation";
 import dynamicImport from "next/dynamic";
+import { useTranslation } from "react-i18next";
+import { getPreferredLanguage } from "@/lib/utils";
 import { RecyclingLoader } from "@/app/components/ui/RecyclingLoader";
 import { StatCard } from "@/app/components/gamification-ui/StatCard";
 import { GamificationProgress } from "@/app/components/gamification-ui/GamificationProgress";
@@ -30,7 +32,7 @@ const RecyclingActivityChart = dynamicImport(
 
 const MaterialsBreakdownChart = dynamicImport(
   () =>
-    import("@/app/components/map-ui/MaterialsBreakdownChart").then(
+    import("@/app/components/gamification-ui/MaterialsBreakdownChart").then(
       (mod) => mod.MaterialsBreakdownChart,
     ),
   {
@@ -79,6 +81,7 @@ type UserData = {
 
 export default function DashboardPage() {
   const router = useRouter();
+  const { t, i18n } = useTranslation("common");
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
@@ -90,6 +93,14 @@ export default function DashboardPage() {
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  useEffect(() => {
+    const preferredLang = getPreferredLanguage();
+    if (i18n.language !== preferredLang) {
+      i18n.changeLanguage(preferredLang);
+    }
+    document.documentElement.lang = preferredLang;
+  }, [i18n]);
 
   useEffect(() => {
     if (!isClient) return;
@@ -115,11 +126,6 @@ export default function DashboardPage() {
           .select("material, points, co2_saved, created_at, count")
           .eq("user_id", userId)
           .order("created_at", { ascending: false });
-
-        console.log("User ID:", userId);
-        console.log("Events error:", eventsError);
-        console.log("Events data:", events);
-        console.log("Events count:", events?.length);
 
         const typedEvents = events as RecyclingEvent[];
 
@@ -249,7 +255,7 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between flex-nowrap gap-4">
               <div>
                 <h1 className="text-3xl sm:text-3xl md:text-5xl font-bold tracking-tight text-neutral-900 dark:text-neutral-50 leading-tight mb-4 md:mb-2 lg:mb-0">
-                  Добре дошъл,{" "}
+                  {t("welcome")},{" "}
                   <span className="bg-gradient-to-r from-[#00CD56] to-emerald-500 bg-clip-text text-transparent">
                     {userData.username}
                   </span>
@@ -266,29 +272,29 @@ export default function DashboardPage() {
           {/* статистики */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-4 sm:mb-6 md:mb-8">
             <StatCard
-              title="Общи рециклирани"
+              title={t("gamification.stats.totalRecycled")}
               value={userData.totalItems}
               icon={<Recycle className="h-6 w-6" />}
               iconColor="text-green-500"
               iconBg="bg-green-500/10"
             />
             <StatCard
-              title="Точки общо"
+              title={t("gamification.stats.totalPoints")}
               value={userData.xp}
               icon={<Sparkles className="h-6 w-6" />}
               iconColor="text-amber-500"
               iconBg="bg-amber-500/10"
             />
             <StatCard
-              title="Спестени CO₂"
+              title={t("gamification.stats.co2Saved")}
               value={`${userData.co2Saved.toFixed(1)} кг`}
               icon={<Flame className="h-6 w-6 md:h-7 md:w-7" />}
               iconColor="text-yellow-500"
               iconBg="bg-yellow-500/10"
             />
             <StatCard
-              title="Рекорд"
-              value={`${userData.currentStreak === 1 ? "1 ден" : `${userData.currentStreak} дни`}`}
+              title={t("gamification.stats.currentStreak")}
+              value={userData.currentStreak === 1 ? t("gamification.stats.streakDays", { count: 1 }) : t("gamification.stats.streakDays_plural", { count: userData.currentStreak })}
               icon={<Calendar className="h-6 w-6" />}
               iconColor="text-sky-500"
               iconBg="bg-sky-500/10"

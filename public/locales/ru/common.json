@@ -11,6 +11,7 @@
   "changePassword": "Сменить пароль",
   "editProfile": "Редактировать профиль",
   "logout": "Выйти",
+  "welcome": "Добро пожаловать",
   "rewards": {
     "header": {
       "xpPoints": "{{xp}} XP очков"
@@ -207,6 +208,13 @@
     "pricing": "Цены",
     "login": "Войти",
     "register": "Регистрация"
+  },
+  "navigation": {
+    "dashboard": "Панель управления",
+    "map": "Карта",
+    "tasks": "Задачи",
+    "rewards": "Награды",
+    "account": "Аккаунт"
   },
   "hero": {
     "heading": {
@@ -491,6 +499,71 @@
         "kg": " кг",
         "points": " б."
       }
+    }
+  },
+  "gamification": {
+    "badgesGallery": {
+      "title": "Значки",
+      "description": "Ваши достижения",
+      "emptyMessage": "Нет значков",
+      "fetchError": "Ошибка при загрузке значков"
+    },
+    "progress": {
+      "title": "Прогресс",
+      "currentLevel": "Текущий уровень",
+      "nextLevel": "Следующий уровень",
+      "xpPoints": "XP очки",
+      "xpToNextLevel": "{{xp}} XP до следующего уровня",
+      "keepGoing": "Продолжай",
+      "keepGoingText": "Выполняй ежедневные задачи и зарабатывай XP очки!"
+    },
+    "leaderboard": {
+      "title": "Таблица лидеров",
+      "emptyTitle": "Нет участников",
+      "emptySubtitle": "Таблица лидеров скоро заполнится.",
+      "roleAdmin": "Администратор",
+      "labelYou": "Ты",
+      "participants": "участников",
+      "user": "Пользователь",
+      "badges": "Значки",
+      "points": "Очки",
+      "level": "Уровень"
+    },
+    "mapFilter": {
+      "title": "Фильтры"
+    },
+    "recentActivity": {
+      "title": "Недавняя активность",
+      "noActivity": "Нет недавней активности",
+      "materials": {
+        "paper": "Бумага",
+        "plastic": "Пластик",
+        "glass": "Стекло",
+        "metal": "Металл",
+        "organic": "Органика",
+        "electronics": "Электроника",
+        "textiles": "Текстиль",
+        "general": "Общие отходы",
+        "cardboard": "Картон",
+        "batteries": "Батареи",
+        "compost": "Компост",
+        "residual": "Остаточные отходы",
+        "bio_waste": "Биоотходы",
+        "other": "Другие"
+      }
+    },
+    "materialsBreakdown": {
+      "title": "Переработанные материалы",
+      "subtitle": "Распределено по типам",
+      "noData": "Нет данных"
+    },
+    "stats": {
+      "totalRecycled": "Всего переработано",
+      "totalPoints": "Всего очков",
+      "co2Saved": "CO₂ сэкономлено",
+      "currentStreak": "Рекорд",
+      "streakDays": "{{count}} день",
+      "streakDays_plural": "{{count}} дней"
     }
   },
   "languages": {

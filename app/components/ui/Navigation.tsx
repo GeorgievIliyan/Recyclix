@@ -3,9 +3,10 @@
 import { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 import { LayoutDashboard, MapPin, ListTodo, User, Gift } from "lucide-react";
 import { motion, LayoutGroup } from "framer-motion";
-import { cn } from "@/lib/utils";
+import { cn, getPreferredLanguage } from "@/lib/utils";
 
 type Module = "dashboard" | "map" | "tasks" | "rewards" | "account"
 
@@ -27,9 +28,20 @@ const modules: ModuleItem[] = [
 export function Navigation({ className }: { className?: string }) {
   const pathname = usePathname();
   const [isVisible, setIsVisible] = useState(true);
+  const [mounted, setMounted] = useState(false);
   const lastScrollY = useRef(0);
-  const activeModule = modules.find((m) => pathname?.startsWith(m.path))?.id ||
-    (pathname?.startsWith("/auth/") ? "account" : "dashboard");
+  const { t, i18n } = useTranslation();
+
+  useEffect(() => {
+    const preferredLang = getPreferredLanguage();
+
+    if (i18n.language !== preferredLang) {
+      i18n.changeLanguage(preferredLang);
+    }
+
+    document.documentElement.lang = preferredLang;
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -48,6 +60,21 @@ export function Navigation({ className }: { className?: string }) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Early return AFTER all hooks
+  if (!mounted) {
+    return null;
+  }
+
+  const translatedModules = modules.map((m) => ({
+    ...m,
+    label: t(`navigation.${m.id}`, {
+      defaultValue: m.label,
+    }),
+  }));
+
+  const activeModule = translatedModules.find((m) => pathname?.startsWith(m.path))?.id ??
+    (pathname?.startsWith("/auth/") ? "account" : "dashboard");
+
   return (
     <LayoutGroup>
       {/* навигация за десктоп */}
@@ -60,7 +87,7 @@ export function Navigation({ className }: { className?: string }) {
             className,
           )}
         >
-          {modules.map((module) => {
+          {translatedModules.map((module) => {
             const isActive = activeModule === module.id;
             const Icon = module.icon;
             return (
@@ -104,7 +131,7 @@ export function Navigation({ className }: { className?: string }) {
             className,
           )}
         >
-          {modules.map((module) => {
+          {translatedModules.map((module) => {
             const isActive = activeModule === module.id;
             const Icon = module.icon;
 
@@ -146,6 +173,6 @@ export function Navigation({ className }: { className?: string }) {
           })}
         </nav>
       </div>
-    </LayoutGroup >
+    </LayoutGroup>
   );
 }

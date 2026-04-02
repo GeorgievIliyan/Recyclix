@@ -11,6 +11,7 @@
   "changePassword": "Cambiar contraseña",
   "editProfile": "Editar perfil",
   "logout": "Cerrar sesión",
+  "welcome": "Bienvenido de nuevo",
   "rewards": {
     "header": {
       "xpPoints": "{{xp}} puntos XP"
@@ -207,8 +208,13 @@
     "pricing": "Precios",
     "login": "Iniciar sesión",
     "register": "Registrarse"
-  },
-  "hero": {
+  },  "navigation": {
+    "dashboard": "Panel",
+    "map": "Mapa",
+    "tasks": "Tareas",
+    "rewards": "Recompensas",
+    "account": "Cuenta"
+  },  "hero": {
     "heading": {
       "line1": "Reciclar",
       "line2": "Explorar",
@@ -491,6 +497,71 @@
         "kg": " kg",
         "points": " pts."
       }
+    }
+  },
+  "gamification": {
+    "badgesGallery": {
+      "title": "Insignias",
+      "description": "Tus logros",
+      "emptyMessage": "Sin insignias aún",
+      "fetchError": "Error cargando insignias"
+    },
+    "progress": {
+      "title": "Progreso",
+      "currentLevel": "Nivel actual",
+      "nextLevel": "Siguiente nivel",
+      "xpPoints": "Puntos XP",
+      "xpToNextLevel": "{{xp}} XP para el siguiente nivel",
+      "keepGoing": "Continúa",
+      "keepGoingText": "¡Completa tareas diarias y gana puntos XP!"
+    },
+    "leaderboard": {
+      "title": "Tabla de clasificación",
+      "emptyTitle": "Sin participantes",
+      "emptySubtitle": "La tabla de clasificación se llenará pronto.",
+      "roleAdmin": "Admin",
+      "labelYou": "Tú",
+      "participants": "participantes",
+      "user": "Usuario",
+      "badges": "Insignias",
+      "points": "Puntos",
+      "level": "Nivel"
+    },
+    "mapFilter": {
+      "title": "Filtros"
+    },
+    "recentActivity": {
+      "title": "Actividad reciente",
+      "noActivity": "Sin actividad reciente",
+      "materials": {
+        "paper": "Papel",
+        "plastic": "Plástico",
+        "glass": "Vidrio",
+        "metal": "Metal",
+        "organic": "Orgánico",
+        "electronics": "Electrónica",
+        "textiles": "Textiles",
+        "general": "Residuos generales",
+        "cardboard": "Cartón",
+        "batteries": "Baterías",
+        "compost": "Compost",
+        "residual": "Residuos residuales",
+        "bio_waste": "Residuos biológicos",
+        "other": "Otros"
+      }
+    },
+    "materialsBreakdown": {
+      "title": "Materiales reciclados",
+      "subtitle": "Distribuidos por tipo",
+      "noData": "Sin datos"
+    },
+    "stats": {
+      "totalRecycled": "Total reciclado",
+      "totalPoints": "Puntos totales",
+      "co2Saved": "CO₂ ahorrado",
+      "currentStreak": "Récord",
+      "streakDays": "{{count}} día",
+      "streakDays_plural": "{{count}} días"
     }
   },
   "languages": {

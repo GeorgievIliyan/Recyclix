@@ -13,6 +13,7 @@ import colors from "tailwindcss/colors";
 import { Zap } from "lucide-react";
 import { useEffect, useState, useId } from "react";
 import { useTranslation } from "react-i18next";
+import { getPreferredLanguage } from "@/lib/utils";
 
 interface ActivityData {
   date: string;
@@ -24,11 +25,20 @@ interface RecyclingActivityChartProps {
 }
 
 export function RecyclingActivityChart({ data }: RecyclingActivityChartProps) {
-  const { t } = useTranslation("common");
-
-  // променливи
+  const { t, i18n } = useTranslation("common");
+  const [mounted, setMounted] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const barGradientId = useId();
+
+  useEffect(() => {
+    const preferredLang = getPreferredLanguage();
+    if (i18n.language !== preferredLang) {
+      i18n.changeLanguage(preferredLang);
+    }
+    document.documentElement.lang = preferredLang;
+    setMounted(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const isDark = document.documentElement.classList.contains("dark");
@@ -44,6 +54,10 @@ export function RecyclingActivityChart({ data }: RecyclingActivityChartProps) {
     });
     return () => observer.disconnect();
   }, []);
+
+  if (!mounted) {
+    return null;
+  }
 
   const filledData = Array.from({ length: 3 }).map((_, i) => {
     const d = new Date();

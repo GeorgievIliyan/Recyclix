@@ -2,6 +2,8 @@ import { Trophy, TrendingUp, Shield, Award } from "lucide-react";
 import { computeLevelFromXp } from "./GamificationProgress";
 import { supabase } from "@/lib/supabase-browser";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { getPreferredLanguage } from "@/lib/utils";
 
 interface UserProfile {
   id: string;
@@ -95,13 +97,15 @@ function BadgeCount({ count }: { count: number }) {
 }
 
 function EmptyState() {
+  const { t } = useTranslation("common");
+
   return (
     <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
       <div className="p-3 bg-zinc-100 dark:bg-zinc-800 rounded-full mb-3">
         <Trophy className="h-7 w-7 text-zinc-400 dark:text-zinc-600" />
       </div>
-      <p className="text-sm font-medium text-card-foreground">Няма участници</p>
-      <p className="text-xs text-muted-foreground mt-1">Класацията ще се попълни скоро.</p>
+      <p className="text-sm font-medium text-card-foreground">{t("gamification.leaderboard.emptyTitle", { defaultValue: "Няма участници" })}</p>
+      <p className="text-xs text-muted-foreground mt-1">{t("gamification.leaderboard.emptySubtitle", { defaultValue: "Класацията ще се попълни скоро." })}</p>
     </div>
   );
 }
@@ -130,6 +134,7 @@ function LeaderboardRow({
   rank: number;
   isCurrentUser: boolean;
 }) {
+  const { t } = useTranslation("common");
   // ПОПРАВКА: Изчисляваме нивото директно от XP вместо да ползваме
   // user.level от базата данни, което може да е остаряло/несинхронизирано.
   // Така нивото и XP лентата винаги ползват една и съща формула.
@@ -172,7 +177,7 @@ function LeaderboardRow({
           </p>
           {user.app_role === "platform_admin" && (
             <span className="flex-shrink-0 px-1.5 py-0.5 text-[10px] font-semibold bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/20 rounded-full">
-              Админ
+              {t("gamification.leaderboard.roleAdmin", { defaultValue: "Админ" })}
             </span>
           )}
           {user.organization_role === "org_admin" && (
@@ -180,7 +185,7 @@ function LeaderboardRow({
           )}
           {isCurrentUser && (
             <span className="flex-shrink-0 px-1.5 py-0.5 text-[10px] font-semibold bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20 rounded-full">
-              Ти
+              {t("gamification.leaderboard.labelYou", { defaultValue: "Ти" })}
             </span>
           )}
         </div>
@@ -189,7 +194,7 @@ function LeaderboardRow({
           <XpBar xp={user.xp} />
           {/* Показваме изчисленото ниво, не user.level от БД */}
           <span className="text-[11px] text-muted-foreground hidden sm:inline">
-            Ниво {level}
+            {t("gamification.leaderboard.level", { defaultValue: "Ниво" })} {level}
           </span>
         </div>
       </div>
@@ -204,15 +209,27 @@ function LeaderboardRow({
         <p className="text-sm sm:text-base font-bold text-green-600 dark:text-green-400">
           {user.xp.toLocaleString()}
         </p>
-        <p className="text-[10px] sm:text-xs text-muted-foreground">Точки</p>
+        <p className="text-[10px] sm:text-xs text-muted-foreground">{t("gamification.leaderboard.points", { defaultValue: "Точки" })}</p>
       </div>
     </div>
   );
 }
 
 export function Leaderboard({ currentUserId }: LeaderboardProps) {
+  const { t, i18n } = useTranslation("common");
+  const [mounted, setMounted] = useState(false);
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const preferredLang = getPreferredLanguage();
+    if (i18n.language !== preferredLang) {
+      i18n.changeLanguage(preferredLang);
+    }
+    document.documentElement.lang = preferredLang;
+    setMounted(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Зареждане на потребителите от Supabase, сортирани по XP низходящо
   useEffect(() => {
@@ -230,6 +247,10 @@ export function Leaderboard({ currentUserId }: LeaderboardProps) {
     fetchUsers();
   }, []);
 
+  if (!mounted) {
+    return null;
+  }
+
   // Сортираме отново от страна на клиента като предпазна мярка
   const sorted = [...users].sort((a, b) => b.xp - a.xp);
 
@@ -242,12 +263,12 @@ export function Leaderboard({ currentUserId }: LeaderboardProps) {
             <div className="p-1.5 sm:p-2 bg-yellow-400/20 rounded-lg">
               <Trophy className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 text-yellow-500" />
             </div>
-            Класация
+            {t("gamification.leaderboard.title", { defaultValue: "Класация" })}
           </h3>
           <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-100/80 dark:bg-zinc-800/60 border border-zinc-200/50 dark:border-zinc-700/50">
             <TrendingUp className="h-3 w-3 text-green-500" />
             <span className="text-xs font-medium text-muted-foreground">
-              {loading ? "…" : `${sorted.length} участника`}
+              {loading ? "…" : `${sorted.length} ${t("gamification.leaderboard.participants", { defaultValue: "участника" })}`}
             </span>
           </div>
         </div>
@@ -258,13 +279,13 @@ export function Leaderboard({ currentUserId }: LeaderboardProps) {
             <div className="w-8 flex-shrink-0" />
             <div className="w-9 sm:w-10 flex-shrink-0" />
             <div className="flex-1 min-w-0">
-              <span className="text-[11px] font-medium text-muted-foreground/60 uppercase tracking-wider">Потребител</span>
+              <span className="text-[11px] font-medium text-muted-foreground/60 uppercase tracking-wider">{t("gamification.leaderboard.user", { defaultValue: "Потребител" })}</span>
             </div>
             <div className="hidden md:block flex-shrink-0 w-16">
-              <span className="text-[11px] font-medium text-muted-foreground/60 uppercase tracking-wider">Значки</span>
+              <span className="text-[11px] font-medium text-muted-foreground/60 uppercase tracking-wider">{t("gamification.leaderboard.badges", { defaultValue: "Значки" })}</span>
             </div>
             <div className="flex-shrink-0 min-w-[60px] sm:min-w-[80px] text-right">
-              <span className="text-[11px] font-medium text-muted-foreground/60 uppercase tracking-wider">Точки</span>
+              <span className="text-[11px] font-medium text-muted-foreground/60 uppercase tracking-wider">{t("gamification.leaderboard.points", { defaultValue: "Точки" })}</span>
             </div>
           </div>
         )}

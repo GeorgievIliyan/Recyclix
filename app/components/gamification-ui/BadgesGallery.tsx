@@ -1,9 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { cn } from "@/lib/utils";
+import { cn, getPreferredLanguage } from "@/lib/utils";
 import { Award, Lock } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/lib/supabase-browser";
 
 export type Badge = {
@@ -86,10 +87,22 @@ export function BadgesGallery({
   title = "Значки",
   description = "Твоите постижения",
 }: BadgesGalleryProps) {
+  const { t, i18n } = useTranslation("common");
+  const [mounted, setMounted] = useState(false);
   const [badges, setBadges] = useState<Badge[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string>();
+
+  useEffect(() => {
+    const preferredLang = getPreferredLanguage();
+    if (i18n.language !== preferredLang) {
+      i18n.changeLanguage(preferredLang);
+    }
+    document.documentElement.lang = preferredLang;
+    setMounted(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const fetchUserId = async () => {
@@ -126,7 +139,7 @@ export function BadgesGallery({
         setBadges(data);
       } catch (err) {
         console.error("Fetch error:", err);
-        setError("Грешка при зареждане на значките");
+        setError(t("gamification.badgesGallery.fetchError", { defaultValue: "Грешка при зареждане на значките" }));
         setBadges([]);
       } finally {
         setIsLoading(false);
@@ -135,6 +148,10 @@ export function BadgesGallery({
 
     if (currentUserId !== undefined) fetchBadges();
   }, [currentUserId, onlyActive]);
+
+  if (!mounted) {
+    return null;
+  }
 
   const unlockedCount = badges.filter((b) => !b.locked).length;
 
@@ -162,7 +179,7 @@ export function BadgesGallery({
             <div className="p-1.5 sm:p-2 bg-amber-400/20 rounded-lg group-hover:scale-110 transition-transform duration-300">
               <Award className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 text-amber-500" />
             </div>
-            {title}
+            {t("gamification.badgesGallery.title", { defaultValue: title })}
           </h3>
 
           {!isLoading && badges.length > 0 && (
@@ -176,7 +193,7 @@ export function BadgesGallery({
         </div>
         {description && (
           <p className="mt-1 text-xs sm:text-sm text-muted-foreground pl-0.5">
-            {description}
+            {t("gamification.badgesGallery.description", { defaultValue: description })}
           </p>
         )}
       </div>
@@ -201,7 +218,9 @@ export function BadgesGallery({
             <div className="p-4 rounded-full bg-zinc-100 dark:bg-zinc-800">
               <Award className="h-8 w-8 text-muted-foreground/40" />
             </div>
-            <p className="text-sm text-muted-foreground">Все още няма значки</p>
+            <p className="text-sm text-muted-foreground">
+              {t("gamification.badgesGallery.emptyMessage", { defaultValue: "Все още няма значки" })}
+            </p>
           </div>
         ) : (
           <div className={cn("grid gap-3 sm:gap-4", gridColsClass)}>

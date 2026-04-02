@@ -11,6 +11,7 @@
   "changePassword": "Change password",
   "editProfile": "Edit profile",
   "logout": "Log out",
+  "welcome": "Welcome back",
   "rewards": {
     "header": {
       "xpPoints": "{{xp}} XP points"
@@ -207,6 +208,13 @@
     "pricing": "Pricing",
     "login": "Login",
     "register": "Register"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "map": "Map",
+    "tasks": "Tasks",
+    "rewards": "Rewards",
+    "account": "Account"
   },
   "hero": {
     "heading": {
@@ -491,6 +499,71 @@
         "kg": " kg",
         "points": " pts."
       }
+    }
+  },
+  "gamification": {
+    "badgesGallery": {
+      "title": "Badges",
+      "description": "Your achievements",
+      "emptyMessage": "No badges yet",
+      "fetchError": "Error loading badges"
+    },
+    "progress": {
+      "title": "Progress",
+      "currentLevel": "Current level",
+      "nextLevel": "Next level",
+      "xpPoints": "XP points",
+      "xpToNextLevel": "{{xp}} XP to next level",
+      "keepGoing": "Keep going",
+      "keepGoingText": "Complete daily tasks and earn XP points!"
+    },
+    "leaderboard": {
+      "title": "Leaderboard",
+      "emptyTitle": "No participants",
+      "emptySubtitle": "The leaderboard will be filled soon.",
+      "roleAdmin": "Admin",
+      "labelYou": "You",
+      "participants": "participants",
+      "user": "User",
+      "badges": "Badges",
+      "points": "Points",
+      "level": "Level"
+    },
+    "mapFilter": {
+      "title": "Filters"
+    },
+    "recentActivity": {
+      "title": "Recent activity",
+      "noActivity": "No recent activity",
+      "materials": {
+        "paper": "Paper",
+        "plastic": "Plastic",
+        "glass": "Glass",
+        "metal": "Metal",
+        "organic": "Organic",
+        "electronics": "Electronics",
+        "textiles": "Textiles",
+        "general": "General waste",
+        "cardboard": "Cardboard",
+        "batteries": "Batteries",
+        "compost": "Compost",
+        "residual": "Residual waste",
+        "bio_waste": "Bio waste",
+        "other": "Other"
+      }
+    },
+    "materialsBreakdown": {
+      "title": "Recycled materials",
+      "subtitle": "Distributed by type",
+      "noData": "No data"
+    },
+    "stats": {
+      "totalRecycled": "Total recycled",
+      "totalPoints": "Total points",
+      "co2Saved": "CO₂ saved",
+      "currentStreak": "Streak",
+      "streakDays": "{{count}} day",
+      "streakDays_plural": "{{count}} days"
     }
   },
   "languages": {

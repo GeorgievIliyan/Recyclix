@@ -11,6 +11,7 @@
   "changePassword": "Changer le mot de passe",
   "editProfile": "Modifier le profil",
   "logout": "Déconnexion",
+  "welcome": "Bon retour",
   "rewards": {
     "header": {
       "xpPoints": "{{xp}} points XP"
@@ -207,6 +208,13 @@
     "pricing": "Tarifs",
     "login": "Connexion",
     "register": "S'inscrire"
+  },
+  "navigation": {
+    "dashboard": "Tableau de bord",
+    "map": "Carte",
+    "tasks": "Tâches",
+    "rewards": "Récompenses",
+    "account": "Compte"
   },
   "hero": {
     "heading": {
@@ -491,6 +499,71 @@
         "kg": " kg",
         "points": " pts."
       }
+    }
+  },
+  "gamification": {
+    "badgesGallery": {
+      "title": "Badges",
+      "description": "Vos réalisations",
+      "emptyMessage": "Pas encore de badges",
+      "fetchError": "Erreur lors du chargement des badges"
+    },
+    "progress": {
+      "title": "Progression",
+      "currentLevel": "Niveau actuel",
+      "nextLevel": "Niveau suivant",
+      "xpPoints": "Points XP",
+      "xpToNextLevel": "{{xp}} XP jusqu'au niveau suivant",
+      "keepGoing": "Continuez",
+      "keepGoingText": "Complétez les tâches quotidiennes et gagnez des points XP!"
+    },
+    "leaderboard": {
+      "title": "Classement",
+      "emptyTitle": "Pas de participants",
+      "emptySubtitle": "Le classement sera bientôt rempli.",
+      "roleAdmin": "Admin",
+      "labelYou": "Vous",
+      "participants": "participants",
+      "user": "Utilisateur",
+      "badges": "Badges",
+      "points": "Points",
+      "level": "Niveau"
+    },
+    "mapFilter": {
+      "title": "Filtres"
+    },
+    "recentActivity": {
+      "title": "Activité récente",
+      "noActivity": "Aucune activité récente",
+      "materials": {
+        "paper": "Papier",
+        "plastic": "Plastique",
+        "glass": "Verre",
+        "metal": "Métal",
+        "organic": "Organique",
+        "electronics": "Électronique",
+        "textiles": "Textiles",
+        "general": "Déchets généraux",
+        "cardboard": "Carton",
+        "batteries": "Batteries",
+        "compost": "Compost",
+        "residual": "Déchets résiduels",
+        "bio_waste": "Déchets biologiques",
+        "other": "Autres"
+      }
+    },
+    "materialsBreakdown": {
+      "title": "Matériaux recyclés",
+      "subtitle": "Répartis par type",
+      "noData": "Aucune donnée"
+    },
+    "stats": {
+      "totalRecycled": "Total recyclé",
+      "totalPoints": "Points totaux",
+      "co2Saved": "CO₂ économisé",
+      "currentStreak": "Record",
+      "streakDays": "{{count}} jour",
+      "streakDays_plural": "{{count}} jours"
     }
   },
   "languages": {
