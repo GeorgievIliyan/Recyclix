@@ -22,113 +22,117 @@ interface MaterialData {
   [key: string]: any;
 }
 
-const getMaterialTranslationKey = (materialName: string): string => {
-  const normalized = materialName.toLowerCase().trim();
-  
-  // Съпоставяне на често срещани имена на материали с ключове за превод (поддържа и многобройни локални варианти)
-  const materialKeyMap: Record<string, string> = {
-    glass: "gamification.recentActivity.materials.glass",
-    plastic: "gamification.recentActivity.materials.plastic",
-    paper: "gamification.recentActivity.materials.paper",
-    metal: "gamification.recentActivity.materials.metal",
-    organic: "gamification.recentActivity.materials.organic",
-    electronics: "gamification.recentActivity.materials.electronics",
-    textiles: "gamification.recentActivity.materials.textiles",
-    general: "gamification.recentActivity.materials.general",
-    cardboard: "gamification.recentActivity.materials.cardboard",
-    batteries: "gamification.recentActivity.materials.batteries",
-    compost: "gamification.recentActivity.materials.compost",
-    residual: "gamification.recentActivity.materials.residual",
-    bio_waste: "gamification.recentActivity.materials.bio_waste",
-    other: "gamification.recentActivity.materials.other",
+interface MaterialDefinition {
+  translationKey: string;
+  colorKey: keyof typeof RECYCLING_COLORS;
+  aliases: string[];
+}
 
-    // Български
-    стъкло: "gamification.recentActivity.materials.glass",
-    пластмаса: "gamification.recentActivity.materials.plastic",
-    хартия: "gamification.recentActivity.materials.paper",
-    картон: "gamification.recentActivity.materials.cardboard",
-    метал: "gamification.recentActivity.materials.metal",
-    алуминий: "gamification.recentActivity.materials.metal",
-    органични: "gamification.recentActivity.materials.organic",
-    "органични отпадъци": "gamification.recentActivity.materials.organic",
-    биоотпадъци: "gamification.recentActivity.materials.bio_waste",
-    компост: "gamification.recentActivity.materials.compost",
-    електроника: "gamification.recentActivity.materials.electronics",
-    батерии: "gamification.recentActivity.materials.batteries",
-    текстил: "gamification.recentActivity.materials.textiles",
-    дрехи: "gamification.recentActivity.materials.textiles",
-    обувки: "gamification.recentActivity.materials.textiles",
-    "общи отпадъци": "gamification.recentActivity.materials.general",
-    "остатъчни отпадъци": "gamification.recentActivity.materials.residual",
-    други: "gamification.recentActivity.materials.other",
-
-    // Немски
-    glas: "gamification.recentActivity.materials.glass",
-    kunststoff: "gamification.recentActivity.materials.plastic",
-    papier: "gamification.recentActivity.materials.paper",
-    metall: "gamification.recentActivity.materials.metal",
-    organisch: "gamification.recentActivity.materials.organic",
-    elektronik: "gamification.recentActivity.materials.electronics",
-    textilien: "gamification.recentActivity.materials.textiles",
-    allgemein: "gamification.recentActivity.materials.general",
-    karton: "gamification.recentActivity.materials.cardboard",
-    batterien: "gamification.recentActivity.materials.batteries",
-    kompost: "gamification.recentActivity.materials.compost",
-    restmuell: "gamification.recentActivity.materials.residual",
-    "restmüll": "gamification.recentActivity.materials.residual",
-    biomuell: "gamification.recentActivity.materials.bio_waste",
-    "biomüll": "gamification.recentActivity.materials.bio_waste",
-    sonstiges: "gamification.recentActivity.materials.other",
-
-    // Испански
-    vidrio: "gamification.recentActivity.materials.glass",
-    plastico: "gamification.recentActivity.materials.plastic",
-    plástico: "gamification.recentActivity.materials.plastic",
-    papel: "gamification.recentActivity.materials.paper",
-    metal: "gamification.recentActivity.materials.metal",
-    organico: "gamification.recentActivity.materials.organic",
-    orgánico: "gamification.recentActivity.materials.organic",
-    electronica: "gamification.recentActivity.materials.electronics",
-    electrónica: "gamification.recentActivity.materials.electronics",
-    textiles: "gamification.recentActivity.materials.textiles",
-    general: "gamification.recentActivity.materials.general",
-    carton: "gamification.recentActivity.materials.cardboard",
-    cartón: "gamification.recentActivity.materials.cardboard",
-    baterias: "gamification.recentActivity.materials.batteries",
-    baterías: "gamification.recentActivity.materials.batteries",
-    compost: "gamification.recentActivity.materials.compost",
-    residual: "gamification.recentActivity.materials.residual",
-    residuos: "gamification.recentActivity.materials.general",
-    otro: "gamification.recentActivity.materials.other",
-
-    // Френски
-    verre: "gamification.recentActivity.materials.glass",
-    plastique: "gamification.recentActivity.materials.plastic",
-    papier: "gamification.recentActivity.materials.paper",
-    métal: "gamification.recentActivity.materials.metal",
-    metal: "gamification.recentActivity.materials.metal",
-    organique: "gamification.recentActivity.materials.organic",
-    électronique: "gamification.recentActivity.materials.electronics",
-    electronique: "gamification.recentActivity.materials.electronics",
-    textiles: "gamification.recentActivity.materials.textiles",
-    général: "gamification.recentActivity.materials.general",
-    general: "gamification.recentActivity.materials.general",
-    carton: "gamification.recentActivity.materials.cardboard",
-    piles: "gamification.recentActivity.materials.batteries",
-    compost: "gamification.recentActivity.materials.compost",
-    résiduels: "gamification.recentActivity.materials.residual",
-    residuel: "gamification.recentActivity.materials.residual",
-    autre: "gamification.recentActivity.materials.other",
-  };
-  
-  return materialKeyMap[normalized] || "";
-};
-
-const getMaterialCodeFromKey = (translationKey: string): string => {
-  if (!translationKey) return "";
-  // Премахва общия преводен път до най-вътрешния ключ на материала
-  const parts = translationKey.split(".");
-  return parts[parts.length - 1] || "";
+// Unified material definitions with all language aliases
+const MATERIAL_DEFINITIONS: Record<string, MaterialDefinition> = {
+  glass: {
+    translationKey: "gamification.recentActivity.materials.glass",
+    colorKey: "glass",
+    aliases: ["glass", "стъкло", "glas", "vidrio", "verre"],
+  },
+  plastic: {
+    translationKey: "gamification.recentActivity.materials.plastic",
+    colorKey: "plastic",
+    aliases: ["plastic", "пластмаса", "kunststoff", "plastico", "plástico", "plastique"],
+  },
+  paper: {
+    translationKey: "gamification.recentActivity.materials.paper",
+    colorKey: "paper",
+    aliases: ["paper", "хартия", "papier", "papel", "papier"],
+  },
+  cardboard: {
+    translationKey: "gamification.recentActivity.materials.cardboard",
+    colorKey: "cardboard",
+    aliases: ["cardboard", "картон", "karton", "carton", "cartón", "carton"],
+  },
+  metal: {
+    translationKey: "gamification.recentActivity.materials.metal",
+    colorKey: "metal",
+    aliases: [
+      "metal",
+      "метал",
+      "алуминий",
+      "metall",
+      "organisch",
+      "vidrio",
+      "métal",
+      "aluminum",
+      "aluminium",
+    ],
+  },
+  organic: {
+    translationKey: "gamification.recentActivity.materials.organic",
+    colorKey: "organic",
+    aliases: [
+      "organic",
+      "органични",
+      "органични отпадъци",
+      "organisch",
+      "organico",
+      "orgánico",
+      "organique",
+    ],
+  },
+  electronics: {
+    translationKey: "gamification.recentActivity.materials.electronics",
+    colorKey: "electronics",
+    aliases: [
+      "electronics",
+      "электроника",
+      "elektronik",
+      "electronica",
+      "electrónica",
+      "électronique",
+      "electronique",
+    ],
+  },
+  textiles: {
+    translationKey: "gamification.recentActivity.materials.textiles",
+    colorKey: "textiles",
+    aliases: ["textiles", "текстил", "дрехи", "обувки", "textilien", "clothing", "clothes"],
+  },
+  general: {
+    translationKey: "gamification.recentActivity.materials.general",
+    colorKey: "general",
+    aliases: ["general", "общи отпадъци", "allgemein", "residuos", "général", "general", "waste"],
+  },
+  batteries: {
+    translationKey: "gamification.recentActivity.materials.batteries",
+    colorKey: "batteries",
+    aliases: ["batteries", "батерии", "batterien", "baterias", "baterías", "piles", "pile"],
+  },
+  compost: {
+    translationKey: "gamification.recentActivity.materials.compost",
+    colorKey: "compost",
+    aliases: ["compost", "компост", "kompost"],
+  },
+  bio_waste: {
+    translationKey: "gamification.recentActivity.materials.bio_waste",
+    colorKey: "bio_waste",
+    aliases: ["bio_waste", "биоотпадъци", "biomuell", "biomüll"],
+  },
+  residual: {
+    translationKey: "gamification.recentActivity.materials.residual",
+    colorKey: "residual",
+    aliases: [
+      "residual",
+      "остатъчни отпадъци",
+      "restmuell",
+      "restmüll",
+      "résiduels",
+      "residuel",
+    ],
+  },
+  other: {
+    translationKey: "gamification.recentActivity.materials.other",
+    colorKey: "unknown",
+    aliases: ["other", "други", "sonstiges", "otro", "autre", "trash"],
+  },
 };
 
 const gradientToHex: Record<string, string> = {
@@ -147,173 +151,42 @@ const gradientToHex: Record<string, string> = {
   "bg-gradient-to-r from-slate-400 to-slate-500": "#64748B",
 };
 
-const materialColorMap: Record<string, keyof typeof RECYCLING_COLORS> = {
-  glass: "glass",
-  plastic: "plastic",
-  paper: "paper",
-  cardboard: "cardboard",
-  metal: "metal",
-  aluminum: "metal",
-  aluminium: "metal",
-  organic: "organic",
-  bio_waste: "bio_waste",
-  compost: "compost",
-  electronics: "electronics",
-  batteries: "batteries",
-  textiles: "textiles",
-  clothing: "clothing",
-  clothes: "textiles",
-  general: "general",
-  residual: "residual",
-  waste: "general",
-  trash: "general",
-  other: "unknown",
-
-  // Български варианти
-  стъкло: "glass",
-  пластмаса: "plastic",
-  хартия: "paper",
-  картон: "cardboard",
-  метал: "metal",
-  алуминий: "metal",
-  органични: "organic",
-  "органични отпадъци": "organic",
-  биоотпадъци: "bio_waste",
-  компост: "compost",
-  електроника: "electronics",
-  батерии: "batteries",
-  текстил: "textiles",
-  дрехи: "textiles",
-  обувки: "textiles",
-  "общи отпадъци": "general",
-  "остатъчни отпадъци": "residual",
-  други: "unknown",
-
-  // Немски варианти
-  glas: "glass",
-  kunststoff: "plastic",
-  papier: "paper",
-  metall: "metal",
-  organisch: "organic",
-  elektronik: "electronics",
-  textilien: "textiles",
-  allgemein: "general",
-  karton: "cardboard",
-  batterien: "batteries",
-  kompost: "compost",
-  restmuell: "residual",
-  "restmüll": "residual",
-  biomuell: "bio_waste",
-  "biomüll": "bio_waste",
-  sonstiges: "unknown",
-
-  // Испански варианти
-  vidrio: "glass",
-  plastico: "plastic",
-  plástico: "plastic",
-  papel: "paper",
-  organico: "organic",
-  orgánico: "organic",
-  electronica: "electronics",
-  electrónica: "electronics",
-  general: "general",
-  cartón: "cardboard",
-  carton: "cardboard",
-  baterias: "batteries",
-  baterías: "batteries",
-  residuos: "general",
-  otro: "unknown",
-
-  // Френски варианти
-  verre: "glass",
-  plastique: "plastic",
-  métal: "metal",
-  metal: "metal",
-  organique: "organic",
-  électronique: "electronics",
-  electronique: "electronics",
-  général: "general",
-  pile: "batteries",
-  piles: "batteries",
-  résiduels: "residual",
-  residuel: "residual",
-  autre: "unknown",
-};
-
-const getMaterialHexColor = (materialName: string): string => {
-  if (!materialName) return gradientToHex[RECYCLING_COLORS.unknown];
+const getMaterialDefinition = (materialName: string): MaterialDefinition | null => {
+  if (!materialName) return null;
 
   const normalized = materialName.toLowerCase().trim();
 
-  const colorKey = materialColorMap[normalized];
-  if (colorKey && RECYCLING_COLORS[colorKey]) {
-    const gradientClass = RECYCLING_COLORS[colorKey];
-    return (
-      gradientToHex[gradientClass] || gradientToHex[RECYCLING_COLORS.unknown]
-    );
-  }
-
-  for (const [key, colorMapKey] of Object.entries(materialColorMap)) {
-    if (normalized.includes(key) || key.includes(normalized)) {
-      const gradientClass = RECYCLING_COLORS[colorMapKey];
-      if (gradientClass) {
-        return (
-          gradientToHex[gradientClass] ||
-          gradientToHex[RECYCLING_COLORS.unknown]
-        );
-      }
+  // Exact match first
+  for (const definition of Object.values(MATERIAL_DEFINITIONS)) {
+    if (definition.aliases.includes(normalized)) {
+      return definition;
     }
   }
 
-  if (normalized.includes("стъкло") || normalized.includes("glass")) {
-    return gradientToHex[RECYCLING_COLORS.glass];
-  } else if (
-    normalized.includes("пластмаса") ||
-    normalized.includes("plastic")
-  ) {
-    return gradientToHex[RECYCLING_COLORS.plastic];
-  } else if (
-    normalized.includes("хартия") ||
-    normalized.includes("paper") ||
-    normalized.includes("картон")
-  ) {
-    return gradientToHex[RECYCLING_COLORS.paper];
-  } else if (
-    normalized.includes("метал") ||
-    normalized.includes("metal") ||
-    normalized.includes("алуминий")
-  ) {
-    return gradientToHex[RECYCLING_COLORS.metal];
-  } else if (
-    normalized.includes("органич") ||
-    normalized.includes("organic") ||
-    normalized.includes("био") ||
-    normalized.includes("компост")
-  ) {
-    return gradientToHex[RECYCLING_COLORS.organic];
-  } else if (
-    normalized.includes("електро") ||
-    normalized.includes("electron")
-  ) {
-    return gradientToHex[RECYCLING_COLORS.electronics];
-  } else if (normalized.includes("батери") || normalized.includes("batter")) {
-    return gradientToHex[RECYCLING_COLORS.batteries];
-  } else if (
-    normalized.includes("текстил") ||
-    normalized.includes("textile") ||
-    normalized.includes("дрехи") ||
-    normalized.includes("clothes")
-  ) {
-    return gradientToHex[RECYCLING_COLORS.textiles];
-  } else if (
-    normalized.includes("общи") ||
-    normalized.includes("general") ||
-    normalized.includes("waste")
-  ) {
-    return gradientToHex[RECYCLING_COLORS.general];
+  // Partial match as fallback
+  for (const definition of Object.values(MATERIAL_DEFINITIONS)) {
+    if (definition.aliases.some((alias) => normalized.includes(alias) || alias.includes(normalized))) {
+      return definition;
+    }
   }
 
-  return gradientToHex[RECYCLING_COLORS.unknown];
+  return null;
+};
+
+const getMaterialTranslationKey = (materialName: string): string => {
+  const definition = getMaterialDefinition(materialName);
+  return definition?.translationKey || "";
+};
+
+const getMaterialHexColor = (materialName: string): string => {
+  const definition = getMaterialDefinition(materialName);
+
+  if (!definition) {
+    return gradientToHex[RECYCLING_COLORS.unknown];
+  }
+
+  const gradientClass = RECYCLING_COLORS[definition.colorKey];
+  return gradientToHex[gradientClass] || gradientToHex[RECYCLING_COLORS.unknown];
 };
 
 interface MaterialsBreakdownChartProps {
@@ -343,18 +216,12 @@ export function MaterialsBreakdownChart({
     return data.map((item) => {
       const originalName = item.name?.trim() || "";
       const translationKey = getMaterialTranslationKey(originalName);
-      const materialCode = translationKey
-        ? getMaterialCodeFromKey(translationKey)
-        : originalName.toLowerCase();
 
       const displayName = translationKey
         ? t(translationKey, { defaultValue: originalName })
         : originalName;
 
-      const hexColor =
-        getMaterialHexColor(materialCode) ||
-        getMaterialHexColor(originalName) ||
-        getMaterialHexColor(displayName);
+      const hexColor = getMaterialHexColor(originalName);
 
       return {
         ...item,
