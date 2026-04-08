@@ -1,6 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface HeroProps {
   totalUsers: number;
@@ -10,87 +10,201 @@ interface HeroProps {
 
 const Hero = ({ totalUsers, totalBins, totalKgRecycled }: HeroProps) => {
   const { t } = useTranslation();
-
   const [mounted, setMounted] = useState(false);
+  const heroRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  if (!mounted) {
-    return null;
-  }
+  if (!mounted) return null;
 
   return (
     <div
       id="hero"
-      className="relative min-h-[85vh] flex items-center justify-center p-4 overflow-hidden lg:pt-16 pt-36"
+      ref={heroRef}
+      className="relative flex flex-col items-center justify-center overflow-hidden lg:pt-20 pt-32 pb-0"
+      style={{ minHeight: "90vh" }}
     >
+      {/* Фонова текстура с шум */}
       <div
-        className="absolute top-20 -left-32 w-96 h-96 bg-gradient-to-br from-[#00CD56]/20 via-[#00b849]/15 to-transparent dark:from-[#00CD56]/10 dark:via-[#00b849]/8 dark:to-transparent rounded-full blur-3xl animate-pulse"
-        style={{ animationDuration: "4s" }}
+        className="pointer-events-none absolute inset-0 opacity-[0.035] dark:opacity-[0.06]"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+          backgroundRepeat: "repeat",
+          backgroundSize: "128px",
+        }}
       />
+
+      {/* Фина мрежа */}
       <div
-        className="absolute bottom-20 -right-32 w-96 h-96 bg-gradient-to-tl from-emerald-400/15 via-[#00CD56]/10 to-transparent dark:from-emerald-400/8 dark:via-[#00CD56]/5 dark:to-transparent rounded-full blur-3xl animate-pulse"
-        style={{ animationDuration: "5s" }}
+        className="pointer-events-none absolute inset-0 opacity-[0.03] dark:opacity-[0.05]"
+        style={{
+          backgroundImage:
+            "linear-gradient(var(--grid-color, #000) 1px, transparent 1px), linear-gradient(90deg, var(--grid-color, #000) 1px, transparent 1px)",
+          backgroundSize: "64px 64px",
+        }}
       />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-[#00CD56]/5 via-emerald-300/5 to-[#00b849]/5 dark:from-[#00CD56]/3 dark:via-emerald-300/3 dark:to-[#00b849]/3 rounded-full blur-3xl" />
 
-      <div className="relative z-10 max-w-6xl mx-auto text-center">
-        <div className="mb-6">
-          <h1 className="text-5xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-br from-zinc-900 via-zinc-700 to-zinc-900 dark:from-white dark:via-zinc-50 dark:to-zinc-200 bg-clip-text text-transparent mb-4 leading-tight">
-            {t("hero.title")}
-          </h1>
-          <p className="text-lg md:text-xl text-zinc-600 dark:text-zinc-400 max-w-3xl mx-auto leading-relaxed">
-            {t("hero.subtitle")}
-          </p>
-        </div>
+      {/* Горно централно сияние */}
+      <div
+        className="pointer-events-none absolute -top-32 left-1/2 -translate-x-1/2 w-[900px] h-[500px] rounded-full opacity-20 dark:opacity-10 blur-3xl"
+        style={{
+          background:
+            "radial-gradient(ellipse at center, #00CD56 0%, #00b849 40%, transparent 70%)",
+        }}
+      />
 
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-          <a
-            href="/auth/register"
-            className="group relative w-full sm:w-auto px-8 py-4 bg-gradient-to-br from-[#00CD56] via-emerald-500 to-[#00b849] hover:from-[#00b849] hover:via-[#00a341] hover:to-emerald-600 text-white text-lg font-semibold rounded-2xl shadow-2xl shadow-[#00CD56]/30 dark:shadow-[#00CD56]/20 transition-all duration-300 hover:scale-105 active:scale-95 hover:shadow-[#00CD56]/40"
+      {/* Ляво сияние */}
+      <div
+        className="pointer-events-none absolute top-1/3 -left-64 w-[500px] h-[500px] rounded-full opacity-10 dark:opacity-5 blur-3xl"
+        style={{ background: "#00CD56" }}
+      />
+
+      {/* Дясно сияние */}
+      <div
+        className="pointer-events-none absolute top-1/3 -right-64 w-[500px] h-[500px] rounded-full opacity-10 dark:opacity-5 blur-3xl"
+        style={{ background: "#00b849" }}
+      />
+
+      {/* Основно съдържание */}
+      <div className="relative z-10 max-w-5xl mx-auto text-center px-6 w-full">
+
+        {/* Заглавие — само тук се използва serif шрифт */}
+        <h1
+          className="font-bold leading-[1.05] tracking-tight mb-6"
+          style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}
+        >
+          <span className="block text-5xl md:text-6xl lg:text-7xl text-zinc-900 dark:text-white">
+            {t("hero.heading.line1")}
+          </span>
+          <span className="block text-5xl md:text-6xl lg:text-7xl text-zinc-900 dark:text-white">
+            {t("hero.heading.line2")}
+          </span>
+          <span
+            className="block text-5xl md:text-6xl lg:text-7xl"
+            style={{
+              background:
+                "linear-gradient(135deg, #00CD56 0%, #00e563 30%, #00b849 60%, #009e3d 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}
           >
-            <span className="relative z-10 flex gap-2 items-center justify-center">
-              {t("hero.cta")} <ArrowRight />
+            {t("hero.heading.line3")}
+          </span>
+        </h1>
+
+        {/* Подзаглавие */}
+        <p className="text-base md:text-lg text-zinc-500 dark:text-zinc-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+          {t("hero.subtitle")}
+        </p>
+
+        {/* Бутони за действие */}
+        <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mb-14">
+          <a href="/auth/register" className="group relative w-full sm:w-auto">
+            {/* Сияещ ореол около основния бутон */}
+            <div
+              className="absolute -inset-0.5 rounded-2xl opacity-70 group-hover:opacity-100 transition-opacity duration-300 blur-sm"
+              style={{
+                background: "linear-gradient(135deg, #00CD56, #00e563, #00b849)",
+              }}
+            />
+            <span
+              className="relative flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-2xl text-white font-semibold text-base transition-all duration-200 group-hover:gap-3.5"
+              style={{
+                background: "linear-gradient(135deg, #00CD56 0%, #00b849 100%)",
+              }}
+            >
+              {t("hero.cta")}
+              <ArrowRight
+                size={17}
+                className="transition-transform duration-200 group-hover:translate-x-0.5"
+              />
             </span>
-            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           </a>
+
+          {/* Вторичен бутон за вход */}
           <a
             href="/auth/login"
-            className="group relative w-full sm:w-auto px-10 py-4 backdrop-blur-xl bg-gradient-to-br from-white/80 via-white/70 to-zinc-50/80 dark:from-zinc-900/40 dark:via-zinc-900/30 dark:to-zinc-800/40 border-2 border-zinc-300/50 dark:border-zinc-700/50 text-zinc-900 dark:text-white text-lg font-semibold rounded-2xl shadow-xl hover:border-[#00CD56]/50 dark:hover:border-[#00CD56]/50 transition-all duration-300 hover:scale-105 active:scale-95"
+            className="group w-full sm:w-auto px-8 py-3.5 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/60 dark:bg-zinc-900/60 backdrop-blur-sm text-zinc-700 dark:text-zinc-300 font-semibold text-base hover:border-[#00CD56]/50 hover:text-zinc-900 dark:hover:text-white transition-all duration-200"
           >
-            <span className="relative z-10">{t("hero.login")}</span>
-            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#00CD56]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            {t("hero.login")}
           </a>
         </div>
 
-        <div className="relative backdrop-blur-xl bg-gradient-to-br from-white/90 via-white/80 to-zinc-50/90 dark:from-zinc-900/70 dark:via-zinc-900/60 dark:to-zinc-800/70 rounded-3xl p-8 border border-zinc-200/50 dark:border-zinc-800/50 shadow-2xl dark:shadow-[0_0_50px_rgba(0,0,0,0.3)] overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-[#00CD56]/10 to-transparent rounded-full blur-2xl" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-emerald-400/10 to-transparent rounded-full blur-2xl" />
+        {/* Лента със статистики */}
+        <div
+          className="relative rounded-2xl border border-zinc-200/60 dark:border-zinc-800/60 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-xl p-6 mb-0 overflow-hidden"
+          style={{
+            boxShadow:
+              "0 4px 40px rgba(0,0,0,0.06), 0 1px 0 rgba(255,255,255,0.8) inset",
+          }}
+        >
+          {/* Горна акцентна линия в цвят на марката */}
+          <div
+            className="absolute top-0 left-1/2 -translate-x-1/2 h-px w-1/2 opacity-60"
+            style={{
+              background:
+                "linear-gradient(90deg, transparent, #00CD56, transparent)",
+            }}
+          />
 
-          <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center">
-              <div className="text-4xl font-bold bg-gradient-to-br from-[#00CD56] via-emerald-500 to-[#00b849] bg-clip-text text-transparent mb-2">
-                {totalUsers}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 divide-y md:divide-y-0 md:divide-x divide-zinc-100 dark:divide-zinc-800">
+            {/* Статистика: Активни потребители */}
+            <div className="text-center md:pr-6 pt-4 md:pt-0 first:pt-0">
+              <div
+                className="text-3xl font-bold mb-1 tabular-nums"
+                style={{
+                  background:
+                    "linear-gradient(135deg, #00CD56 0%, #009e3d 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
+                {totalUsers.toLocaleString()}
               </div>
-              <div className="text-zinc-600 dark:text-zinc-500">
+              <div className="text-xs font-medium tracking-wider uppercase text-zinc-400 dark:text-zinc-500">
                 {t("hero.stats.users")}
               </div>
             </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold bg-gradient-to-br from-[#00CD56] via-emerald-500 to-[#00b849] bg-clip-text text-transparent mb-2">
-                {totalKgRecycled.toFixed(2)} {t("hero.stats.kg")}
+
+            {/* Статистика: Рециклирани материали */}
+            <div className="text-center md:px-6 pt-4 md:pt-0">
+              <div
+                className="text-3xl font-bold mb-1 tabular-nums"
+                style={{
+                  background:
+                    "linear-gradient(135deg, #00CD56 0%, #009e3d 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
+                {totalKgRecycled.toFixed(2)}{" "}
+                <span className="text-2xl">{t("hero.stats.kg")}</span>
               </div>
-              <div className="text-zinc-600 dark:text-zinc-500">
+              <div className="text-xs font-medium tracking-wider uppercase text-zinc-400 dark:text-zinc-500">
                 {t("hero.stats.recycled")}
               </div>
             </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold bg-gradient-to-br from-[#00CD56] via-emerald-500 to-[#00b849] bg-clip-text text-transparent mb-2">
-                {totalBins}
+
+            {/* Статистика: Пунктове за рециклиране */}
+            <div className="text-center md:pl-6 pt-4 md:pt-0">
+              <div
+                className="text-3xl font-bold mb-1 tabular-nums"
+                style={{
+                  background:
+                    "linear-gradient(135deg, #00CD56 0%, #009e3d 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
+                {totalBins.toLocaleString()}
               </div>
-              <div className="text-zinc-600 dark:text-zinc-500">
+              <div className="text-xs font-medium tracking-wider uppercase text-zinc-400 dark:text-zinc-500">
                 {t("hero.stats.bins")}
               </div>
             </div>

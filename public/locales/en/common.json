@@ -11,6 +11,7 @@
   "changePassword": "Change password",
   "editProfile": "Edit profile",
   "logout": "Log out",
+  "welcome": "Welcome back",
   "rewards": {
     "header": {
       "xpPoints": "{{xp}} XP points"
@@ -208,14 +209,25 @@
     "login": "Login",
     "register": "Register"
   },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "map": "Map",
+    "tasks": "Tasks",
+    "rewards": "Rewards",
+    "account": "Account"
+  },
   "hero": {
-    "title": "Recycle for a better future",
-    "subtitle": "Join our recycling platform and help protect the environment. Easy, fast and effective.",
+    "heading": {
+      "line1": "Recycle",
+      "line2": "Explore",
+      "line3": "Earn"
+    },
+    "subtitle": "Join our recycling platform and help protect the environment. Simple, fast, and effective.",
     "cta": "Get started",
-    "login": "Login",
+    "login": "Sign in",
     "stats": {
       "users": "Active users",
-      "kg": "kg",
+      "kg": "kg.",
       "recycled": "Recycled materials",
       "bins": "Recycling points"
     }
@@ -356,7 +368,18 @@
       "loginTitle": "Log in to your account",
       "welcomeMessage": "Welcome back!",
       "email": "Email",
+      "emailPlaceholder": "Enter your email",
       "password": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "messages": {
+        "invalidCredentials": "Invalid login credentials",
+        "invalidInput": "Invalid input or user does not exist",
+        "requiredFields": "Email and password are required.",
+        "invalidEmail": "Please enter a valid email address.",
+        "unexpectedError": "An unexpected error occurred. Please try again.",
+        "googleFail": "Google login failed."
+      },
+      "loggingIn": "Logging in...",
       "login": "Log in",
       "orContinueWith": "or continue with",
       "loginWithGoogle": "Log in with Google",
@@ -364,40 +387,191 @@
       "registerHere": "Register here"
     },
     "register": {
-      "invalidLogin": "Invalid login credentials",
-      "invalidInput": "Invalid input or user does not exist",
-      "emailRequired": "Email and password are required.",
-      "invalidEmail": "Please enter a valid email address.",
-      "passwordTooShort": "Password must be at least 6 characters.",
-      "passwordTooLong": "Password is too long.",
-      "invalidPassword": "Invalid password.",
-      "unexpectedError": "An unexpected error occurred. Please try again.",
-      "registrationFailed": "Registration failed.",
-      "registrationSuccess": "Registration successful! Please check your email to confirm your account before logging in.",
-      "redirectingGoogle": "Redirecting to Google...",
-      "googleRegisterFailed": "Google registration failed.",
-      "createAccount": "Create Account",
-      "startRecycling": "Start smart recycling today",
-      "fullName": "Full Name",
-      "email": "Email",
-      "password": "Password",
+      "pageTitle": "Create Account",
+      "welcomeMessage": "Start smart recycling today",
+      "fullNameLabel": "Full Name",
+      "fullNamePlaceholder": "Enter your full name",
+      "emailLabel": "Email",
+      "emailPlaceholder": "Enter your email",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Enter your password",
       "passwordStrength": "Password Strength",
-      "veryWeak": "Very Weak",
-      "weak": "Weak",
-      "medium": "Medium",
-      "good": "Good",
-      "strong": "Strong",
-      "passwordRequirements": [
-        "At least 8 characters",
-        "At least one uppercase letter (A–Z)",
-        "At least one number (0–9)",
-        "At least one special character (!@#…)"
-      ],
-      "register": "Register",
+      "passwordStrengthLevels": {
+        "0": "Very Weak",
+        "1": "Weak",
+        "2": "Medium",
+        "3": "Good",
+        "4": "Strong"
+      },
+      "passwordRequirements": {
+        "minChars": "At least 8 characters",
+        "uppercase": "At least one uppercase letter (A-Z)",
+        "number": "At least one number (0-9)",
+        "specialChar": "At least one special character (!@#...)"
+      },
+      "messages": {
+        "invalidCredentials": "Invalid login credentials",
+        "invalidInput": "Invalid input",
+        "requiredFields": "Email and password are required.",
+        "invalidEmail": "Please enter a valid email address.",
+        "passwordTooShort": "Password must be at least 6 characters.",
+        "passwordTooLong": "Password is too long.",
+        "unexpectedError": "An unexpected error occurred. Please try again.",
+        "registrationFailed": "Registration failed.",
+        "registrationSuccess": "Registration successful! Please check your email to confirm your account before logging in.",
+        "googleRedirect": "Redirecting to Google...",
+        "googleFail": "Google registration failed."
+      },
+      "registering": "Registering...",
+      "registerButton": "Register",
       "orContinueWith": "or continue with",
-      "googleRegister": "Register with Google",
+      "registerWithGoogle": "Register with Google",
       "alreadyHaveAccount": "Already have an account?",
       "loginHere": "Login here"
     }
+  },
+  "binScan": {
+    "header": {
+      "title": "Recyclix"
+    },
+    "settings": {
+      "changeCode": "Change code",
+      "language": "Language"
+    },
+    "modes": {
+      "auto": "Auto",
+      "manual": "Manual"
+    },
+    "login": {
+      "title": "Enter bin code",
+      "subtitle": "Please enter the 6-digit code to continue",
+      "placeholder": "e.g. 4K3NWX",
+      "button": "Confirm",
+      "errors": {
+        "emptyCode": "Please enter a code!",
+        "notFound": "Code not found!",
+        "databaseError": "Database connection error.",
+        "unknownError": "An unexpected error occurred."
+      }
+    },
+    "materialSelection": {
+      "title": "Material selection",
+      "clear": "Clear",
+      "materials": {
+        "plastic": "Plastic",
+        "glass": "Glass",
+        "paper": "Paper",
+        "metal": "Metal",
+        "textile": "Textile",
+        "generalWaste": "General waste",
+        "batteries": "Batteries",
+        "ewaste": "Electronics"
+      }
+    },
+    "camera": {
+      "enableCamera": "Enable camera",
+      "cameraNotAvailable": "Enable the camera for scanning and automatic recognition",
+      "scanning": "Scanning...",
+      "analyzing": "Analyzing...",
+      "recognizing": "Recognizing material...",
+      "verifying": "Verifying material...",
+      "enableCameraBtn": "Enable camera",
+      "recognizeBtn": "Recognize",
+      "confirmBtn": "Confirm"
+    },
+    "results": {
+      "correctContainer": "Correct container",
+      "wrongContainer": "Wrong container",
+      "wrongContainerMessage": "This item does not belong in this category!",
+      "generating": "Generating reward...",
+      "scan": "Scan for points",
+      "or": "or",
+      "claimHere": "Claim here",
+      "validUntil": "Valid until:",
+      "stats": {
+        "count": "Count",
+        "weight": "Weight",
+        "co2Saved": "CO₂ saved",
+        "points": "Points"
+      },
+      "units": {
+        "pieces": " pcs.",
+        "kg": " kg",
+        "points": " pts."
+      }
+    }
+  },
+  "gamification": {
+    "badgesGallery": {
+      "title": "Badges",
+      "description": "Your achievements",
+      "emptyMessage": "No badges yet",
+      "fetchError": "Error loading badges"
+    },
+    "progress": {
+      "title": "Progress",
+      "currentLevel": "Current level",
+      "nextLevel": "Next level",
+      "xpPoints": "XP points",
+      "xpToNextLevel": "{{xp}} XP to next level",
+      "keepGoing": "Keep going",
+      "keepGoingText": "Complete daily tasks and earn XP points!"
+    },
+    "leaderboard": {
+      "title": "Leaderboard",
+      "emptyTitle": "No participants",
+      "emptySubtitle": "The leaderboard will be filled soon.",
+      "roleAdmin": "Admin",
+      "labelYou": "You",
+      "participants": "participants",
+      "user": "User",
+      "badges": "Badges",
+      "points": "Points",
+      "level": "Level"
+    },
+    "mapFilter": {
+      "title": "Filters"
+    },
+    "recentActivity": {
+      "title": "Recent activity",
+      "noActivity": "No recent activity",
+      "materials": {
+        "paper": "Paper",
+        "plastic": "Plastic",
+        "glass": "Glass",
+        "metal": "Metal",
+        "organic": "Organic",
+        "electronics": "Electronics",
+        "textiles": "Textiles",
+        "general": "General waste",
+        "cardboard": "Cardboard",
+        "batteries": "Batteries",
+        "compost": "Compost",
+        "residual": "Residual waste",
+        "bio_waste": "Bio waste",
+        "other": "Other"
+      }
+    },
+    "materialsBreakdown": {
+      "title": "Recycled materials",
+      "subtitle": "Distributed by type",
+      "noData": "No data"
+    },
+    "stats": {
+      "totalRecycled": "Total recycled",
+      "totalPoints": "Total points",
+      "co2Saved": "CO₂ saved",
+      "currentStreak": "Streak",
+      "streakDays": "{{count}} day",
+      "streakDays_plural": "{{count}} days"
+    }
+  },
+  "languages": {
+    "bg": "Български",
+    "en": "English",
+    "es": "Español",
+    "fr": "Français",
+    "de": "Deutsch",
+    "ru": "Русский"
   }
 }

@@ -11,6 +11,7 @@
   "changePassword": "Промени парола",
   "editProfile": "Редактирай профил",
   "logout": "Изход",
+  "welcome":"Добре дошъл",
   "rewards": {
     "header": {
       "xpPoints": "{{xp}} XP точки"
@@ -208,8 +209,19 @@
     "login": "Вход",
     "register": "Регистрация"
   },
+  "navigation": {
+    "dashboard": "Табло",
+    "map": "Карта",
+    "tasks": "Задачи",
+    "rewards": "Награди",
+    "account": "Акаунт"
+  },
   "hero": {
-    "title": "Рециклирай за по-добро бъдеще",
+    "heading": {
+      "line1": "Рециклирай",
+      "line2": "Откирвай",
+      "line3": "Печели"
+    },
     "subtitle": "Присъединете се към нашата платформа за рециклиране и помогнете за опазване на околната среда. Лесно, бързо и ефективно.",
     "cta": "Започнете сега",
     "login": "Вход",
@@ -353,13 +365,24 @@
   },
   "auth": {
     "login": {
-      "loginTitle": "Влезте в своя профил",
-      "welcomeMessage": "Добре дошли отново!",
+      "loginTitle": "Влезте в акаунта си",
+      "welcomeMessage": "Добре дошли обратно!",
       "email": "Имейл",
+      "emailPlaceholder": "Въведете вашия имейл",
       "password": "Парола",
-      "login": "Вход",
+      "passwordPlaceholder": "Въведете вашата парола",
+      "messages": {
+        "invalidCredentials": "Грешна парола или имейл",
+        "invalidInput": "Грешни данни или потребителят не съществува",
+        "requiredFields": "Имейл и парола са задължителни.",
+        "invalidEmail": "Моля, въведете валиден имейл адрес.",
+        "unexpectedError": "Възникна неочаквана грешка. Моля, опитайте отново.",
+        "googleFail": "Неуспешен Google вход."
+      },
+      "loggingIn": "Влизане...",
+      "login": "Влез",
       "orContinueWith": "или продължете с",
-      "loginWithGoogle": "Влизане с Google",
+      "loginWithGoogle": "Влезте с Google",
       "dontHaveAnAccount": "Нямате акаунт?",
       "registerHere": "Регистрирайте се тук"
     },
@@ -406,5 +429,149 @@
         "4": "Силна"
       }
     }
+  },
+  "binScan": {
+    "header": {
+      "title": "Recyclix"
+    },
+    "settings": {
+      "changeCode": "Смени код",
+      "language": "Език"
+    },
+    "modes": {
+      "auto": "Авто",
+      "manual": "Ръчен"
+    },
+    "login": {
+      "title": "Въведете код на кош",
+      "subtitle": "Моля, въведете 6-цифрения код, за да продължите напред",
+      "placeholder": "Напр. 4K3NWX",
+      "button": "Потвърди",
+      "errors": {
+        "emptyCode": "Моля, въведете код!",
+        "notFound": "Кодът не бе намерен!",
+        "databaseError": "Грешка при връзка с базата данни.",
+        "unknownError": "Възникна неочаквана грешка."
+      }
+    },
+    "materialSelection": {
+      "title": "Избор на материал",
+      "clear": "Изчисти",
+      "materials": {
+        "plastic": "Пластмаса",
+        "glass": "Стъкло",
+        "paper": "Хартия",
+        "metal": "Метал",
+        "textile": "Текстил",
+        "generalWaste": "Битов",
+        "batteries": "Батерии",
+        "ewaste": "Техника"
+      }
+    },
+    "camera": {
+      "enableCamera": "Включи камера",
+      "cameraNotAvailable": "Активирайте камерата за сканиране и автоматично разпознаване",
+      "scanning": "Сканиране...",
+      "analyzing": "Анализиране...",
+      "recognizing": "Разпознаваме материала...",
+      "verifying": "Проверяваме материала...",
+      "enableCameraBtn": "Включи камера",
+      "recognizeBtn": "Разпознай",
+      "confirmBtn": "Потвърди"
+    },
+    "results": {
+      "correctContainer": "Правилен контейнер",
+      "wrongContainer": "Грешен контейнер",
+      "wrongContainerMessage": "Този обект не принадлежи към категорията!",
+      "generating": "Генериране на награда...",
+      "scan": "Сканирай за точки",
+      "or": "или",
+      "claimHere": "Вземи тук",
+      "validUntil": "Валиден до:",
+      "stats": {
+        "count": "Брой",
+        "weight": "Тегло",
+        "co2Saved": "CO₂ спестен",
+        "points": "Точки"
+      },
+      "units": {
+        "pieces": " бр.",
+        "kg": " кг",
+        "points": " т."
+      }
+    }
+  },
+  "gamification": {
+    "badgesGallery": {
+      "title": "Значки",
+      "description": "Твоите постижения",
+      "emptyMessage": "Все още няма значки",
+      "fetchError": "Грешка при зареждане на значките"
+    },
+    "progress": {
+      "title": "Прогрес",
+      "currentLevel": "Сегашно ниво",
+      "nextLevel": "Следващо ниво",
+      "xpPoints": "XP точки",
+      "xpToNextLevel": "{{xp}} XP до следващо ниво",
+      "keepGoing": "Продължавай",
+      "keepGoingText": "Изпълнявай дневни задачи и получавай XP точки!"
+    },
+    "leaderboard": {
+      "title": "Класация",
+      "emptyTitle": "Няма участници",
+      "emptySubtitle": "Класацията ще се попълни скоро.",
+      "roleAdmin": "Админ",
+      "labelYou": "Ти",
+      "participants": "участника",
+      "user": "Потребител",
+      "badges": "Значки",
+      "points": "Точки",
+      "level": "Ниво"
+    },
+    "mapFilter": {
+      "title": "Филтри"
+    },
+    "recentActivity": {
+      "title": "Скорошна активност",
+      "noActivity": "Няма скорошна активност",
+      "materials": {
+        "paper": "Хартия",
+        "plastic": "Пластмаса",
+        "glass": "Стъкло",
+        "metal": "Метал",
+        "organic": "Органични",
+        "electronics": "Електроника",
+        "textiles": "Текстил",
+        "general": "Общи отпадъци",
+        "cardboard": "Картон",
+        "batteries": "Батерии",
+        "compost": "Компост",
+        "residual": "Остатъчни отпадъци",
+        "bio_waste": "Биоотпадъци",
+        "other": "Други"
+      }
+    },
+    "materialsBreakdown": {
+      "title": "Рециклирани материали",
+      "subtitle": "Разпределени по тип",
+      "noData": "Няма данни"
+    },
+    "stats": {
+      "totalRecycled": "Общи рециклирани",
+      "totalPoints": "Точки общо",
+      "co2Saved": "Спестени CO₂",
+      "currentStreak": "Рекорд",
+      "streakDays": "{{count}} ден",
+      "streakDays_plural": "{{count}} дни"
+    }
+  },
+  "languages": {
+    "bg": "Български",
+    "en": "English",
+    "es": "Español",
+    "fr": "Français",
+    "de": "Deutsch",
+    "ru": "Русский"
   }
 }

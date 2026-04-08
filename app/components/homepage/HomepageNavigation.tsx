@@ -48,6 +48,7 @@ const HomepageNavigation = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
 
+          {/* Лого */}
           <div className="flex items-center gap-2 shrink-0">
             <img src="/logos/logo.svg" alt="Logo" className="aspect-1/1 h-7" />
             <span className="text-2xl font-bold bg-gradient-to-r from-green-400 to-emerald-500 bg-clip-text text-transparent">
@@ -55,6 +56,7 @@ const HomepageNavigation = () => {
             </span>
           </div>
 
+          {/* Десктоп навигация */}
           <div className="hidden md:flex items-center gap-8">
             {navLinks.map(([href, label]) => (
               <a
@@ -67,6 +69,7 @@ const HomepageNavigation = () => {
             ))}
 
             <div className="flex items-center gap-3">
+              {/* Десктоп падащо меню за езици */}
               <div className="relative">
                 <button
                   type="button"
@@ -74,7 +77,7 @@ const HomepageNavigation = () => {
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all font-medium text-sm"
                 >
                   <Globe className="w-4 h-4" />
-                  <span>{mounted ? currentLang.label : "..."}</span>
+                  <span>{currentLang.label}</span>
                   <ChevronDown className={"w-3.5 h-3.5 transition-transform" + (langOpen ? " rotate-180" : "")} />
                 </button>
 
@@ -111,7 +114,9 @@ const HomepageNavigation = () => {
             </div>
           </div>
 
+          {/* Мобилни бутони вдясно */}
           <div className="md:hidden flex items-center gap-2">
+            {/* Мобилно падащо меню за езици */}
             <div className="relative">
               <button
                 type="button"
@@ -119,7 +124,7 @@ const HomepageNavigation = () => {
                 className="flex items-center gap-1 p-2 rounded-lg text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all text-sm font-medium"
               >
                 <Globe className="w-4 h-4" />
-                <span>{mounted ? currentLang.label : "..."}</span>
+                <span>{currentLang.label}</span>
               </button>
 
               {langOpen && (
@@ -142,6 +147,7 @@ const HomepageNavigation = () => {
               )}
             </div>
 
+            {/* Бургер бутон */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 rounded-lg text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
@@ -159,6 +165,7 @@ const HomepageNavigation = () => {
         </div>
       </div>
 
+      {/* Мобилно меню — ОПРАВЕНО: премахнато overflow-hidden, клипваше dropdown-а за езици */}
       {mobileMenuOpen && (
         <div className="md:hidden w-full overflow-x-hidden border-t border-zinc-200/50 dark:border-zinc-800/50">
           <div className="px-4 py-3 backdrop-blur-sm bg-white/80 dark:bg-zinc-900/5">
@@ -174,7 +181,7 @@ const HomepageNavigation = () => {
                 </a>
               ))}
 
-              <div className="border-t border-zinc-200/50 dark:border-zinc-800/50 my-2"></div>
+              <div className="border-t border-zinc-200/50 dark:border-zinc-800/50 my-2" />
 
               <a
                 href="/auth/login"

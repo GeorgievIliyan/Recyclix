@@ -24,6 +24,7 @@ app/api/test
 .DS_Store
 *.pem
 policies.txt
+schema.sql
 
 # debug
 npm-debug.log*

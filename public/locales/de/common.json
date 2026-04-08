@@ -11,6 +11,7 @@
   "changePassword": "Passwort ändern",
   "editProfile": "Profil bearbeiten",
   "logout": "Ausloggen",
+  "welcome": "Willkommen zurück",
   "rewards": {
     "header": {
       "xpPoints": "{{xp}} XP Punkte"
@@ -208,14 +209,25 @@
     "login": "Anmelden",
     "register": "Registrieren"
   },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "map": "Karte",
+    "tasks": "Aufgaben",
+    "rewards": "Belohnungen",
+    "account": "Konto"
+  },
   "hero": {
-    "title": "Recyceln für eine bessere Zukunft",
+    "heading": {
+      "line1": "Recyceln",
+      "line2": "Entdecken",
+      "line3": "Verdienen"
+    },
     "subtitle": "Treten Sie unserer Recycling-Plattform bei und helfen Sie, die Umwelt zu schützen. Einfach, schnell und effektiv.",
     "cta": "Jetzt starten",
     "login": "Anmelden",
     "stats": {
       "users": "Aktive Nutzer",
-      "kg": "kg",
+      "kg": "kg.",
       "recycled": "Recycelte Materialien",
       "bins": "Recyclingpunkte"
     }
@@ -353,51 +365,213 @@
   },
   "auth": {
     "login": {
-      "loginTitle": "Melden Sie sich in Ihrem Konto an",
+      "loginTitle": "In Ihr Konto einloggen",
       "welcomeMessage": "Willkommen zurück!",
       "email": "E-Mail",
+      "emailPlaceholder": "Geben Sie Ihre E-Mail ein",
       "password": "Passwort",
-      "login": "Anmelden",
-      "orContinueWith": "oder fortfahren mit",
-      "loginWithGoogle": "Mit Google anmelden",
-      "dontHaveAnAccount": "Haben Sie kein Konto?",
+      "passwordPlaceholder": "Geben Sie Ihr Passwort ein",
+      "messages": {
+        "invalidCredentials": "Ungültige Anmeldedaten",
+        "invalidInput": "Ungültige Daten oder Benutzer existiert nicht",
+        "requiredFields": "E-Mail und Passwort sind erforderlich.",
+        "invalidEmail": "Bitte geben Sie eine gültige E-Mail-Adresse ein.",
+        "unexpectedError": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
+        "googleFail": "Google-Anmeldung fehlgeschlagen."
+      },
+      "loggingIn": "Einloggen...",
+      "login": "Einloggen",
+      "orContinueWith": "oder weiter mit",
+      "loginWithGoogle": "Mit Google einloggen",
+      "dontHaveAnAccount": "Haben Sie noch kein Konto?",
       "registerHere": "Hier registrieren"
     },
     "register": {
-      "invalidLogin": "Ungültige Anmeldedaten",
-      "invalidInput": "Ungültige Eingabe oder Benutzer existiert nicht",
-      "emailRequired": "E-Mail und Passwort sind erforderlich.",
-      "invalidEmail": "Bitte geben Sie eine gültige E-Mail-Adresse ein.",
-      "passwordTooShort": "Das Passwort muss mindestens 6 Zeichen lang sein.",
-      "passwordTooLong": "Das Passwort ist zu lang.",
-      "invalidPassword": "Ungültiges Passwort.",
-      "unexpectedError": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
-      "registrationFailed": "Registrierung fehlgeschlagen.",
-      "registrationSuccess": "Registrierung erfolgreich! Bitte prüfen Sie Ihre E-Mails, um Ihr Konto vor dem Login zu bestätigen.",
-      "redirectingGoogle": "Weiterleitung zu Google...",
-      "googleRegisterFailed": "Google-Registrierung fehlgeschlagen.",
-      "createAccount": "Konto erstellen",
-      "startRecycling": "Starten Sie heute mit dem intelligenten Recycling",
-      "fullName": "Vollständiger Name",
-      "email": "E-Mail",
-      "password": "Passwort",
+      "pageTitle": "Konto erstellen",
+      "welcomeMessage": "Starten Sie heute mit dem intelligenten Recycling",
+      "fullNameLabel": "Vollständiger Name",
+      "fullNamePlaceholder": "Geben Sie Ihren vollständigen Namen ein",
+      "emailLabel": "E-Mail",
+      "emailPlaceholder": "Geben Sie Ihre E-Mail ein",
+      "passwordLabel": "Passwort",
+      "passwordPlaceholder": "Geben Sie Ihr Passwort ein",
       "passwordStrength": "Passwortstärke",
-      "veryWeak": "Sehr schwach",
-      "weak": "Schwach",
-      "medium": "Mittel",
-      "good": "Gut",
-      "strong": "Stark",
-      "passwordRequirements": [
-        "Mindestens 8 Zeichen",
-        "Mindestens ein Großbuchstabe (A–Z)",
-        "Mindestens eine Zahl (0–9)",
-        "Mindestens ein Sonderzeichen (!@#…)"
-      ],
-      "register": "Registrieren",
+      "passwordStrengthLevels": {
+        "0": "Sehr schwach",
+        "1": "Schwach",
+        "2": "Mittel",
+        "3": "Gut",
+        "4": "Stark"
+      },
+      "passwordRequirements": {
+        "minChars": "Mindestens 8 Zeichen",
+        "uppercase": "Mindestens ein Großbuchstabe (A-Z)",
+        "number": "Mindestens eine Zahl (0-9)",
+        "specialChar": "Mindestens ein Sonderzeichen (!@#...)"
+      },
+      "messages": {
+        "invalidCredentials": "Ungültige Anmeldedaten",
+        "invalidInput": "Ungültige Eingabe",
+        "requiredFields": "E-Mail und Passwort sind erforderlich.",
+        "invalidEmail": "Bitte geben Sie eine gültige E-Mail-Adresse ein.",
+        "passwordTooShort": "Das Passwort muss mindestens 6 Zeichen lang sein.",
+        "passwordTooLong": "Das Passwort ist zu lang.",
+        "unexpectedError": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
+        "registrationFailed": "Registrierung fehlgeschlagen.",
+        "registrationSuccess": "Registrierung erfolgreich! Bitte prüfen Sie Ihre E-Mails, um Ihr Konto vor dem Login zu bestätigen.",
+        "googleRedirect": "Weiterleitung zu Google...",
+        "googleFail": "Google-Registrierung fehlgeschlagen."
+      },
+      "registering": "Registrierung läuft...",
+      "registerButton": "Registrieren",
       "orContinueWith": "oder fortfahren mit",
-      "googleRegister": "Mit Google registrieren",
+      "registerWithGoogle": "Mit Google registrieren",
       "alreadyHaveAccount": "Sie haben bereits ein Konto?",
       "loginHere": "Hier einloggen"
     }
+  },
+  "binScan": {
+    "header": {
+      "title": "Recyclix"
+    },
+    "settings": {
+      "changeCode": "Code ändern",
+      "language": "Sprache"
+    },
+    "modes": {
+      "auto": "Auto",
+      "manual": "Manuell"
+    },
+    "login": {
+      "title": "Behälterkode eingeben",
+      "subtitle": "Bitte geben Sie den 6-stelligen Code ein, um fortzufahren",
+      "placeholder": "z.B. 4K3NWX",
+      "button": "Bestätigen",
+      "errors": {
+        "emptyCode": "Bitte geben Sie einen Code ein!",
+        "notFound": "Code nicht gefunden!",
+        "databaseError": "Fehler bei der Datenbankverbindung.",
+        "unknownError": "Ein unerwarteter Fehler ist aufgetreten."
+      }
+    },
+    "materialSelection": {
+      "title": "Materialauswahl",
+      "clear": "Löschen",
+      "materials": {
+        "plastic": "Kunststoff",
+        "glass": "Glas",
+        "paper": "Papier",
+        "metal": "Metall",
+        "textile": "Textil",
+        "generalWaste": "Restmüll",
+        "batteries": "Batterien",
+        "ewaste": "Elektronik"
+      }
+    },
+    "camera": {
+      "enableCamera": "Kamera aktivieren",
+      "cameraNotAvailable": "Aktivieren Sie die Kamera zum Scannen und automatischen Erkennen",
+      "scanning": "Wird gescannt...",
+      "analyzing": "Wird analysiert...",
+      "recognizing": "Material wird erkannt...",
+      "verifying": "Material wird überprüft...",
+      "enableCameraBtn": "Kamera aktivieren",
+      "recognizeBtn": "Erkennen",
+      "confirmBtn": "Bestätigen"
+    },
+    "results": {
+      "correctContainer": "Richtiger Behälter",
+      "wrongContainer": "Falscher Behälter",
+      "wrongContainerMessage": "Dieser Gegenstand gehört nicht in diese Kategorie!",
+      "generating": "Belohnung wird generiert...",
+      "scan": "Zum Punkte sammeln einscannen",
+      "or": "oder",
+      "claimHere": "Hier abholen",
+      "validUntil": "Gültig bis:",
+      "stats": {
+        "count": "Anzahl",
+        "weight": "Gewicht",
+        "co2Saved": "CO₂ gespart",
+        "points": "Punkte"
+      },
+      "units": {
+        "pieces": " Stk.",
+        "kg": " kg",
+        "points": " Pkt."
+      }
+    }
+  },
+  "gamification": {
+    "badgesGallery": {
+      "title": "Abzeichen",
+      "description": "Deine Errungenschaften",
+      "emptyMessage": "Noch keine Abzeichen",
+      "fetchError": "Fehler beim Laden von Abzeichen"
+    },
+    "progress": {
+      "title": "Fortschritt",
+      "currentLevel": "Aktuelles Level",
+      "nextLevel": "Nächstes Level",
+      "xpPoints": "XP-Punkte",
+      "xpToNextLevel": "{{xp}} XP bis zum nächsten Level",
+      "keepGoing": "Weitermachen",
+      "keepGoingText": "Erledige tägliche Aufgaben und verdiene XP-Punkte!"
+    },
+    "leaderboard": {
+      "title": "Rangliste",
+      "emptyTitle": "Keine Teilnehmer",
+      "emptySubtitle": "Die Rangliste wird bald gefüllt.",
+      "roleAdmin": "Admin",
+      "labelYou": "Du",
+      "participants": "Teilnehmer",
+      "user": "Benutzer",
+      "badges": "Abzeichen",
+      "points": "Punkte",
+      "level": "Level"
+    },
+    "mapFilter": {
+      "title": "Filter"
+    },
+    "recentActivity": {
+      "title": "Aktive Aktivität",
+      "noActivity": "Keine aktuelle Aktivität",
+      "materials": {
+        "paper": "Papier",
+        "plastic": "Kunststoff",
+        "glass": "Glas",
+        "metal": "Metall",
+        "organic": "Organisch",
+        "electronics": "Elektronik",
+        "textiles": "Textilien",
+        "general": "Allgemeiner Abfall",
+        "cardboard": "Karton",
+        "batteries": "Batterien",
+        "compost": "Kompost",
+        "residual": "Restmüll",
+        "bio_waste": "Bioabfall",
+        "other": "Sonstige"
+      }
+    },
+    "materialsBreakdown": {
+      "title": "Recycelte Materialien",
+      "subtitle": "Nach Typ verteilt",
+      "noData": "Keine Daten"
+    },
+    "stats": {
+      "totalRecycled": "Gesamt recycelt",
+      "totalPoints": "Gesamtpunkte",
+      "co2Saved": "CO₂ gespart",
+      "currentStreak": "Rekord",
+      "streakDays": "{{count}} Tag",
+      "streakDays_plural": "{{count}} Tage"
+    }
+  },
+  "languages": {
+    "bg": "Български",
+    "en": "English",
+    "es": "Español",
+    "fr": "Français",
+    "de": "Deutsch",
+    "ru": "Русский"
   }
 }

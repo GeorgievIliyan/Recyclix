@@ -11,6 +11,7 @@
   "changePassword": "Changer le mot de passe",
   "editProfile": "Modifier le profil",
   "logout": "Déconnexion",
+  "welcome": "Bon retour",
   "rewards": {
     "header": {
       "xpPoints": "{{xp}} points XP"
@@ -208,14 +209,25 @@
     "login": "Connexion",
     "register": "S'inscrire"
   },
+  "navigation": {
+    "dashboard": "Tableau de bord",
+    "map": "Carte",
+    "tasks": "Tâches",
+    "rewards": "Récompenses",
+    "account": "Compte"
+  },
   "hero": {
-    "title": "Recyclez pour un meilleur avenir",
+    "heading": {
+      "line1": "Recycler",
+      "line2": "Explorer",
+      "line3": "Gagners"
+    },
     "subtitle": "Rejoignez notre plateforme de recyclage et contribuez à la protection de l'environnement. Simple, rapide et efficace.",
-    "cta": "Commencer maintenant",
-    "login": "Connexion",
+    "cta": "Commencer",
+    "login": "Se connecter",
     "stats": {
       "users": "Utilisateurs actifs",
-      "kg": "kg",
+      "kg": "kg.",
       "recycled": "Matériaux recyclés",
       "bins": "Points de recyclage"
     }
@@ -354,9 +366,20 @@
   "auth": {
     "login": {
       "loginTitle": "Connectez-vous à votre compte",
-      "welcomeMessage": "Bon retour !",
-      "email": "E-mail",
+      "welcomeMessage": "Content de vous revoir !",
+      "email": "Email",
+      "emailPlaceholder": "Entrez votre email",
       "password": "Mot de passe",
+      "passwordPlaceholder": "Entrez votre mot de passe",
+      "messages": {
+        "invalidCredentials": "Identifiants de connexion invalides",
+        "invalidInput": "Données invalides ou utilisateur inexistant",
+        "requiredFields": "L'email et le mot de passe sont obligatoires.",
+        "invalidEmail": "Veuillez entrer une adresse email valide.",
+        "unexpectedError": "Une erreur inattendue s'est produite. Veuillez réessayer.",
+        "googleFail": "La connexion avec Google a échoué."
+      },
+      "loggingIn": "Connexion en cours...",
       "login": "Se connecter",
       "orContinueWith": "ou continuer avec",
       "loginWithGoogle": "Se connecter avec Google",
@@ -364,40 +387,191 @@
       "registerHere": "Inscrivez-vous ici"
     },
     "register": {
-      "invalidLogin": "Identifiants invalides",
-      "invalidInput": "Entrée invalide ou utilisateur inexistant",
-      "emailRequired": "E-mail et mot de passe requis.",
-      "invalidEmail": "Veuillez entrer une adresse e-mail valide.",
-      "passwordTooShort": "Le mot de passe doit contenir au moins 6 caractères.",
-      "passwordTooLong": "Le mot de passe est trop long.",
-      "invalidPassword": "Mot de passe invalide.",
-      "unexpectedError": "Une erreur inattendue s'est produite. Veuillez réessayer.",
-      "registrationFailed": "Échec de l'inscription.",
-      "registrationSuccess": "Inscription réussie ! Veuillez vérifier votre e-mail pour confirmer votre compte avant de vous connecter.",
-      "redirectingGoogle": "Redirection vers Google...",
-      "googleRegisterFailed": "Échec de l'inscription avec Google.",
-      "createAccount": "Créer un compte",
-      "startRecycling": "Commencez le recyclage intelligent dès aujourd'hui",
-      "fullName": "Nom complet",
-      "email": "E-mail",
-      "password": "Mot de passe",
+      "pageTitle": "Créer un compte",
+      "welcomeMessage": "Commencez le recyclage intelligent dès aujourd'hui",
+      "fullNameLabel": "Nom complet",
+      "fullNamePlaceholder": "Entrez votre nom complet",
+      "emailLabel": "E-mail",
+      "emailPlaceholder": "Entrez votre e-mail",
+      "passwordLabel": "Mot de passe",
+      "passwordPlaceholder": "Entrez votre mot de passe",
       "passwordStrength": "Force du mot de passe",
-      "veryWeak": "Très faible",
-      "weak": "Faible",
-      "medium": "Moyenne",
-      "good": "Bonne",
-      "strong": "Forte",
-      "passwordRequirements": [
-        "Au moins 8 caractères",
-        "Au moins une lettre majuscule (A–Z)",
-        "Au moins un chiffre (0–9)",
-        "Au moins un caractère spécial (!@#…)"
-      ],
-      "register": "S'inscrire",
+      "passwordStrengthLevels": {
+        "0": "Très faible",
+        "1": "Faible",
+        "2": "Moyenne",
+        "3": "Bonne",
+        "4": "Forte"
+      },
+      "passwordRequirements": {
+        "minChars": "Au moins 8 caractères",
+        "uppercase": "Au moins une lettre majuscule (A-Z)",
+        "number": "Au moins un chiffre (0-9)",
+        "specialChar": "Au moins un caractère spécial (!@#...)"
+      },
+      "messages": {
+        "invalidCredentials": "Identifiants invalides",
+        "invalidInput": "Entrée invalide",
+        "requiredFields": "E-mail et mot de passe requis.",
+        "invalidEmail": "Veuillez entrer une adresse e-mail valide.",
+        "passwordTooShort": "Le mot de passe doit contenir au moins 6 caractères.",
+        "passwordTooLong": "Le mot de passe est trop long.",
+        "unexpectedError": "Une erreur inattendue s'est produite. Veuillez réessayer.",
+        "registrationFailed": "Échec de l'inscription.",
+        "registrationSuccess": "Inscription réussie ! Veuillez vérifier votre e-mail pour confirmer votre compte avant de vous connecter.",
+        "googleRedirect": "Redirection vers Google...",
+        "googleFail": "Échec de l'inscription avec Google."
+      },
+      "registering": "Inscription en cours...",
+      "registerButton": "S'inscrire",
       "orContinueWith": "ou continuer avec",
-      "googleRegister": "S'inscrire avec Google",
+      "registerWithGoogle": "S'inscrire avec Google",
       "alreadyHaveAccount": "Vous avez déjà un compte ?",
       "loginHere": "Connectez-vous ici"
     }
+  },
+  "binScan": {
+    "header": {
+      "title": "Recyclix"
+    },
+    "settings": {
+      "changeCode": "Changer le code",
+      "language": "Langue"
+    },
+    "modes": {
+      "auto": "Auto",
+      "manual": "Manuel"
+    },
+    "login": {
+      "title": "Entrez le code du bac",
+      "subtitle": "Veuillez entrer le code à 6 chiffres pour continuer",
+      "placeholder": "p.ex. 4K3NWX",
+      "button": "Confirmer",
+      "errors": {
+        "emptyCode": "S'il vous plaît, entrez un code!",
+        "notFound": "Code non trouvé!",
+        "databaseError": "Erreur de connexion à la base de données.",
+        "unknownError": "Une erreur inattendue s'est produite."
+      }
+    },
+    "materialSelection": {
+      "title": "Sélection des matériaux",
+      "clear": "Effacer",
+      "materials": {
+        "plastic": "Plastique",
+        "glass": "Verre",
+        "paper": "Papier",
+        "metal": "Métal",
+        "textile": "Textile",
+        "generalWaste": "Déchets généraux",
+        "batteries": "Batteries",
+        "ewaste": "Électronique"
+      }
+    },
+    "camera": {
+      "enableCamera": "Activer la caméra",
+      "cameraNotAvailable": "Activez la caméra pour scanner et la reconnaissance automatique",
+      "scanning": "Balayage...",
+      "analyzing": "Analyse en cours...",
+      "recognizing": "Reconnaissance du matériau...",
+      "verifying": "Vérification du matériau...",
+      "enableCameraBtn": "Activer la caméra",
+      "recognizeBtn": "Reconnaître",
+      "confirmBtn": "Confirmer"
+    },
+    "results": {
+      "correctContainer": "Bon bac",
+      "wrongContainer": "Mauvais bac",
+      "wrongContainerMessage": "Cet article n'appartient pas à cette catégorie!",
+      "generating": "Génération de la récompense...",
+      "scan": "Scannez pour les points",
+      "or": "ou",
+      "claimHere": "Réclamer ici",
+      "validUntil": "Valide jusqu'au:",
+      "stats": {
+        "count": "Nombre",
+        "weight": "Poids",
+        "co2Saved": "CO₂ économisé",
+        "points": "Points"
+      },
+      "units": {
+        "pieces": " pcs.",
+        "kg": " kg",
+        "points": " pts."
+      }
+    }
+  },
+  "gamification": {
+    "badgesGallery": {
+      "title": "Badges",
+      "description": "Vos réalisations",
+      "emptyMessage": "Pas encore de badges",
+      "fetchError": "Erreur lors du chargement des badges"
+    },
+    "progress": {
+      "title": "Progression",
+      "currentLevel": "Niveau actuel",
+      "nextLevel": "Niveau suivant",
+      "xpPoints": "Points XP",
+      "xpToNextLevel": "{{xp}} XP jusqu'au niveau suivant",
+      "keepGoing": "Continuez",
+      "keepGoingText": "Complétez les tâches quotidiennes et gagnez des points XP!"
+    },
+    "leaderboard": {
+      "title": "Classement",
+      "emptyTitle": "Pas de participants",
+      "emptySubtitle": "Le classement sera bientôt rempli.",
+      "roleAdmin": "Admin",
+      "labelYou": "Vous",
+      "participants": "participants",
+      "user": "Utilisateur",
+      "badges": "Badges",
+      "points": "Points",
+      "level": "Niveau"
+    },
+    "mapFilter": {
+      "title": "Filtres"
+    },
+    "recentActivity": {
+      "title": "Activité récente",
+      "noActivity": "Aucune activité récente",
+      "materials": {
+        "paper": "Papier",
+        "plastic": "Plastique",
+        "glass": "Verre",
+        "metal": "Métal",
+        "organic": "Organique",
+        "electronics": "Électronique",
+        "textiles": "Textiles",
+        "general": "Déchets généraux",
+        "cardboard": "Carton",
+        "batteries": "Batteries",
+        "compost": "Compost",
+        "residual": "Déchets résiduels",
+        "bio_waste": "Déchets biologiques",
+        "other": "Autres"
+      }
+    },
+    "materialsBreakdown": {
+      "title": "Matériaux recyclés",
+      "subtitle": "Répartis par type",
+      "noData": "Aucune donnée"
+    },
+    "stats": {
+      "totalRecycled": "Total recyclé",
+      "totalPoints": "Points totaux",
+      "co2Saved": "CO₂ économisé",
+      "currentStreak": "Record",
+      "streakDays": "{{count}} jour",
+      "streakDays_plural": "{{count}} jours"
+    }
+  },
+  "languages": {
+    "bg": "Български",
+    "en": "English",
+    "es": "Español",
+    "fr": "Français",
+    "de": "Deutsch",
+    "ru": "Русский"
   }
 }

@@ -11,6 +11,7 @@
   "changePassword": "Сменить пароль",
   "editProfile": "Редактировать профиль",
   "logout": "Выйти",
+  "welcome": "Добро пожаловать",
   "rewards": {
     "header": {
       "xpPoints": "{{xp}} XP очков"
@@ -208,16 +209,27 @@
     "login": "Войти",
     "register": "Регистрация"
   },
+  "navigation": {
+    "dashboard": "Панель управления",
+    "map": "Карта",
+    "tasks": "Задачи",
+    "rewards": "Награды",
+    "account": "Аккаунт"
+  },
   "hero": {
-    "title": "Перерабатывай ради лучшего будущего",
-    "subtitle": "Присоединяйтесь к нашей платформе по переработке отходов и помогите защитить окружающую среду. Легко, быстро и эффективно.",
-    "cta": "Начать сейчас",
+    "heading": {
+      "line1": "Перерабатывай",
+      "line2": "Исследуй",
+      "line3": "Зарабатывай"
+    },
+    "subtitle": "Присоединяйтесь к нашей платформе для переработки отходов и помогите защитить окружающую среду. Просто, быстро и эффективно.",
+    "cta": "Начать",
     "login": "Войти",
     "stats": {
       "users": "Активные пользователи",
-      "kg": "кг",
+      "kg": "кг.",
       "recycled": "Переработанные материалы",
-      "bins": "Пункты приёма"
+      "bins": "Пункты переработки"
     }
   },
   "features": {
@@ -356,7 +368,18 @@
       "loginTitle": "Войдите в свой аккаунт",
       "welcomeMessage": "С возвращением!",
       "email": "Электронная почта",
+      "emailPlaceholder": "Введите вашу электронную почту",
       "password": "Пароль",
+      "passwordPlaceholder": "Введите ваш пароль",
+      "messages": {
+        "invalidCredentials": "Неверные учётные данные",
+        "invalidInput": "Неверные данные или пользователь не существует",
+        "requiredFields": "Электронная почта и пароль обязательны.",
+        "invalidEmail": "Пожалуйста, введите действительный адрес электронной почты.",
+        "unexpectedError": "Произошла неожиданная ошибка. Пожалуйста, попробуйте снова.",
+        "googleFail": "Вход через Google не удался."
+      },
+      "loggingIn": "Вход...",
       "login": "Войти",
       "orContinueWith": "или продолжить с",
       "loginWithGoogle": "Войти через Google",
@@ -364,40 +387,191 @@
       "registerHere": "Зарегистрируйтесь здесь"
     },
     "register": {
-      "invalidLogin": "Неверный логин или пароль",
-      "invalidInput": "Неверные данные или пользователь не существует",
-      "emailRequired": "Электронная почта и пароль обязательны.",
-      "invalidEmail": "Пожалуйста, введите корректный адрес электронной почты.",
-      "passwordTooShort": "Пароль должен содержать минимум 6 символов.",
-      "passwordTooLong": "Пароль слишком длинный.",
-      "invalidPassword": "Неверный пароль.",
-      "unexpectedError": "Произошла неожиданная ошибка. Пожалуйста, попробуйте снова.",
-      "registrationFailed": "Регистрация не удалась.",
-      "registrationSuccess": "Регистрация прошла успешно! Пожалуйста, проверьте электронную почту, чтобы подтвердить аккаунт перед входом.",
-      "redirectingGoogle": "Перенаправление на Google...",
-      "googleRegisterFailed": "Не удалось зарегистрироваться через Google.",
-      "createAccount": "Создать аккаунт",
-      "startRecycling": "Начните умную переработку сегодня",
-      "fullName": "Полное имя",
-      "email": "Электронная почта",
-      "password": "Пароль",
+      "pageTitle": "Создать аккаунт",
+      "welcomeMessage": "Начните умную переработку сегодня",
+      "fullNameLabel": "Полное имя",
+      "fullNamePlaceholder": "Введите ваше полное имя",
+      "emailLabel": "Электронная почта",
+      "emailPlaceholder": "Введите вашу электронную почту",
+      "passwordLabel": "Пароль",
+      "passwordPlaceholder": "Введите ваш пароль",
       "passwordStrength": "Надежность пароля",
-      "veryWeak": "Очень слабый",
-      "weak": "Слабый",
-      "medium": "Средний",
-      "good": "Хороший",
-      "strong": "Сильный",
-      "passwordRequirements": [
-        "Не менее 8 символов",
-        "Хотя бы одна заглавная буква (A–Z)",
-        "Хотя бы одна цифра (0–9)",
-        "Хотя бы один специальный символ (!@#…)"
-      ],
-      "register": "Регистрация",
+      "passwordStrengthLevels": {
+        "0": "Очень слабый",
+        "1": "Слабый",
+        "2": "Средний",
+        "3": "Хороший",
+        "4": "Сильный"
+      },
+      "passwordRequirements": {
+        "minChars": "Не менее 8 символов",
+        "uppercase": "Хотя бы одна заглавная буква (A-Z)",
+        "number": "Хотя бы одна цифра (0-9)",
+        "specialChar": "Хотя бы один специальный символ (!@#...)"
+      },
+      "messages": {
+        "invalidCredentials": "Неверный логин или пароль",
+        "invalidInput": "Неверные данные",
+        "requiredFields": "Электронная почта и пароль обязательны.",
+        "invalidEmail": "Пожалуйста, введите корректный адрес электронной почты.",
+        "passwordTooShort": "Пароль должен содержать минимум 6 символов.",
+        "passwordTooLong": "Пароль слишком длинный.",
+        "unexpectedError": "Произошла неожиданная ошибка. Пожалуйста, попробуйте снова.",
+        "registrationFailed": "Регистрация не удалась.",
+        "registrationSuccess": "Регистрация прошла успешно! Пожалуйста, проверьте электронную почту, чтобы подтвердить аккаунт перед входом.",
+        "googleRedirect": "Перенаправление на Google...",
+        "googleFail": "Не удалось зарегистрироваться через Google."
+      },
+      "registering": "Регистрация...",
+      "registerButton": "Регистрация",
       "orContinueWith": "или продолжить с",
-      "googleRegister": "Регистрация через Google",
+      "registerWithGoogle": "Регистрация через Google",
       "alreadyHaveAccount": "Уже есть аккаунт?",
       "loginHere": "Войти здесь"
     }
+  },
+  "binScan": {
+    "header": {
+      "title": "Recyclix"
+    },
+    "settings": {
+      "changeCode": "Изменить код",
+      "language": "Язык"
+    },
+    "modes": {
+      "auto": "Авто",
+      "manual": "Ручной"
+    },
+    "login": {
+      "title": "Введите код контейнера",
+      "subtitle": "Пожалуйста, введите 6-значный код для продолжения",
+      "placeholder": "напр. 4K3NWX",
+      "button": "Подтвердить",
+      "errors": {
+        "emptyCode": "Пожалуйста, введите код!",
+        "notFound": "Код не найден!",
+        "databaseError": "Ошибка подключения к базе данных.",
+        "unknownError": "Произошла неожиданная ошибка."
+      }
+    },
+    "materialSelection": {
+      "title": "Выбор материала",
+      "clear": "Очистить",
+      "materials": {
+        "plastic": "Пластик",
+        "glass": "Стекло",
+        "paper": "Бумага",
+        "metal": "Металл",
+        "textile": "Текстиль",
+        "generalWaste": "Общие отходы",
+        "batteries": "Батареи",
+        "ewaste": "Электроника"
+      }
+    },
+    "camera": {
+      "enableCamera": "Включить камеру",
+      "cameraNotAvailable": "Включите камеру для сканирования и автоматического распознавания",
+      "scanning": "Сканирование...",
+      "analyzing": "Анализ...",
+      "recognizing": "Распознавание материала...",
+      "verifying": "Проверка материала...",
+      "enableCameraBtn": "Включить камеру",
+      "recognizeBtn": "Распознать",
+      "confirmBtn": "Подтвердить"
+    },
+    "results": {
+      "correctContainer": "Правильный контейнер",
+      "wrongContainer": "Неправильный контейнер",
+      "wrongContainerMessage": "Этот предмет не относится к этой категории!",
+      "generating": "Создание награды...",
+      "scan": "Сканируйте для получения баллов",
+      "or": "или",
+      "claimHere": "Получить здесь",
+      "validUntil": "Действительно до:",
+      "stats": {
+        "count": "Количество",
+        "weight": "Вес",
+        "co2Saved": "Сэкономлен CO₂",
+        "points": "Баллы"
+      },
+      "units": {
+        "pieces": " шт.",
+        "kg": " кг",
+        "points": " б."
+      }
+    }
+  },
+  "gamification": {
+    "badgesGallery": {
+      "title": "Значки",
+      "description": "Ваши достижения",
+      "emptyMessage": "Нет значков",
+      "fetchError": "Ошибка при загрузке значков"
+    },
+    "progress": {
+      "title": "Прогресс",
+      "currentLevel": "Текущий уровень",
+      "nextLevel": "Следующий уровень",
+      "xpPoints": "XP очки",
+      "xpToNextLevel": "{{xp}} XP до следующего уровня",
+      "keepGoing": "Продолжай",
+      "keepGoingText": "Выполняй ежедневные задачи и зарабатывай XP очки!"
+    },
+    "leaderboard": {
+      "title": "Таблица лидеров",
+      "emptyTitle": "Нет участников",
+      "emptySubtitle": "Таблица лидеров скоро заполнится.",
+      "roleAdmin": "Администратор",
+      "labelYou": "Ты",
+      "participants": "участников",
+      "user": "Пользователь",
+      "badges": "Значки",
+      "points": "Очки",
+      "level": "Уровень"
+    },
+    "mapFilter": {
+      "title": "Фильтры"
+    },
+    "recentActivity": {
+      "title": "Недавняя активность",
+      "noActivity": "Нет недавней активности",
+      "materials": {
+        "paper": "Бумага",
+        "plastic": "Пластик",
+        "glass": "Стекло",
+        "metal": "Металл",
+        "organic": "Органика",
+        "electronics": "Электроника",
+        "textiles": "Текстиль",
+        "general": "Общие отходы",
+        "cardboard": "Картон",
+        "batteries": "Батареи",
+        "compost": "Компост",
+        "residual": "Остаточные отходы",
+        "bio_waste": "Биоотходы",
+        "other": "Другие"
+      }
+    },
+    "materialsBreakdown": {
+      "title": "Переработанные материалы",
+      "subtitle": "Распределено по типам",
+      "noData": "Нет данных"
+    },
+    "stats": {
+      "totalRecycled": "Всего переработано",
+      "totalPoints": "Всего очков",
+      "co2Saved": "CO₂ сэкономлено",
+      "currentStreak": "Рекорд",
+      "streakDays": "{{count}} день",
+      "streakDays_plural": "{{count}} дней"
+    }
+  },
+  "languages": {
+    "bg": "Български",
+    "en": "English",
+    "es": "Español",
+    "fr": "Français",
+    "de": "Deutsch",
+    "ru": "Русский"
   }
 }

@@ -1,4 +1,7 @@
 import { TrendingUp, Star } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { getPreferredLanguage } from "@/lib/utils";
 
 interface GamificationProgressProps {
   totalXp: number;
@@ -21,6 +24,23 @@ export function computeLevelFromXp(totalXp: number) {
 }
 
 export function GamificationProgress({ totalXp, className }: GamificationProgressProps) {
+  const { t, i18n } = useTranslation("common");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    const preferredLang = getPreferredLanguage();
+    if (i18n.language !== preferredLang) {
+      i18n.changeLanguage(preferredLang);
+    }
+    document.documentElement.lang = preferredLang;
+    setMounted(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
+
   const { level, currentXp, xpForNextLevel } = computeLevelFromXp(totalXp);
   const progressPercentage = (currentXp / xpForNextLevel) * 100;
 
@@ -32,7 +52,7 @@ export function GamificationProgress({ totalXp, className }: GamificationProgres
             <div className="p-1.5 sm:p-2 bg-lime-500/20 rounded-lg group-hover:scale-110 transition-transform duration-300">
               <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 text-lime-500" />
             </div>
-            Прогрес
+            {t("gamification.progress.title", { defaultValue: "Прогрес" })}
           </h3>
         </div>
 
@@ -41,7 +61,7 @@ export function GamificationProgress({ totalXp, className }: GamificationProgres
           <div className="flex items-center justify-between gap-2 sm:gap-4">
             <div className="relative">
               <p className="text-xs text-muted-foreground mb-0.5 sm:mb-1">
-                Сегашно ниво
+                {t("gamification.progress.currentLevel", { defaultValue: "Сегашно ниво" })}
               </p>
               <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-green-500">
                 {level}
@@ -49,7 +69,7 @@ export function GamificationProgress({ totalXp, className }: GamificationProgres
             </div>
             <div className="text-right">
               <p className="text-xs text-muted-foreground mb-0.5 sm:mb-1">
-                Следващо ниво
+                {t("gamification.progress.nextLevel", { defaultValue: "Следващо ниво" })}
               </p>
               <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-muted-foreground">
                 {level + 1}
@@ -60,7 +80,7 @@ export function GamificationProgress({ totalXp, className }: GamificationProgres
           {/* Бар за прогрес */}
           <div className="space-y-2">
             <div className="flex justify-between text-xs sm:text-sm">
-              <span className="text-muted-foreground">XP точки</span>
+              <span className="text-muted-foreground">{t("gamification.progress.xpPoints", { defaultValue: "XP точки" })}</span>
               <span className="font-semibold text-card-foreground">
                 {currentXp} / {xpForNextLevel} XP
               </span>
@@ -72,7 +92,7 @@ export function GamificationProgress({ totalXp, className }: GamificationProgres
               />
             </div>
             <p className="text-xs text-muted-foreground text-center">
-              {xpForNextLevel - currentXp} XP точки за следващо ниво
+              {t("gamification.progress.xpToNextLevel", { xp: xpForNextLevel - currentXp })}
             </p>
           </div>
 
@@ -86,10 +106,10 @@ export function GamificationProgress({ totalXp, className }: GamificationProgres
             </div>
             <div className="min-w-0">
               <p className="text-xs font-semibold text-card-foreground">
-                Продължавай
+                {t("gamification.progress.keepGoing", { defaultValue: "Продължавай" })}
               </p>
               <p className="text-[11px] sm:text-xs text-muted-foreground leading-snug">
-                Изпълнявай дневни задачи и получавай XP точки!
+                {t("gamification.progress.keepGoingText", { defaultValue: "Изпълнявай дневни задачи и получавай XP точки!" })}
               </p>
             </div>
           </div>
