@@ -10,22 +10,6 @@ export const supabase = createClient(
 export const runtime = "edge";
 
 export const GET = async (req: NextRequest) => {
-  const isDev = process.env.NODE_ENV === "development";
-
-  if (!isDev) {
-    const tokenHeader = req.headers.get("x-api-token");
-    const authHeader = req.headers.get("authorization");
-
-    // 1. Check your custom key (manual triggers)
-    const isCustomKeyValid = tokenHeader === process.env.SECURE_API_KEY;
-
-    // 2. Check Vercel Cron Secret (automated triggers)
-    const isCronSecretValid = authHeader === `Bearer ${process.env.CRON_SECRET}`;
-
-    if (!isCustomKeyValid && !isCronSecretValid) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-  }
 
   const today = new Date().toISOString().slice(0, 10);
 
