@@ -58,15 +58,6 @@ function computeLevelFromXp(totalXp: number) {
   return { level, currentXp, xpForNextLevel };
 }
 
-const CATEGORY_LABELS: Record<string, string> = {
-  merch: "Мърчандайз",
-  entertainment: "Забавление",
-  lifestyle: "Лайфстайл",
-  health: "Здраве",
-  food: "Храна",
-  general: "Общи",
-};
-
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
   merch: <Gift className="h-5 w-5" />,
   entertainment: <Star className="h-5 w-5" />,
@@ -125,6 +116,14 @@ function ClaimModal({ reward, code, onClose }: {
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
 
+  // Помощна функция за превод на полетата на наградата
+  const translateRewardField = (field: string | undefined) => {
+    if (!field) return undefined;
+    return field.startsWith('rewards.items.') ? t(field) : field;
+  };
+
+  const translatedTitle = translateRewardField(reward.title);
+
   const handleCopy = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(code);
@@ -153,7 +152,7 @@ function ClaimModal({ reward, code, onClose }: {
         <div className="text-center">
           <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-1">{t("rewards.claim.successTitle")}</h2>
           <p className="text-zinc-500 dark:text-zinc-400 text-sm">
-            {t("rewards.claim.message", { reward: reward.title })}
+            {t("rewards.claim.message", { reward: translatedTitle })}
           </p>
         </div>
         {/* Код за копиране */}
@@ -189,6 +188,15 @@ function RewardCard({ reward, userXP, isClaiming, onClaim }: {
   const canAfford = userXP >= reward.points_cost;
   const deficit = reward.points_cost - userXP;
 
+  // Помощна функция за превод на полетата на наградата
+  const translateRewardField = (field: string | undefined) => {
+    if (!field) return undefined;
+    return field.startsWith('rewards.items.') ? t(field) : field;
+  };
+
+  const translatedTitle = translateRewardField(reward.title);
+  const translatedDescription = translateRewardField(reward.description);
+
   return (
     <article className={`group relative flex flex-col rounded-2xl border overflow-hidden transition-all duration-300
       bg-white/80 dark:bg-zinc-900/60 backdrop-blur-md
@@ -221,20 +229,18 @@ function RewardCard({ reward, userXP, isClaiming, onClaim }: {
           {/* Цена в XP */}
           <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-white/10">
             <Sparkles className="h-3 w-3 text-green-500 dark:text-green-400" />
-            <span className="text-xs font-bold text-green-600 dark:text-green-400">{fmt(reward.points_cost)} XP</span>
+            <span className="text-xs font-bold text-green-600 dark:text-green-400">{fmt(reward.points_cost, i18n.language)} XP</span>
           </div>
         </div>
         <div className="flex-1 space-y-1.5">
           <h3 className="font-semibold text-zinc-900 dark:text-white group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
-            {reward.title}
+            {translatedTitle}
           </h3>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">{reward.description}</p>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">{translatedDescription}</p>
         </div>
         {/* Категория */}
         <span className="text-[11px] uppercase tracking-widest text-zinc-400 dark:text-zinc-500 font-medium">
-          {t(`rewards.categories.${reward.category}`, {
-            defaultValue: CATEGORY_LABELS[reward.category] ?? reward.category,
-          })}
+          {t(`rewards.categories.${reward.category}`)}
         </span>
         {/* Бутон за взимане */}
         <button
@@ -271,7 +277,7 @@ export default function RewardsPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [dbError, setDbError] = useState<string | null>(null);
 
-  // зареждане на данни от базата данни
+  // Зареждане на данни от базата данни
   useEffect(() => {
     async function load() {
       setDbError(null);
@@ -305,20 +311,20 @@ export default function RewardsPage() {
 
         if (rewardsError) {
           console.error("Rewards error:", rewardsError);
-          setDbError(`Грешка при зареждане на наградите: ${rewardsError.message}`);
+          setDbError(t("rewards.errors.loadFailed"));
         } else {
           setRewards(rewardsData ?? []);
         }
       } catch (err) {
         console.error("Unexpected error:", err);
-        setDbError("Неочаквана грешка. Провери конзолата.");
+        setDbError(t("rewards.errors.unexpected"));
       } finally {
         setLoading(false);
       }
     }
 
     load();
-  }, []);
+  }, [t]);
 
   const handleClaim = useCallback(async (reward: Reward) => {
     if (!userProfile || userProfile.xp < reward.points_cost || claimingId || !userId) return;
@@ -380,7 +386,7 @@ export default function RewardsPage() {
             </span>
           </div>
           <h1 className="relative z-10 text-4xl md:text-5xl font-bold tracking-tight text-zinc-900 dark:text-white mb-4">
-            {t("rewards.heading.titlePrefix")}
+            {t("rewards.heading.titlePrefix")}{" "}
             <span className="bg-clip-text text-transparent" style={{ backgroundImage: "linear-gradient(135deg,#4ade80 0%,#22c55e 55%,#059669 100%)" }}>
               {t("rewards.heading.titleHighlight")}
             </span>
@@ -396,7 +402,7 @@ export default function RewardsPage() {
         </div>
 
         {/* Мрежа от награди */}
-        <section aria-label="Награди">
+        <section aria-label={t("rewards.section.ariaLabel")}>
           {rewards.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {rewards.map(reward => (
@@ -415,7 +421,7 @@ export default function RewardsPage() {
               <Gift className="h-12 w-12 text-zinc-300 dark:text-zinc-700" />
               <p className="text-zinc-500 dark:text-zinc-400 font-medium">{t("rewards.empty.title")}</p>
               <p className="text-xs text-zinc-400 dark:text-zinc-600 max-w-xs">
-                {t("rewards.empty.description")} <code className="text-zinc-500 dark:text-zinc-400">is_available = true</code>.
+                {t("rewards.empty.description")}
               </p>
             </div>
           )}
@@ -450,8 +456,9 @@ export default function RewardsPage() {
           </div>
         </div>
 
-      </main>
-      {modal && <ClaimModal reward={modal.reward} code={modal.code} onClose={() => setModal(null)} />}
+      </main >
+      {modal && <ClaimModal reward={modal.reward} code={modal.code} onClose={() => setModal(null)} />
+      }
     </div>
   );
 }

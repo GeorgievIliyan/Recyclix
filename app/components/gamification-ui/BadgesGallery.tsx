@@ -35,37 +35,6 @@ type BadgesGalleryProps = {
   description?: string;
 };
 
-const rarityConfig = {
-  common: {
-    gradient: "from-slate-400 to-slate-500",
-    glow: "shadow-slate-400/30",
-    ring: "ring-slate-400/40",
-    label: "Обичайна",
-    dot: "bg-slate-400",
-  },
-  rare: {
-    gradient: "from-blue-400 to-blue-600",
-    glow: "shadow-blue-400/30",
-    ring: "ring-blue-400/40",
-    label: "Рядка",
-    dot: "bg-blue-400",
-  },
-  epic: {
-    gradient: "from-purple-400 to-purple-600",
-    glow: "shadow-purple-400/30",
-    ring: "ring-purple-400/40",
-    label: "Епична",
-    dot: "bg-purple-400",
-  },
-  legendary: {
-    gradient: "from-amber-400 to-amber-500",
-    glow: "shadow-amber-400/40",
-    ring: "ring-amber-400/50",
-    label: "Легендарна",
-    dot: "bg-amber-400",
-  },
-};
-
 const aspectRatioClasses = {
   square: "aspect-square",
   portrait: "aspect-[3/4]",
@@ -87,7 +56,7 @@ export function BadgesGallery({
   title = "Значки",
   description = "Твоите постижения",
 }: BadgesGalleryProps) {
-  const { t, i18n } = useTranslation("common");
+  const { i18n, t } = useTranslation();
   const [mounted, setMounted] = useState(false);
   const [badges, setBadges] = useState<Badge[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -139,7 +108,7 @@ export function BadgesGallery({
         setBadges(data);
       } catch (err) {
         console.error("Fetch error:", err);
-        setError(t("gamification.badgesGallery.fetchError", { defaultValue: "Грешка при зареждане на значките" }));
+        setError(t("gamification.badgesGallery.fetchError"));
         setBadges([]);
       } finally {
         setIsLoading(false);
@@ -147,7 +116,7 @@ export function BadgesGallery({
     };
 
     if (currentUserId !== undefined) fetchBadges();
-  }, [currentUserId, onlyActive]);
+  }, [currentUserId, onlyActive, t]);
 
   if (!mounted) {
     return null;
@@ -172,14 +141,14 @@ export function BadgesGallery({
         className,
       )}
     >
-      {/* заглавие */}
+      {/* header */}
       <div className="relative z-10 p-3 sm:p-4 md:p-6 border-b border-zinc-200/50 dark:border-zinc-800/50">
         <div className="flex items-center justify-between gap-3">
           <h3 className="text-base sm:text-lg md:text-xl font-semibold flex items-center gap-2 sm:gap-3 text-card-foreground">
             <div className="p-1.5 sm:p-2 bg-amber-400/20 rounded-lg group-hover:scale-110 transition-transform duration-300">
               <Award className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 text-amber-500" />
             </div>
-            {t("gamification.badgesGallery.title", { defaultValue: title })}
+            {t("gamification.badgesGallery.title")}
           </h3>
 
           {!isLoading && badges.length > 0 && (
@@ -191,14 +160,12 @@ export function BadgesGallery({
             </div>
           )}
         </div>
-        {description && (
-          <p className="mt-1 text-xs sm:text-sm text-muted-foreground pl-0.5">
-            {t("gamification.badgesGallery.description", { defaultValue: description })}
-          </p>
-        )}
+        <p className="mt-1 text-xs sm:text-sm text-muted-foreground pl-0.5">
+          {t("gamification.badgesGallery.description")}
+        </p>
       </div>
 
-      {/* съдържание */}
+      {/* content */}
       <div className="relative z-10 p-3 sm:p-4 md:p-6">
         {isLoading ? (
           <div className={cn("grid gap-3 sm:gap-4", gridColsClass)}>
@@ -219,7 +186,7 @@ export function BadgesGallery({
               <Award className="h-8 w-8 text-muted-foreground/40" />
             </div>
             <p className="text-sm text-muted-foreground">
-              {t("gamification.badgesGallery.emptyMessage", { defaultValue: "Все още няма значки" })}
+              {t("gamification.badgesGallery.emptyMessage")}
             </p>
           </div>
         ) : (
@@ -265,13 +232,24 @@ function BadgeItem({
   className,
   imageClassName,
 }: BadgeItemProps) {
+  const { t } = useTranslation();
   const isLocked = badge.locked;
   const rarity = badge.rarity ?? "common";
-  const config = rarityConfig[rarity];
   const imageUrl = `/badges/badge-${badge.id}.png`;
 
   const progress = Math.min(100, Math.max(0, badge.progress ?? (isLocked ? 0 : 100)));
   const isComplete = progress >= 100;
+
+  // Helper function to translate badge fields
+  const translateBadgeField = (field: string | undefined) => {
+    if (!field) return undefined;
+    return field.startsWith('gamification.badges.') ? t(field) : field;
+  };
+
+  const translatedTitle = translateBadgeField(badge.title);
+  const translatedDescription = translateBadgeField(badge.description);
+  const translatedCategory = translateBadgeField(badge.category);
+  const translatedHowToObtain = translateBadgeField(badge.how_to_obtain);
 
   return (
     <div className={cn("group/badge relative", className)}>
@@ -287,11 +265,11 @@ function BadgeItem({
           isLocked && "opacity-50 grayscale cursor-not-allowed",
         )}
       >
-        {/* изображение */}
+        {/* image */}
         <div className="relative h-full w-full overflow-hidden p-2">
           <Image
             src={imageUrl}
-            alt={badge.title || `Значка ${badge.id}`}
+            alt={translatedTitle || t("gamification.badges.defaultBadgeAlt", { id: badge.id })}
             fill
             className={cn(
               "object-contain",
@@ -303,7 +281,7 @@ function BadgeItem({
           />
         </div>
 
-        {/* иконка заключване */}
+        {/* lock icon */}
         {isLocked && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/10 dark:bg-black/20 rounded-xl">
             <div className="p-2 rounded-full bg-zinc-900/30 dark:bg-zinc-900/50 backdrop-blur-sm">
@@ -312,7 +290,7 @@ function BadgeItem({
           </div>
         )}
 
-        {/* указания */}
+        {/* hover overlay */}
         <div
           className={cn(
             "absolute inset-0 flex flex-col items-center justify-end rounded-xl",
@@ -321,15 +299,15 @@ function BadgeItem({
             "transition-opacity duration-300 p-2 gap-2",
           )}
         >
-          {/* как да се сдобием */}
-          {badge.how_to_obtain && (
+          {/* how to obtain */}
+          {translatedHowToObtain && (
             <p className="text-white text-[11px] text-center leading-snug line-clamp-3">
               {isLocked ? "🔒 " : "💡 "}
-              {badge.how_to_obtain}
+              {translatedHowToObtain}
             </p>
           )}
 
-          {/* ниво на прогрес */}
+          {/* progress bar */}
           {badge.progress !== undefined && !isComplete && (
             <div className="w-full h-1.5 rounded-full bg-white/20 overflow-hidden">
               <div
@@ -341,22 +319,25 @@ function BadgeItem({
         </div>
       </div>
 
-      {/* описание под картината */}
+      {/* description below image */}
       {(showName || showDescription || showCategory) && (
         <div className="mt-2 space-y-0.5 px-0.5">
           {showName && (
             <p className="text-xs sm:text-sm font-semibold text-center text-card-foreground line-clamp-1">
-              {isLocked ? "???" : (badge.title ?? `Значка ${badge.id}`)}
+              {isLocked
+                ? t("gamification.badges.lockedBadge")
+                : (translatedTitle ?? t("gamification.badges.defaultBadgeName", { id: badge.id }))
+              }
             </p>
           )}
-          {showCategory && badge.category && (
+          {showCategory && translatedCategory && (
             <p className="text-[10px] text-muted-foreground text-center line-clamp-1">
-              {badge.category}
+              {translatedCategory}
             </p>
           )}
-          {showDescription && badge.description && (
+          {showDescription && translatedDescription && (
             <p className="text-[11px] text-muted-foreground line-clamp-2 text-center">
-              {badge.description}
+              {translatedDescription}
             </p>
           )}
         </div>

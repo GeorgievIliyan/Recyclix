@@ -17,6 +17,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { SpinningRecyclingLoader } from "../ui/RecyclingLoader";
 import { isDev } from "@/lib/isDev";
 import { createClient } from "@supabase/supabase-js";
+import { useTranslation } from "react-i18next";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -122,6 +123,8 @@ export function FreeCamera({ task }: { task: string }) {
   const [qrData, setQrData] = useState<QRData | null>(null);
   const [mounted, setMounted] = useState(false);
 
+  const { t } = useTranslation();
+
   useEffect(() => { setMounted(true); return () => setMounted(false); }, []);
 
   useEffect(() => {
@@ -161,8 +164,8 @@ export function FreeCamera({ task }: { task: string }) {
     try {
       const res = await fetch("/api/free-scan", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ image: dataURL, task }) });
       const json: ScanResult = await res.json();
-      if (!res.ok) { setError(json.error || "Scan failed"); return; }
-      if (json.material?.toLowerCase() === "unknown") { setError("Материала не може да бъде разпознат. Моля, опитайте отново!"); return; }
+      if (!res.ok) { setError(json.error || t("free_camera.scan_failed")); return; }
+      if (json.material?.toLowerCase() === "unknown") { setError(t("free_camera.scan_error_desc")); return; }
       const translated = { ...json, material: json.material ? translateMaterial(json.material) : json.material };
       setResult(translated);
       await logToSchema(json);
@@ -191,38 +194,48 @@ export function FreeCamera({ task }: { task: string }) {
     return () => clearTimeout(timer);
   }, [qrData]);
 
-  const closeModal = () => { setOpen(false); setResult(null); setError(null); setQrData(null); };
+  // функция, която се задейства при затваряне на прозореца
+  const closeModal = () => {
+    if (videoRef.current && videoRef.current.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach((track: MediaStreamTrack) => {
+        track.stop();
+      });
+
+      videoRef.current.srcObject = null;
+    }
+
+    setOpen(false);
+    setResult(null);
+    setError(null);
+    setQrData(null);
+  };
   const showOverlay = loading || !!result || !!error;
 
   return (
     <>
       <div className="w-full h-full">
-        <div
-          onClick={() => setOpen(true)}
-          className="w-full h-full group relative overflow-hidden rounded-xl border cursor-pointer
-            bg-card border-border hover:border-green-400 hover:shadow-lg hover:shadow-green-200/50
-            dark:hover:shadow-green-500/20 transition-all duration-300 flex flex-col"
-        >
+        <div onClick={() => setOpen(true)} className="w-full h-full group relative overflow-hidden rounded-xl border cursor-pointer bg-card border-border hover:border-green-400 hover:shadow-lg hover:shadow-green-200/50 dark:hover:shadow-green-500/20 transition-all duration-300 flex flex-col">
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-green-500 to-green-400" />
           <div className="flex-1 p-5 flex flex-col">
             <div className="flex items-center justify-center gap-2 mb-3">
               <Camera className="h-6 w-6 text-green-500 group-hover:text-green-600 transition-colors flex-shrink-0" />
               <div className="flex-1 min-w-0">
-                <h3 className="text-base font-semibold">Свободно сканиране</h3>
+                <h3 className="text-base font-semibold">{t("free_camera.title")}</h3>
               </div>
             </div>
             <p className="text-sm text-muted-foreground mb-4 leading-relaxed flex-1">
-              Сканирайте рециклируеми артикули по всяко време без конкретна задача
+              {t("free_camera.description")}
             </p>
             <div className="flex flex-wrap gap-2 mb-4">
               <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 text-xs font-medium">
                 <Leaf className="h-3 w-3" />
-                Свободно сканиране
+                {t("free_camera.title")}
               </div>
             </div>
             <div className="pt-4 border-t border-zinc-200/50 dark:border-zinc-700/50">
               <button className="group/btn relative w-full px-4 py-2.5 bg-gradient-to-br from-[#00CD56] via-emerald-500 to-[#00b849] hover:from-[#00b849] hover:via-[#00a341] hover:to-emerald-600 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-md shadow-[#00CD56]/20 hover:shadow-lg hover:shadow-[#00CD56]/30 hover:scale-[1.02] active:scale-[0.98] overflow-hidden">
-                <span className="relative z-10">Отвори камера</span>
+                <span className="relative z-10">{t("free_camera.open_camera")}</span>
                 <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300" />
               </button>
             </div>
@@ -235,114 +248,81 @@ export function FreeCamera({ task }: { task: string }) {
           <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={closeModal} />
           <div className="relative w-full h-full flex flex-col">
 
-            {/* Заглавие */}
             <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/60 to-transparent p-4 md:p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <Camera className="h-5 w-5 md:h-6 md:w-6 text-white" />
-                  <h3 className="text-white font-semibold text-base md:text-lg">Свободно сканиране</h3>
+                  <h3 className="text-white font-semibold text-base md:text-lg">{t("free_camera.title")}</h3>
                 </div>
-                <button onClick={closeModal} className="p-2 rounded-lg bg-black/40 hover:bg-black/60 text-white transition-colors" aria-label="Затвори">
+                <button onClick={closeModal} className="p-2 rounded-lg bg-black/40 hover:bg-black/60 text-white transition-colors" aria-label={t("free_camera.close")}>
                   <X className="h-5 w-5 md:h-6 md:w-6" />
                 </button>
               </div>
             </div>
 
-            {/* Видеo постоянно */}
             <video ref={videoRef} className="w-full h-full object-cover" autoPlay playsInline muted />
             <canvas ref={canvasRef} className="hidden" />
 
-            {/* Тъмен слой */}
-            <div
-              className="absolute inset-0 bg-black/50 backdrop-blur-[2px] transition-opacity duration-300 pointer-events-none"
-              style={{ opacity: showOverlay ? 1 : 0 }}
-            />
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px] transition-opacity duration-300 pointer-events-none" style={{ opacity: showOverlay ? 1 : 0 }} />
 
-            {/* Долен панел */}
             <div className="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-black/60 to-transparent p-4 md:p-6 lg:p-8">
               <div className="flex flex-col items-center gap-4 max-w-md mx-auto w-full">
 
                 {loading && (
                   <div className="flex flex-col items-center gap-4">
                     <SpinningRecyclingLoader />
-                    <p className="text-white font-medium animate-pulse">Анализиране...</p>
+                    <p className="text-white font-medium animate-pulse">{t("free_camera.analyzing")}</p>
                   </div>
                 )}
 
                 {result && !loading && (
                   <div className="w-full rounded-2xl overflow-hidden border border-white/10 bg-black/60 backdrop-blur-md">
 
-                    {/* Заглавие материал + XP */}
                     <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-white/5">
                       <div className="flex items-center gap-2">
                         <CheckCircle2 className="w-4 h-4 text-green-400 shrink-0" />
                         <div>
-                          <p className="text-[10px] text-white/40 uppercase tracking-widest leading-none mb-0.5">Открит материал</p>
+                          <p className="text-[10px] text-white/40 uppercase tracking-widest leading-none mb-0.5">{t("free_camera.material_detected")}</p>
                           <p className="text-white font-bold uppercase tracking-wide text-sm">{result.material}</p>
                         </div>
                       </div>
                       <div className="px-3 py-1.5 rounded-full bg-green-500/15 border border-green-500/25">
-                        <span className="text-xs font-bold text-green-400">+{result.points} XP</span>
+                        <span className="text-xs font-bold text-green-400">{t("free_camera.points", { points: result.points })}</span>
                       </div>
                     </div>
 
-                    {/* Статистически табелки */}
                     <div className="flex gap-2 px-5 py-4">
-                      <StatPill
-                        icon={<Recycle className="w-4 h-4" />}
-                        label="Брой"
-                        value={result.count}
-                        unit=" бр."
-                        border="border-green-500/20"
-                        iconColor="text-green-400"
-                      />
+                      <StatPill icon={<Recycle className="w-4 h-4" />} label={t("free_camera.count")} value={result.count} unit=" бр." border="border-green-500/20" iconColor="text-green-400" />
                       {(result.weight ?? 0) > 0 && (
-                        <StatPill
-                          icon={<Weight className="w-4 h-4" />}
-                          label="Тегло"
-                          value={result.weight!}
-                          unit=" г"
-                          border="border-sky-500/20"
-                          iconColor="text-sky-400"
-                        />
+                        <StatPill icon={<Weight className="w-4 h-4" />} label={t("free_camera.weight")} value={result.weight!} unit=" г" border="border-sky-500/20" iconColor="text-sky-400" />
                       )}
                       {(result.co2 ?? 0) > 0 && (
-                        <StatPill
-                          icon={<Wind className="w-4 h-4" />}
-                          label="CO₂ спестен"
-                          value={result.co2!}
-                          unit=" кг"
-                          decimals={3}
-                          border="border-emerald-500/20"
-                          iconColor="text-emerald-400"
-                        />
+                        <StatPill icon={<Wind className="w-4 h-4" />} label={t("free_camera.co2")} value={result.co2!} unit=" кг" decimals={3} border="border-emerald-500/20" iconColor="text-emerald-400" />
                       )}
                     </div>
 
-                    {/* QR секция */}
                     <div className="flex flex-col items-center gap-2 px-5 pb-4 border-t border-white/5 pt-4">
                       {qrData ? (
                         <>
                           <div className="bg-white p-3 rounded-lg shadow-lg">
                             <QRCodeSVG value={qrData.qrUrl} size={150} />
                           </div>
-                          <p className="text-xs text-zinc-500">или</p>
+                          <p className="text-xs text-zinc-500">{t("free_camera.qr_prompt")}</p>
                           <a href={qrData.qrUrl} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-green-400 hover:text-green-300 transition-colors">
-                            Вземи от тук
+                            {t("free_camera.qr_link")}
                           </a>
                         </>
                       ) : (
                         <div className="flex items-center gap-2 text-white/50 py-3">
                           <Loader2 className="w-4 h-4 animate-spin" />
-                          <span className="text-sm">Генериране на QR...</span>
+                          <span className="text-sm">{t("free_camera.qr_generating")}</span>
                         </div>
                       )}
                     </div>
 
-                    {/* Затвори */}
                     <div className="px-5 pb-5">
                       <button onClick={closeModal} className="w-full px-4 py-3 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-xl transition-all duration-200">
-                        Затвори
+                        {t("free_camera.close")}
                       </button>
                     </div>
                   </div>
@@ -352,14 +332,14 @@ export function FreeCamera({ task }: { task: string }) {
                   <div className="w-full p-6 bg-red-500/20 backdrop-blur-sm border border-red-500/30 rounded-2xl">
                     <div className="flex flex-col items-center gap-3">
                       <OctagonAlert className="w-12 h-12 text-red-500" />
-                      <h4 className="text-lg font-semibold text-white">Сканирането не беше успешно</h4>
+                      <h4 className="text-lg font-semibold text-white">{t("free_camera.scan_failed")}</h4>
                       <p className="text-sm text-white/80 text-center">{error}</p>
                       <div className="flex gap-3 w-full">
                         <button onClick={() => { setError(null); setResult(null); }} className="flex-1 px-4 py-3 bg-white/20 hover:bg-white/30 text-white font-medium rounded-xl transition-all duration-200 backdrop-blur-sm">
-                          Нова снимка
+                          {t("free_camera.new_photo")}
                         </button>
                         <button onClick={closeModal} className="flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 text-white font-medium rounded-xl transition-all duration-200">
-                          Затвори
+                          {t("free_camera.close")}
                         </button>
                       </div>
                     </div>
@@ -367,13 +347,10 @@ export function FreeCamera({ task }: { task: string }) {
                 )}
 
                 {!result && !error && !loading && (
-                  <button
-                    onClick={capture}
-                    className="w-full px-6 py-4 bg-gradient-to-br from-[#00CD56] via-emerald-500 to-[#00b849] hover:from-[#00b849] hover:via-[#00a341] hover:to-emerald-600 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg shadow-[#00CD56]/20 hover:shadow-xl hover:shadow-[#00CD56]/30 hover:scale-105 active:scale-95 flex items-center justify-center gap-2 text-base md:text-lg overflow-hidden group/btn relative"
-                  >
+                  <button onClick={capture} className="w-full px-6 py-4 bg-gradient-to-br from-[#00CD56] via-emerald-500 to-[#00b849] hover:from-[#00b849] hover:via-[#00a341] hover:to-emerald-600 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg shadow-[#00CD56]/20 hover:shadow-xl hover:shadow-[#00CD56]/30 hover:scale-105 active:scale-95 flex items-center justify-center gap-2 text-base md:text-lg overflow-hidden group/btn relative">
                     <span className="relative z-10 flex items-center gap-2">
                       <Camera className="h-5 w-5 md:h-6 md:w-6" />
-                      Заснеми
+                      {t("free_camera.capture")}
                     </span>
                     <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300" />
                   </button>

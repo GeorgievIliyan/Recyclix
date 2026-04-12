@@ -17,41 +17,98 @@
       "xpPoints": "{{xp}} points XP"
     },
     "heading": {
-      "titlePrefix": "Boutique de ",
-      "titleHighlight": "récompenses",
-      "subtitle": "Échangez vos points XP contre des produits, des bons et des expériences éco-responsables."
+      "titlePrefix": "Utilisez vos",
+      "titleHighlight": "points",
+      "subtitle": "Échangez vos points XP contre des récompenses et expériences réelles."
     },
     "progress": {
       "level": "Niveau {{level}}",
       "xp": "XP",
-      "remaining": "Encore {{remaining}} XP jusqu'au niveau {{nextLevel}}"
+      "remaining": "{{remaining}} XP jusqu’au niveau {{nextLevel}}"
     },
     "claim": {
-      "successTitle": "La récompense est à vous !",
-      "message": "Voici votre code unique pour {{reward}}.",
+      "successTitle": "Récompense obtenue !",
+      "message": "Félicitations ! Vous avez obtenu \"{{reward}}\".",
       "done": "Terminé"
     },
     "card": {
-      "claiming": "Traitement…",
-      "claimNow": "Réclamer maintenant",
-      "needsXp": "Besoin de {{xp}} XP supplémentaires"
-    },
-    "empty": {
-      "title": "Aucune récompense ajoutée pour le moment.",
-      "description": "Assurez-vous que la table rewards contient des lignes avec"
-    },
-    "promo": {
-      "title": "Vous voulez plus de XP ?",
-      "subtitle": "Complétez les tâches quotidiennes et recyclez régulièrement.",
-      "cta": "Vers les tâches"
+      "claiming": "Récupération...",
+      "claimNow": "Obtenir",
+      "needsXp": "{{xp}} XP nécessaires"
     },
     "categories": {
-      "merch": "Merch",
+      "merch": "Produits",
       "entertainment": "Divertissement",
       "lifestyle": "Style de vie",
       "health": "Santé",
       "food": "Nourriture",
       "general": "Général"
+    },
+    "empty": {
+      "title": "Aucune récompense disponible",
+      "description": "Aucune récompense disponible pour le moment."
+    },
+    "promo": {
+      "title": "Gagnez plus de XP",
+      "subtitle": "Complétez des tâches de recyclage et progressez",
+      "cta": "Voir les tâches"
+    },
+    "section": {
+      "ariaLabel": "Récompenses"
+    },
+    "errors": {
+      "loadFailed": "Erreur de chargement",
+      "unexpected": "Erreur inattendue"
+    },
+    "items": {
+      "758dfdc6-115c-45a6-a804-939e2cb01f01": {
+        "title": "Café gratuit",
+        "description": "Bon pour un café au choix dans un café partenaire."
+      },
+      "789af6ee-88fa-4fab-a709-377837bcd9be": {
+        "title": "Sac réutilisable",
+        "description": "Sac durable réutilisable — moins de déchets, plus de style."
+      },
+      "bf40c608-5d60-43c6-b2fc-8784c4269250": {
+        "title": "Smoothie aux fruits",
+        "description": "Smoothie naturel rafraîchissant d’un bar partenaire."
+      },
+      "ccb68f99-51e1-4be5-b360-12113d452ebc": {
+        "title": "Boîte de biscuits maison",
+        "description": "Biscuits artisanaux d’une boulangerie locale."
+      },
+      "e51a0a5a-aa4c-4f2e-86ee-a7fa7dc406a3": {
+        "title": "Carnet recyclé",
+        "description": "Carnet A5 en papier recyclé avec couverture rigide."
+      },
+      "d62c4e57-eec8-43d6-a5b5-fb6c4c521063": {
+        "title": "Séance de sport gratuite",
+        "description": "Entrée gratuite dans une salle de sport partenaire."
+      },
+      "8e5d69c2-7583-401a-a426-b05229e8afd1": {
+        "title": "Abonnement podcasts",
+        "description": "1 mois d’accès premium aux podcasts et livres audio."
+      },
+      "b1eb6203-186b-4b57-9130-41f9d04cdbff": {
+        "title": "Billet de cinéma",
+        "description": "Un billet pour une séance au choix."
+      },
+      "9767c5bc-fb7e-4878-ab8b-119560dcb3c1": {
+        "title": "Bon restaurant 10€",
+        "description": "Réduction de 10€ dans un restaurant partenaire."
+      },
+      "7acbf585-a219-4ed0-8386-dfd846fcf6b3": {
+        "title": "Bouteille métallique",
+        "description": "Bouteille thermique 500 ml — garde chaud/froid 12h."
+      },
+      "c7ca6caa-9d62-4152-a992-9af6678cac8b": {
+        "title": "Livre au choix",
+        "description": "Bon pour un livre jusqu’à 10€."
+      },
+      "7357fe56-d10f-450f-b078-1206f6fe12d6": {
+        "title": "Cours en ligne",
+        "description": "Accès gratuit à un cours en ligne."
+      }
     }
   },
   "recyclingActivity": {
@@ -505,8 +562,55 @@
     "badgesGallery": {
       "title": "Badges",
       "description": "Vos réalisations",
-      "emptyMessage": "Pas encore de badges",
-      "fetchError": "Erreur lors du chargement des badges"
+      "fetchError": "Erreur lors du chargement des badges",
+      "emptyMessage": "Pas encore de badges"
+    },
+    "badges": {
+      "rarity": {
+        "common": "Commun",
+        "rare": "Rare",
+        "epic": "Épique",
+        "legendary": "Légendaire"
+      },
+      "lockedBadge": "???",
+      "defaultBadgeName": "Badge {{id}}",
+      "defaultBadgeAlt": "Badge {{id}}",
+      "1": {
+        "title": "Guerrier du recyclage",
+        "description": "Décerné pour des efforts constants en recyclage",
+        "category": "Succès",
+        "how_to_obtain": "Recyclez avec succès au moins 10 fois consécutivement sans interruption."
+      },
+      "2": {
+        "title": "Chevalier du recyclage",
+        "description": "Obtenu grâce à une participation exceptionnellement active au recyclage",
+        "category": "Succès",
+        "how_to_obtain": "Atteignez 50 articles recyclés au total et maintenez l'activité pendant 30 jours."
+      },
+      "3": {
+        "title": "Légende du recyclage",
+        "description": "Plus haute distinction pour des réalisations exceptionnelles en recyclage",
+        "category": "Légendaire",
+        "how_to_obtain": "Recyclez plus de 200 articles et faites partie du top 1% de tous les utilisateurs du mois."
+      },
+      "4": {
+        "title": "Clarté cristalline",
+        "description": "Pour ceux qui voient le potentiel du verre fondu",
+        "category": "Succès",
+        "how_to_obtain": "Recyclez des articles en verre au moins 15 fois."
+      },
+      "5": {
+        "title": "Esprit trempé",
+        "description": "Récompense pour la persévérance dans le cycle de transformation du verre",
+        "category": "Succès",
+        "how_to_obtain": "Recyclez du verre pendant 7 semaines consécutives."
+      },
+      "6": {
+        "title": "Structure éternelle",
+        "description": "Reconnaissance suprême pour le cycle infini de renaissance du verre",
+        "category": "Légendaire",
+        "how_to_obtain": "Recyclez plus de 100 articles en verre et participez à au moins 3 événements communautaires de recyclage."
+      }
     },
     "progress": {
       "title": "Progression",
@@ -573,5 +677,115 @@
     "fr": "Français",
     "de": "Deutsch",
     "ru": "Русский"
+  },
+  "free_camera": {
+    "title": "Scan libre",
+    "description": "Scannez des articles recyclables à tout moment sans tâche spécifique",
+    "open_camera": "Ouvrir la caméra",
+    "analyzing": "Analyse...",
+    "material_detected": "Matériau détecté",
+    "points": "+{{points}} XP",
+    "count": "Quantité",
+    "weight": "Poids",
+    "co2": "CO₂ économisé",
+    "qr_prompt": "ou",
+    "qr_link": "Obtenir ici",
+    "qr_generating": "Génération du QR...",
+    "close": "Fermer",
+    "scan_failed": "Le scan a échoué",
+    "scan_error_desc": "Le matériau ne peut pas être reconnu. Veuillez réessayer !",
+    "new_photo": "Nouvelle photo",
+    "capture": "Capturer"
+  },
+  "daily_tasks": {
+    "title": "Tâches quotidiennes",
+    "description": "Complétez vos tâches et gagnez des points",
+    "error": "Erreur",
+    "open_camera": "Ouvrir la caméra",
+    "points_short": "pts",
+    "completed_all_title": "Félicitations !",
+    "completed_all_desc": "Vous avez terminé toutes les tâches aujourd'hui et gagné {{points}} points !"
+  },
+  "tasks": {
+    "1a2b3c01": {
+      "title": "Recycler une canette en aluminium",
+      "description": "Apportez une canette vide à recycler."
+    },
+    "1a2b3c02": {
+      "title": "Recycler un emballage plastique",
+      "description": "Scannez et recyclez un petit emballage."
+    },
+    "1a2b3c03": {
+      "title": "Recycler un emballage papier",
+      "description": "Scannez et recyclez un emballage papier."
+    },
+    "1a2b3c04": {
+      "title": "Recycler une bouteille en verre",
+      "description": "Scannez et recyclez une bouteille."
+    },
+    "1a2b3c05": {
+      "title": "Recycler du papier magazine",
+      "description": "Scannez une page de magazine."
+    },
+    "1a2b3c06": {
+      "title": "Recycler une petite bouteille plastique",
+      "description": "Scannez une bouteille."
+    },
+    "1a2b3c07": {
+      "title": "Recycler une boîte carton",
+      "description": "Scannez une boîte."
+    },
+    "1a2b3c08": {
+      "title": "Recycler du papier aluminium",
+      "description": "Scannez du papier aluminium."
+    },
+    "1a2b3c09": {
+      "title": "Recycler un bouchon",
+      "description": "Scannez un bouchon plastique."
+    },
+    "1a2b3c10": {
+      "title": "Recycler un verre",
+      "description": "Scannez un verre."
+    },
+    "1a2b3c11": {
+      "title": "Recycler une enveloppe",
+      "description": "Scannez une enveloppe."
+    },
+    "1a2b3c12": {
+      "title": "Recycler une page de livre",
+      "description": "Scannez une page."
+    },
+    "1a2b3c13": {
+      "title": "Recycler un emballage alimentaire",
+      "description": "Scannez un emballage."
+    },
+    "1a2b3c14": {
+      "title": "Recycler une capsule café",
+      "description": "Scannez une capsule."
+    },
+    "1a2b3c15": {
+      "title": "Recycler un bol plastique",
+      "description": "Scannez un bol."
+    },
+    "1a2b3c16": {
+      "title": "Recycler un couvercle alu",
+      "description": "Scannez un couvercle."
+    },
+    "1a2b3c17": {
+      "title": "Recycler un bocal",
+      "description": "Scannez un bocal."
+    },
+    "1a2b3c18": {
+      "title": "Recycler un carton de jus",
+      "description": "Scannez un carton."
+    },
+    "1a2b3c19": {
+      "title": "Recycler un récipient alimentaire",
+      "description": "Scannez un récipient."
+    },
+    "1a2b3c20": {
+      "title": "Recycler une bouteille",
+      "description": "Scannez une bouteille."
+    }
   }
 }

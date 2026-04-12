@@ -14,36 +14,27 @@
   "welcome": "Willkommen zurück",
   "rewards": {
     "header": {
-      "xpPoints": "{{xp}} XP Punkte"
+      "xpPoints": "{{xp}} XP-Punkte"
     },
     "heading": {
-      "titlePrefix": "Belohnungs ",
-      "titleHighlight": "Shop",
-      "subtitle": "Tausche deine XP-Punkte gegen Produkte, Gutscheine und umweltfreundliche Erlebnisse ein."
+      "titlePrefix": "Nutze deine",
+      "titleHighlight": "Punkte",
+      "subtitle": "Tausche deine XP gegen echte Belohnungen ein."
     },
     "progress": {
       "level": "Level {{level}}",
       "xp": "XP",
-      "remaining": "Noch {{remaining}} XP bis Level {{nextLevel}}"
+      "remaining": "{{remaining}} XP bis Level {{nextLevel}}"
     },
     "claim": {
-      "successTitle": "Die Belohnung gehört dir!",
-      "message": "Hier ist dein einzigartiger Code für {{reward}}.",
+      "successTitle": "Belohnung erhalten!",
+      "message": "Glückwunsch! Du hast \"{{reward}}\" erhalten.",
       "done": "Fertig"
     },
     "card": {
-      "claiming": "Verarbeitung…",
+      "claiming": "Wird eingelöst...",
       "claimNow": "Jetzt einlösen",
-      "needsXp": "Braucht noch {{xp}} XP"
-    },
-    "empty": {
-      "title": "Noch keine Belohnungen vorhanden.",
-      "description": "Stelle sicher, dass die rewards-Tabelle Zeilen mit enthält"
-    },
-    "promo": {
-      "title": "Mehr XP gewünscht?",
-      "subtitle": "Erledige tägliche Aufgaben und recycle regelmäßig.",
-      "cta": "Zu den Aufgaben"
+      "needsXp": "{{xp}} XP benötigt"
     },
     "categories": {
       "merch": "Merch",
@@ -52,6 +43,72 @@
       "health": "Gesundheit",
       "food": "Essen",
       "general": "Allgemein"
+    },
+    "empty": {
+      "title": "Keine Belohnungen verfügbar",
+      "description": "Derzeit keine verfügbar."
+    },
+    "promo": {
+      "title": "Mehr XP verdienen",
+      "subtitle": "Erledige Aufgaben und steige auf",
+      "cta": "Aufgaben ansehen"
+    },
+    "section": {
+      "ariaLabel": "Belohnungen"
+    },
+    "errors": {
+      "loadFailed": "Fehler beim Laden",
+      "unexpected": "Unerwarteter Fehler"
+    },
+    "items": {
+      "758dfdc6-115c-45a6-a804-939e2cb01f01": {
+        "title": "Gratis Kaffee",
+        "description": "Gutschein für einen Kaffee."
+      },
+      "789af6ee-88fa-4fab-a709-377837bcd9be": {
+        "title": "Wiederverwendbare Tasche",
+        "description": "Robuste Tasche — weniger Müll."
+      },
+      "bf40c608-5d60-43c6-b2fc-8784c4269250": {
+        "title": "Frucht-Smoothie",
+        "description": "Erfrischender Smoothie."
+      },
+      "ccb68f99-51e1-4be5-b360-12113d452ebc": {
+        "title": "Hausgemachte Kekse",
+        "description": "Kekse aus lokaler Bäckerei."
+      },
+      "e51a0a5a-aa4c-4f2e-86ee-a7fa7dc406a3": {
+        "title": "Recycling-Notizbuch",
+        "description": "A5 Notizbuch aus Recyclingpapier."
+      },
+      "d62c4e57-eec8-43d6-a5b5-fb6c4c521063": {
+        "title": "Gratis Training",
+        "description": "Fitnessstudio Eintritt."
+      },
+      "8e5d69c2-7583-401a-a426-b05229e8afd1": {
+        "title": "Podcast Abo",
+        "description": "1 Monat Premium."
+      },
+      "b1eb6203-186b-4b57-9130-41f9d04cdbff": {
+        "title": "Kinoticket",
+        "description": "Ein Ticket nach Wahl."
+      },
+      "9767c5bc-fb7e-4878-ab8b-119560dcb3c1": {
+        "title": "10€ Restaurant Gutschein",
+        "description": "Rabatt im Restaurant."
+      },
+      "7acbf585-a219-4ed0-8386-dfd846fcf6b3": {
+        "title": "Metallflasche",
+        "description": "500ml Thermoflasche."
+      },
+      "c7ca6caa-9d62-4152-a992-9af6678cac8b": {
+        "title": "Buch nach Wahl",
+        "description": "Buch Gutschein."
+      },
+      "7357fe56-d10f-450f-b078-1206f6fe12d6": {
+        "title": "Online Kurs",
+        "description": "Kurs Zugang."
+      }
     }
   },
   "recyclingActivity": {
@@ -504,9 +561,56 @@
   "gamification": {
     "badgesGallery": {
       "title": "Abzeichen",
-      "description": "Deine Errungenschaften",
-      "emptyMessage": "Noch keine Abzeichen",
-      "fetchError": "Fehler beim Laden von Abzeichen"
+      "description": "Deine Erfolge",
+      "fetchError": "Fehler beim Laden der Abzeichen",
+      "emptyMessage": "Noch keine Abzeichen"
+    },
+    "badges": {
+      "rarity": {
+        "common": "Gewöhnlich",
+        "rare": "Selten",
+        "epic": "Episch",
+        "legendary": "Legendär"
+      },
+      "lockedBadge": "???",
+      "defaultBadgeName": "Abzeichen {{id}}",
+      "defaultBadgeAlt": "Abzeichen {{id}}",
+      "1": {
+        "title": "Recycling-Krieger",
+        "description": "Verliehen für konsequente Recycling-Bemühungen",
+        "category": "Erfolg",
+        "how_to_obtain": "Recyceln Sie mindestens 10 Mal hintereinander erfolgreich ohne Unterbrechung."
+      },
+      "2": {
+        "title": "Recycling-Ritter",
+        "description": "Erhalten durch außergewöhnlich aktive Teilnahme am Recycling",
+        "category": "Erfolg",
+        "how_to_obtain": "Erreichen Sie 50 insgesamt recycelte Artikel und bleiben Sie 30 Tage lang aktiv."
+      },
+      "3": {
+        "title": "Recycling-Legende",
+        "description": "Höchste Ehre für außergewöhnliche Recycling-Leistungen",
+        "category": "Legendär",
+        "how_to_obtain": "Recyceln Sie über 200 Artikel und gehören Sie zu den Top 1% aller Benutzer des Monats."
+      },
+      "4": {
+        "title": "Kristallklarheit",
+        "description": "Für diejenigen, die Potenzial in geschmolzenem Glas sehen",
+        "category": "Erfolg",
+        "how_to_obtain": "Recyceln Sie Glasartikel mindestens 15 Mal."
+      },
+      "5": {
+        "title": "Gehärteter Geist",
+        "description": "Belohnung für Beständigkeit im Glastransformationszyklus",
+        "category": "Erfolg",
+        "how_to_obtain": "Recyceln Sie 7 aufeinanderfolgende Wochen lang Glas."
+      },
+      "6": {
+        "title": "Ewige Struktur",
+        "description": "Höchste Anerkennung für den endlosen Zyklus der Glaswiedergeburt",
+        "category": "Legendär",
+        "how_to_obtain": "Recyceln Sie über 100 Glasartikel und nehmen Sie an mindestens 3 Community-Recycling-Events teil."
+      }
     },
     "progress": {
       "title": "Fortschritt",
@@ -573,5 +677,115 @@
     "fr": "Français",
     "de": "Deutsch",
     "ru": "Русский"
+  },
+  "free_camera": {
+    "title": "Freies Scannen",
+    "description": "Scanne recycelbare Artikel jederzeit ohne eine bestimmte Aufgabe",
+    "open_camera": "Kamera öffnen",
+    "analyzing": "Analysieren...",
+    "material_detected": "Material erkannt",
+    "points": "+{{points}} XP",
+    "count": "Anzahl",
+    "weight": "Gewicht",
+    "co2": "CO₂ eingespart",
+    "qr_prompt": "oder",
+    "qr_link": "Hier erhalten",
+    "qr_generating": "QR wird generiert...",
+    "close": "Schließen",
+    "scan_failed": "Scan war nicht erfolgreich",
+    "scan_error_desc": "Das Material kann nicht erkannt werden. Bitte versuche es erneut!",
+    "new_photo": "Neues Foto",
+    "capture": "Aufnehmen"
+  },
+  "daily_tasks": {
+    "title": "Tägliche Aufgaben",
+    "description": "Erledige deine Aufgaben und sammle Punkte",
+    "error": "Fehler",
+    "open_camera": "Kamera öffnen",
+    "points_short": "Pkt.",
+    "completed_all_title": "Glückwunsch!",
+    "completed_all_desc": "Du hast alle Aufgaben für heute erledigt und {{points}} Punkte verdient!"
+  },
+  "tasks": {
+    "1a2b3c01": {
+      "title": "Aludose recyceln",
+      "description": "Bringe eine leere Aludose zum Recyclingcontainer."
+    },
+    "1a2b3c02": {
+      "title": "Plastikverpackung recyceln",
+      "description": "Scanne und recycele eine kleine Plastikverpackung."
+    },
+    "1a2b3c03": {
+      "title": "Papierverpackung recyceln",
+      "description": "Scanne und recycele eine Papierverpackung."
+    },
+    "1a2b3c04": {
+      "title": "Glasflasche recyceln",
+      "description": "Scanne und recycele eine Glasflasche."
+    },
+    "1a2b3c05": {
+      "title": "Magazinpapier sammeln",
+      "description": "Scanne und recycele eine Magazinseite."
+    },
+    "1a2b3c06": {
+      "title": "Kleine Plastikflasche recyceln",
+      "description": "Scanne und recycele eine kleine Plastikflasche."
+    },
+    "1a2b3c07": {
+      "title": "Karton recyceln",
+      "description": "Scanne und recycele einen kleinen Karton."
+    },
+    "1a2b3c08": {
+      "title": "Alufolie recyceln",
+      "description": "Scanne und recycele etwas Alufolie."
+    },
+    "1a2b3c09": {
+      "title": "Flaschendeckel recyceln",
+      "description": "Scanne und recycele einen Plastikdeckel."
+    },
+    "1a2b3c10": {
+      "title": "Glas recyceln",
+      "description": "Scanne und recycele ein Glas."
+    },
+    "1a2b3c11": {
+      "title": "Papierumschlag recyceln",
+      "description": "Scanne und recycele einen kleinen Umschlag."
+    },
+    "1a2b3c12": {
+      "title": "Buchseite recyceln",
+      "description": "Scanne und recycele eine Buchseite."
+    },
+    "1a2b3c13": {
+      "title": "Lebensmittelverpackung recyceln",
+      "description": "Scanne und recycele eine Verpackung."
+    },
+    "1a2b3c14": {
+      "title": "Kaffeekapsel recyceln",
+      "description": "Scanne und recycele eine Kapsel."
+    },
+    "1a2b3c15": {
+      "title": "Plastikschüssel recyceln",
+      "description": "Scanne und recycele eine Schüssel."
+    },
+    "1a2b3c16": {
+      "title": "Aludeckel recyceln",
+      "description": "Scanne und recycele einen Deckel."
+    },
+    "1a2b3c17": {
+      "title": "Glasgefäß recyceln",
+      "description": "Scanne und recycele ein kleines Glas."
+    },
+    "1a2b3c18": {
+      "title": "Saftkarton recyceln",
+      "description": "Scanne und recycele einen Saftkarton."
+    },
+    "1a2b3c19": {
+      "title": "Essensbehälter recyceln",
+      "description": "Scanne und recycele einen Behälter."
+    },
+    "1a2b3c20": {
+      "title": "Getränkeflasche recyceln",
+      "description": "Scanne und recycele eine Flasche."
+    }
   }
 }

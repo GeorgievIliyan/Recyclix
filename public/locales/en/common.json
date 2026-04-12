@@ -17,9 +17,9 @@
       "xpPoints": "{{xp}} XP points"
     },
     "heading": {
-      "titlePrefix": "Rewards ",
-      "titleHighlight": "shop",
-      "subtitle": "Exchange your XP points for products, vouchers, and eco-friendly experiences."
+      "titlePrefix": "Use your",
+      "titleHighlight": "points",
+      "subtitle": "Exchange your earned XP points for real rewards and experiences."
     },
     "progress": {
       "level": "Level {{level}}",
@@ -27,31 +27,88 @@
       "remaining": "{{remaining}} XP to level {{nextLevel}}"
     },
     "claim": {
-      "successTitle": "Your reward is ready!",
-      "message": "Here is your unique code for {{reward}}.",
+      "successTitle": "Reward claimed successfully!",
+      "message": "Congratulations! You successfully claimed \"{{reward}}\".",
       "done": "Done"
     },
     "card": {
-      "claiming": "Processing…",
+      "claiming": "Claiming...",
       "claimNow": "Claim now",
-      "needsXp": "Need {{xp}} more XP"
-    },
-    "empty": {
-      "title": "No rewards added yet.",
-      "description": "Make sure the rewards table contains rows with"
-    },
-    "promo": {
-      "title": "Want more XP?",
-      "subtitle": "Complete daily tasks and recycle regularly.",
-      "cta": "Go to tasks"
+      "needsXp": "Needs {{xp}} XP"
     },
     "categories": {
-      "merch": "Merch",
+      "merch": "Merchandise",
       "entertainment": "Entertainment",
       "lifestyle": "Lifestyle",
       "health": "Health",
       "food": "Food",
       "general": "General"
+    },
+    "empty": {
+      "title": "No rewards available",
+      "description": "There are currently no rewards available. Check again later!"
+    },
+    "promo": {
+      "title": "Earn more XP points",
+      "subtitle": "Complete recycling tasks and level up",
+      "cta": "View tasks"
+    },
+    "section": {
+      "ariaLabel": "Rewards"
+    },
+    "errors": {
+      "loadFailed": "Failed to load rewards",
+      "unexpected": "Unexpected error. Check the console."
+    },
+    "items": {
+      "758dfdc6-115c-45a6-a804-939e2cb01f01": {
+        "title": "Free coffee",
+        "description": "Voucher for one coffee of your choice at a partner café in your city."
+      },
+      "789af6ee-88fa-4fab-a709-377837bcd9be": {
+        "title": "Reusable shopping bag",
+        "description": "Durable reusable bag — less waste, more style."
+      },
+      "bf40c608-5d60-43c6-b2fc-8784c4269250": {
+        "title": "Fruit smoothie",
+        "description": "Refreshing natural smoothie from a partner healthy bar."
+      },
+      "ccb68f99-51e1-4be5-b360-12113d452ebc": {
+        "title": "Box of homemade cookies",
+        "description": "Handmade cookies from a local bakery — a gift for you or a loved one."
+      },
+      "e51a0a5a-aa4c-4f2e-86ee-a7fa7dc406a3": {
+        "title": "Recycled paper notebook",
+        "description": "A5 notebook made from 100% recycled paper with hard covers."
+      },
+      "d62c4e57-eec8-43d6-a5b5-fb6c4c521063": {
+        "title": "Free workout session",
+        "description": "Free entry for a workout at a partner gym."
+      },
+      "8e5d69c2-7583-401a-a426-b05229e8afd1": {
+        "title": "Podcast platform subscription",
+        "description": "One month of free access to premium podcasts and audiobooks."
+      },
+      "b1eb6203-186b-4b57-9130-41f9d04cdbff": {
+        "title": "Cinema ticket",
+        "description": "One ticket for a screening of your choice at a partner cinema chain."
+      },
+      "9767c5bc-fb7e-4878-ab8b-119560dcb3c1": {
+        "title": "€10 restaurant voucher",
+        "description": "Discount of €10 at a selected restaurant from our network."
+      },
+      "7acbf585-a219-4ed0-8386-dfd846fcf6b3": {
+        "title": "Metal water bottle",
+        "description": "500 ml thermal bottle — keeps drinks hot or cold up to 12 hours."
+      },
+      "c7ca6caa-9d62-4152-a992-9af6678cac8b": {
+        "title": "Book of your choice",
+        "description": "Voucher for a book up to €10 from a partner bookstore."
+      },
+      "7357fe56-d10f-450f-b078-1206f6fe12d6": {
+        "title": "Online course access",
+        "description": "Free access to a course of your choice from a leading learning platform."
+      }
     }
   },
   "recyclingActivity": {
@@ -505,8 +562,55 @@
     "badgesGallery": {
       "title": "Badges",
       "description": "Your achievements",
-      "emptyMessage": "No badges yet",
-      "fetchError": "Error loading badges"
+      "fetchError": "Error loading badges",
+      "emptyMessage": "No badges yet"
+    },
+    "badges": {
+      "rarity": {
+        "common": "Common",
+        "rare": "Rare",
+        "epic": "Epic",
+        "legendary": "Legendary"
+      },
+      "lockedBadge": "???",
+      "defaultBadgeName": "Badge {{id}}",
+      "defaultBadgeAlt": "Badge {{id}}",
+      "1": {
+        "title": "Recycling Warrior",
+        "description": "Awarded for consistent recycling efforts",
+        "category": "Achievement",
+        "how_to_obtain": "Successfully recycle at least 10 times consecutively without interruption."
+      },
+      "2": {
+        "title": "Recycling Knight",
+        "description": "Obtained through exceptionally active participation in recycling",
+        "category": "Achievement",
+        "how_to_obtain": "Reach 50 total recycled items and maintain activity for 30 days."
+      },
+      "3": {
+        "title": "Recycling Legend",
+        "description": "Highest honor for exceptional recycling achievements",
+        "category": "Legendary",
+        "how_to_obtain": "Recycle over 200 items and be in the top 1% of all users for the month."
+      },
+      "4": {
+        "title": "Crystal Clarity",
+        "description": "For those who see potential in melted glass",
+        "category": "Achievement",
+        "how_to_obtain": "Recycle glass items at least 15 times."
+      },
+      "5": {
+        "title": "Tempered Spirit",
+        "description": "Reward for persistence in the glass transformation cycle",
+        "category": "Achievement",
+        "how_to_obtain": "Recycle glass for 7 consecutive weeks."
+      },
+      "6": {
+        "title": "Eternal Structure",
+        "description": "Supreme recognition for the endless cycle of glass rebirth",
+        "category": "Legendary",
+        "how_to_obtain": "Recycle over 100 glass items and participate in at least 3 community recycling events."
+      }
     },
     "progress": {
       "title": "Progress",
@@ -573,5 +677,115 @@
     "fr": "Français",
     "de": "Deutsch",
     "ru": "Русский"
+  },
+  "free_camera": {
+    "title": "Free Scanning",
+    "description": "Scan recyclable items anytime without a specific task",
+    "open_camera": "Open Camera",
+    "analyzing": "Analyzing...",
+    "material_detected": "Material Detected",
+    "points": "+{{points}} XP",
+    "count": "Count",
+    "weight": "Weight",
+    "co2": "CO₂ Saved",
+    "qr_prompt": "or",
+    "qr_link": "Get it here",
+    "qr_generating": "Generating QR...",
+    "close": "Close",
+    "scan_failed": "Scan was not successful",
+    "scan_error_desc": "The material cannot be recognized. Please try again!",
+    "new_photo": "New Photo",
+    "capture": "Capture"
+  },
+  "daily_tasks": {
+    "title": "Daily Tasks",
+    "description": "Complete your tasks and earn points",
+    "error": "Error",
+    "open_camera": "Open Camera",
+    "points_short": "pts.",
+    "completed_all_title": "Congratulations!",
+    "completed_all_desc": "You completed all tasks for today and earned {{points}} points!"
+  },
+  "tasks": {
+    "1a2b3c01": {
+      "title": "Recycle an aluminum can",
+      "description": "Take an empty aluminum can to a recycling container."
+    },
+    "1a2b3c02": {
+      "title": "Recycle plastic packaging",
+      "description": "Scan and recycle a small plastic package."
+    },
+    "1a2b3c03": {
+      "title": "Recycle paper packaging",
+      "description": "Scan and recycle a paper package."
+    },
+    "1a2b3c04": {
+      "title": "Recycle a glass bottle",
+      "description": "Scan and recycle a glass bottle in a glass container."
+    },
+    "1a2b3c05": {
+      "title": "Collect magazine paper",
+      "description": "Scan and recycle a magazine page."
+    },
+    "1a2b3c06": {
+      "title": "Recycle a small plastic bottle",
+      "description": "Scan and recycle a small plastic bottle."
+    },
+    "1a2b3c07": {
+      "title": "Recycle a cardboard box",
+      "description": "Scan and recycle a small cardboard box."
+    },
+    "1a2b3c08": {
+      "title": "Recycle aluminum foil",
+      "description": "Scan and recycle some aluminum foil."
+    },
+    "1a2b3c09": {
+      "title": "Recycle a bottle cap",
+      "description": "Scan and recycle a plastic bottle cap."
+    },
+    "1a2b3c10": {
+      "title": "Recycle a glass cup",
+      "description": "Scan and recycle a glass cup."
+    },
+    "1a2b3c11": {
+      "title": "Recycle a cardboard envelope",
+      "description": "Scan and recycle a small cardboard envelope."
+    },
+    "1a2b3c12": {
+      "title": "Recycle book paper",
+      "description": "Scan and recycle a page from an old book."
+    },
+    "1a2b3c13": {
+      "title": "Recycle food packaging",
+      "description": "Scan and recycle a plastic food package."
+    },
+    "1a2b3c14": {
+      "title": "Recycle a coffee capsule",
+      "description": "Scan and recycle a coffee capsule."
+    },
+    "1a2b3c15": {
+      "title": "Recycle a plastic bowl",
+      "description": "Scan and recycle a plastic bowl."
+    },
+    "1a2b3c16": {
+      "title": "Recycle an aluminum lid",
+      "description": "Scan and recycle an aluminum lid."
+    },
+    "1a2b3c17": {
+      "title": "Recycle a small glass jar",
+      "description": "Scan and recycle a small glass jar."
+    },
+    "1a2b3c18": {
+      "title": "Recycle a juice carton",
+      "description": "Scan and recycle a juice carton."
+    },
+    "1a2b3c19": {
+      "title": "Recycle a food container",
+      "description": "Scan and recycle a plastic food container."
+    },
+    "1a2b3c20": {
+      "title": "Recycle a beverage bottle",
+      "description": "Scan and recycle a glass beverage bottle."
+    }
   }
 }

@@ -17,41 +17,98 @@
       "xpPoints": "{{xp}} puntos XP"
     },
     "heading": {
-      "titlePrefix": "Tienda de ",
-      "titleHighlight": "recompensas",
-      "subtitle": "Cambia tus puntos XP por productos, cupones y experiencias sostenibles."
+      "titlePrefix": "Usa tus",
+      "titleHighlight": "puntos",
+      "subtitle": "Canjea tus puntos XP acumulados por recompensas y experiencias reales."
     },
     "progress": {
       "level": "Nivel {{level}}",
       "xp": "XP",
-      "remaining": "{{remaining}} XP para el nivel {{nextLevel}}"
+      "remaining": "{{remaining}} XP hasta el nivel {{nextLevel}}"
     },
     "claim": {
-      "successTitle": "¡La recompensa es tuya!",
-      "message": "Aquí está tu código único para {{reward}}.",
+      "successTitle": "¡Recompensa obtenida!",
+      "message": "¡Felicidades! Has obtenido \"{{reward}}\".",
       "done": "Listo"
     },
     "card": {
-      "claiming": "Procesando…",
-      "claimNow": "Canjear ahora",
-      "needsXp": "Necesitas {{xp}} XP más"
-    },
-    "empty": {
-      "title": "Aún no hay recompensas agregadas.",
-      "description": "Asegúrate de que la tabla rewards contenga filas con"
-    },
-    "promo": {
-      "title": "¿Quieres más XP?",
-      "subtitle": "Completa tareas diarias y recicla regularmente.",
-      "cta": "Ir a tareas"
+      "claiming": "Obteniendo...",
+      "claimNow": "Obtener ahora",
+      "needsXp": "Necesitas {{xp}} XP"
     },
     "categories": {
-      "merch": "Merch",
+      "merch": "Merchandising",
       "entertainment": "Entretenimiento",
       "lifestyle": "Estilo de vida",
       "health": "Salud",
       "food": "Comida",
       "general": "General"
+    },
+    "empty": {
+      "title": "No hay recompensas disponibles",
+      "description": "Actualmente no hay recompensas disponibles. ¡Vuelve más tarde!"
+    },
+    "promo": {
+      "title": "Gana más puntos XP",
+      "subtitle": "Completa tareas de reciclaje y sube de nivel",
+      "cta": "Ver tareas"
+    },
+    "section": {
+      "ariaLabel": "Recompensas"
+    },
+    "errors": {
+      "loadFailed": "Error al cargar recompensas",
+      "unexpected": "Error inesperado. Revisa la consola."
+    },
+    "items": {
+      "758dfdc6-115c-45a6-a804-939e2cb01f01": {
+        "title": "Café gratis",
+        "description": "Vale para un café a elección en una cafetería asociada en tu ciudad."
+      },
+      "789af6ee-88fa-4fab-a709-377837bcd9be": {
+        "title": "Bolsa reutilizable",
+        "description": "Bolsa resistente reutilizable — menos residuos, más estilo."
+      },
+      "bf40c608-5d60-43c6-b2fc-8784c4269250": {
+        "title": "Batido de frutas",
+        "description": "Refrescante batido natural de un bar saludable asociado."
+      },
+      "ccb68f99-51e1-4be5-b360-12113d452ebc": {
+        "title": "Caja de galletas caseras",
+        "description": "Galletas artesanales de una panadería local — para ti o un ser querido."
+      },
+      "e51a0a5a-aa4c-4f2e-86ee-a7fa7dc406a3": {
+        "title": "Cuaderno reciclado",
+        "description": "Cuaderno A5 hecho de papel 100% reciclado con tapas duras."
+      },
+      "d62c4e57-eec8-43d6-a5b5-fb6c4c521063": {
+        "title": "Entrenamiento gratis",
+        "description": "Entrada gratuita a un gimnasio asociado."
+      },
+      "8e5d69c2-7583-401a-a426-b05229e8afd1": {
+        "title": "Suscripción a podcasts",
+        "description": "Un mes gratis de acceso a podcasts premium y audiolibros."
+      },
+      "b1eb6203-186b-4b57-9130-41f9d04cdbff": {
+        "title": "Entrada de cine",
+        "description": "Una entrada para una película a elección en un cine asociado."
+      },
+      "9767c5bc-fb7e-4878-ab8b-119560dcb3c1": {
+        "title": "Vale de 10€ para restaurante",
+        "description": "Descuento de 10€ en un restaurante de nuestra red."
+      },
+      "7acbf585-a219-4ed0-8386-dfd846fcf6b3": {
+        "title": "Botella metálica",
+        "description": "Botella térmica de 500 ml — mantiene frío o calor hasta 12 horas."
+      },
+      "c7ca6caa-9d62-4152-a992-9af6678cac8b": {
+        "title": "Libro a elección",
+        "description": "Vale para un libro de hasta 10€ en una librería asociada."
+      },
+      "7357fe56-d10f-450f-b078-1206f6fe12d6": {
+        "title": "Curso online",
+        "description": "Acceso gratuito a un curso en una plataforma líder."
+      }
     }
   },
   "recyclingActivity": {
@@ -208,13 +265,15 @@
     "pricing": "Precios",
     "login": "Iniciar sesión",
     "register": "Registrarse"
-  },  "navigation": {
+  },
+  "navigation": {
     "dashboard": "Panel",
     "map": "Mapa",
     "tasks": "Tareas",
     "rewards": "Recompensas",
     "account": "Cuenta"
-  },  "hero": {
+  },
+  "hero": {
     "heading": {
       "line1": "Reciclar",
       "line2": "Explorar",
@@ -503,8 +562,55 @@
     "badgesGallery": {
       "title": "Insignias",
       "description": "Tus logros",
-      "emptyMessage": "Sin insignias aún",
-      "fetchError": "Error cargando insignias"
+      "fetchError": "Error al cargar las insignias",
+      "emptyMessage": "Aún no hay insignias"
+    },
+    "badges": {
+      "rarity": {
+        "common": "Común",
+        "rare": "Rara",
+        "epic": "Épica",
+        "legendary": "Legendaria"
+      },
+      "lockedBadge": "???",
+      "defaultBadgeName": "Insignia {{id}}",
+      "defaultBadgeAlt": "Insignia {{id}}",
+      "1": {
+        "title": "Guerrero del Reciclaje",
+        "description": "Otorgado por esfuerzos consistentes de reciclaje",
+        "category": "Logro",
+        "how_to_obtain": "Recicla con éxito al menos 10 veces consecutivas sin interrupción."
+      },
+      "2": {
+        "title": "Caballero del Reciclaje",
+        "description": "Obtenido por participación excepcionalmente activa en el reciclaje",
+        "category": "Logro",
+        "how_to_obtain": "Alcanza 50 artículos reciclados en total y mantén la actividad durante 30 días."
+      },
+      "3": {
+        "title": "Leyenda del Reciclaje",
+        "description": "El honor más alto por logros excepcionales en reciclaje",
+        "category": "Legendaria",
+        "how_to_obtain": "Recicla más de 200 artículos y sé parte del 1% superior de todos los usuarios del mes."
+      },
+      "4": {
+        "title": "Claridad Cristalina",
+        "description": "Para aquellos que ven potencial en el vidrio fundido",
+        "category": "Logro",
+        "how_to_obtain": "Recicla artículos de vidrio al menos 15 veces."
+      },
+      "5": {
+        "title": "Espíritu Templado",
+        "description": "Recompensa por persistencia en el ciclo de transformación del vidrio",
+        "category": "Logro",
+        "how_to_obtain": "Recicla vidrio durante 7 semanas consecutivas."
+      },
+      "6": {
+        "title": "Estructura Eterna",
+        "description": "Reconocimiento supremo por el ciclo infinito del renacimiento del vidrio",
+        "category": "Legendaria",
+        "how_to_obtain": "Recicla más de 100 artículos de vidrio y participa en al menos 3 eventos comunitarios de reciclaje."
+      }
     },
     "progress": {
       "title": "Progreso",
@@ -571,5 +677,115 @@
     "fr": "Français",
     "de": "Deutsch",
     "ru": "Русский"
+  },
+  "free_camera": {
+    "title": "Escaneo libre",
+    "description": "Escanea artículos reciclables en cualquier momento sin una tarea específica",
+    "open_camera": "Abrir cámara",
+    "analyzing": "Analizando...",
+    "material_detected": "Material detectado",
+    "points": "+{{points}} XP",
+    "count": "Cantidad",
+    "weight": "Peso",
+    "co2": "CO₂ ahorrado",
+    "qr_prompt": "o",
+    "qr_link": "Consíguelo aquí",
+    "qr_generating": "Generando QR...",
+    "close": "Cerrar",
+    "scan_failed": "El escaneo no fue exitoso",
+    "scan_error_desc": "El material no puede ser reconocido. ¡Por favor, inténtalo de nuevo!",
+    "new_photo": "Nueva foto",
+    "capture": "Capturar"
+  },
+  "daily_tasks": {
+    "title": "Ежедневные задания",
+    "description": "Выполняйте задания и получайте очки",
+    "error": "Ошибка",
+    "open_camera": "Открыть камеру",
+    "points_short": "очк.",
+    "completed_all_title": "Поздравляем!",
+    "completed_all_desc": "Вы выполнили все задания и получили {{points}} очков!"
+  },
+  "tasks": {
+    "1a2b3c01": {
+      "title": "Переработать алюминиевую банку",
+      "description": "Сдайте банку в переработку."
+    },
+    "1a2b3c02": {
+      "title": "Переработать пластик",
+      "description": "Отсканируйте упаковку."
+    },
+    "1a2b3c03": {
+      "title": "Переработать бумагу",
+      "description": "Отсканируйте бумагу."
+    },
+    "1a2b3c04": {
+      "title": "Переработать стекло",
+      "description": "Отсканируйте бутылку."
+    },
+    "1a2b3c05": {
+      "title": "Переработать журнал",
+      "description": "Отсканируйте страницу."
+    },
+    "1a2b3c06": {
+      "title": "Переработать бутылку",
+      "description": "Отсканируйте бутылку."
+    },
+    "1a2b3c07": {
+      "title": "Переработать коробку",
+      "description": "Отсканируйте коробку."
+    },
+    "1a2b3c08": {
+      "title": "Переработать фольгу",
+      "description": "Отсканируйте фольгу."
+    },
+    "1a2b3c09": {
+      "title": "Переработать крышку",
+      "description": "Отсканируйте крышку."
+    },
+    "1a2b3c10": {
+      "title": "Переработать стакан",
+      "description": "Отсканируйте стакан."
+    },
+    "1a2b3c11": {
+      "title": "Переработать конверт",
+      "description": "Отсканируйте конверт."
+    },
+    "1a2b3c12": {
+      "title": "Переработать книгу",
+      "description": "Отсканируйте страницу."
+    },
+    "1a2b3c13": {
+      "title": "Переработать упаковку",
+      "description": "Отсканируйте упаковку."
+    },
+    "1a2b3c14": {
+      "title": "Переработать капсулу",
+      "description": "Отсканируйте капсулу."
+    },
+    "1a2b3c15": {
+      "title": "Переработать миску",
+      "description": "Отсканируйте миску."
+    },
+    "1a2b3c16": {
+      "title": "Переработать крышку",
+      "description": "Отсканируйте крышку."
+    },
+    "1a2b3c17": {
+      "title": "Переработать банку",
+      "description": "Отсканируйте банку."
+    },
+    "1a2b3c18": {
+      "title": "Переработать сок",
+      "description": "Отсканируйте упаковку."
+    },
+    "1a2b3c19": {
+      "title": "Переработать контейнер",
+      "description": "Отсканируйте контейнер."
+    },
+    "1a2b3c20": {
+      "title": "Переработать бутылку",
+      "description": "Отсканируйте бутылку."
+    }
   }
 }
