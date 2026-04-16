@@ -270,8 +270,7 @@
     "dashboard": "Tableau de bord",
     "map": "Carte",
     "tasks": "Tâches",
-    "rewards": "Récompenses",
-    "account": "Compte"
+    "rewards": "Récompenses"
   },
   "hero": {
     "heading": {
@@ -417,7 +416,13 @@
       "login": "Connexion",
       "register": "S'inscrire",
       "admin": "Administration",
-      "management": "Gestion"
+      "management": "Gestion",
+      "account": "Compte",
+      "customization": "Personnalisation",
+      "language": "Langue",
+      "theme": "Thème",
+      "appearance": "Apparence",
+      "selectLanguage": "Choisir la langue"
     }
   },
   "auth": {
@@ -786,6 +791,119 @@
     "1a2b3c20": {
       "title": "Recycler une bouteille",
       "description": "Scannez une bouteille."
+    }
+  },
+  "map": {
+    "loading": "La carte se charge...",
+    "marker": {
+      "wasteBin": "Poubelle",
+      "recyclingPoint": "Point de recyclage",
+      "openingHours": "Horaires d'ouverture :",
+      "smart": "Intelligent",
+      "smartBin": "bac",
+      "accepts": "Accepte :",
+      "googleMaps": "Google Maps",
+      "reportDisabled": "Les signalements sont temporairement désactivés",
+      "reportProblem": "Signaler un problème",
+      "suggestEdit": "Suggérer une modification"
+    },
+    "modal": {
+      "reportProblem": "Signaler un problème",
+      "suggestEdit": "Suggérer une modification",
+      "addBin": "Ajouter un nouveau bac",
+      "reportLimitsTitle": "Limites de signalement :",
+      "binReportsToday": "Signalements pour ce bac aujourd'hui :",
+      "userReportsThisHour": "Vos signalements cette heure :",
+      "cancel": "Annuler",
+      "submitReport": "Envoyer le signalement",
+      "submitEdit": "Suggérer des modifications",
+      "add": "Ajouter",
+      "uploading": "Chargement des photos...",
+      "addPhoto": "Ajouter une photo"
+    },
+    "report": {
+      "problemType": "Type de problème",
+      "select": "Sélectionner",
+      "incorrectLocation": "Emplacement incorrect",
+      "binMissing": "Bac manquant",
+      "binDamaged": "Bac endommagé",
+      "wrongMaterials": "Matériaux incorrects",
+      "overflowing": "Débordement",
+      "duplicate": "Doublon",
+      "other": "Autre",
+      "title": "Titre",
+      "titlePlaceholder": "Ex. Le bac déborde",
+      "description": "Description (facultatif)",
+      "descriptionPlaceholder": "Décrivez le problème plus en détail...",
+      "photo": "Photo"
+    },
+    "edit": {
+      "nameLabel": "Nom du lieu (facultatif)",
+      "namePlaceholder": "Ex. Point de recyclage du quartier Mladost",
+      "openingHoursLabel": "Horaires d'ouverture (facultatif)",
+      "openingHoursPlaceholder": "Ex. 08:00-20:00",
+      "materialsLabel": "Matériaux recyclables (séparés par des virgules)",
+      "materialsPlaceholder": "Ex. plastique, verre, papier",
+      "materialsHint": "Saisissez les matériaux séparés par des virgules",
+      "notesLabel": "Notes supplémentaires",
+      "notesPlaceholder": "Autres suggestions ou corrections..."
+    },
+    "addBin": {
+      "facilityType": "Type d'installation",
+      "facilityTypePlaceholder": "Sélectionnez le type d'installation",
+      "wasteBin": "Poubelle",
+      "container": "Conteneur",
+      "recyclingCentre": "Centre de recyclage",
+      "dropoff": "Point de dépôt",
+      "other": "Autre",
+      "recyclingType": "Type de recyclage",
+      "plastic": "Plastique",
+      "glass": "Verre",
+      "paper": "Papier",
+      "cardboard": "Carton",
+      "metal": "Métal",
+      "aluminum": "Aluminium",
+      "electronics": "Électronique",
+      "batteries": "Piles",
+      "textiles": "Textiles",
+      "clothes": "Vêtements",
+      "organic": "Déchets organiques",
+      "general": "Déchets généraux",
+      "operator": "Opérateur",
+      "operatorPlaceholder": "Nom de l'organisation",
+      "count": "Nombre de conteneurs",
+      "binPhoto": "Photo du bac"
+    },
+    "reportsPanel": {
+      "title": "Signalements pour ce bac",
+      "total": "total",
+      "unresolved": "Non résolus :",
+      "resolved": "Résolus :",
+      "recentReports": "Signalements récents :",
+      "noDescription": "Sans description",
+      "resolvedLabel": "Résolu",
+      "activeLabel": "Actif",
+      "noReports": "Aucun signalement pour ce bac pour l'instant"
+    },
+    "alerts": {
+      "reportSuccess": "Signalement envoyé avec succès ! Il peut être examiné par un administrateur.",
+      "editSuccess": "Suggestion de modification envoyée avec succès ! Elle peut être examinée par un administrateur.",
+      "binSuccess": "Bac ajouté avec succès ! Il sera examiné par un administrateur avant d'apparaître sur la carte.",
+      "errorPrefix": "Erreur :",
+      "retryMessage": "Veuillez réessayer.",
+      "reportNotAllowed": "Les signalements ne sont pas autorisés pour le moment.",
+      "noBinSelected": "Erreur : Aucun bac sélectionné.",
+      "noLocation": "L'emplacement du bac n'a pas été défini."
+    },
+    "spamProtection": {
+      "binMinTime": "Vous devez attendre {{minutes}} minutes avant de signaler à nouveau ce bac.",
+      "binMaxReports": "Vous avez atteint le nombre maximum de signalements ({{limit}}) pour ce bac aujourd'hui.",
+      "userMaxReports": "Vous avez atteint la limite de {{limit}} signalements par heure. Veuillez patienter.",
+      "userMinTime": "Veuillez attendre {{seconds}} secondes avant le prochain signalement."
+    },
+    "geolocation": {
+      "error": "Erreur de géolocalisation :",
+      "locationError": "Erreur lors de la détermination de la position :"
     }
   }
 }

@@ -417,7 +417,12 @@
       "login": "Login",
       "register": "Register",
       "admin": "Administration",
-      "management": "Management"
+      "management": "Management",
+      "customization": "Customization",
+      "language": "Language",
+      "theme": "Theme",
+      "appearance": "Appearance",
+      "selectLanguage": "Select language"
     }
   },
   "auth": {
@@ -786,6 +791,119 @@
     "1a2b3c20": {
       "title": "Recycle a beverage bottle",
       "description": "Scan and recycle a glass beverage bottle."
+    }
+  },
+  "map": {
+    "loading": "Map is loading...",
+    "marker": {
+      "wasteBin": "Waste bin",
+      "recyclingPoint": "Recycling point",
+      "openingHours": "Opening hours:",
+      "smart": "Smart",
+      "smartBin": "bin",
+      "accepts": "Accepts:",
+      "googleMaps": "Google Maps",
+      "reportDisabled": "Reporting is temporarily disabled",
+      "reportProblem": "Report a problem",
+      "suggestEdit": "Suggest an edit"
+    },
+    "modal": {
+      "reportProblem": "Report a problem",
+      "suggestEdit": "Suggest an edit",
+      "addBin": "Add a new bin",
+      "reportLimitsTitle": "Report limits:",
+      "binReportsToday": "Reports for this bin today:",
+      "userReportsThisHour": "Your reports this hour:",
+      "cancel": "Cancel",
+      "submitReport": "Submit report",
+      "submitEdit": "Suggest changes",
+      "add": "Add",
+      "uploading": "Uploading photos...",
+      "addPhoto": "Add photo"
+    },
+    "report": {
+      "problemType": "Problem type",
+      "select": "Select",
+      "incorrectLocation": "Incorrect location",
+      "binMissing": "Bin missing",
+      "binDamaged": "Bin damaged",
+      "wrongMaterials": "Wrong materials",
+      "overflowing": "Overflowing",
+      "duplicate": "Duplicate",
+      "other": "Other",
+      "title": "Title",
+      "titlePlaceholder": "E.g. The bin is overflowing",
+      "description": "Description (optional)",
+      "descriptionPlaceholder": "Describe the problem in more detail...",
+      "photo": "Photo"
+    },
+    "edit": {
+      "nameLabel": "Location name (optional)",
+      "namePlaceholder": "E.g. Recycling point for Mladost district",
+      "openingHoursLabel": "Opening hours (optional)",
+      "openingHoursPlaceholder": "E.g. 08:00-20:00",
+      "materialsLabel": "Recycling materials (comma-separated)",
+      "materialsPlaceholder": "E.g. plastic, glass, paper",
+      "materialsHint": "Enter materials separated by commas",
+      "notesLabel": "Additional notes",
+      "notesPlaceholder": "Other suggestions or corrections..."
+    },
+    "addBin": {
+      "facilityType": "Facility type",
+      "facilityTypePlaceholder": "Select facility type",
+      "wasteBin": "Waste bin",
+      "container": "Container",
+      "recyclingCentre": "Recycling centre",
+      "dropoff": "Drop-off point",
+      "other": "Other",
+      "recyclingType": "Recycling type",
+      "plastic": "Plastic",
+      "glass": "Glass",
+      "paper": "Paper",
+      "cardboard": "Cardboard",
+      "metal": "Metal",
+      "aluminum": "Aluminium",
+      "electronics": "Electronics",
+      "batteries": "Batteries",
+      "textiles": "Textiles",
+      "clothes": "Clothes",
+      "organic": "Organic waste",
+      "general": "General waste",
+      "operator": "Operator",
+      "operatorPlaceholder": "Organisation name",
+      "count": "Number of containers",
+      "binPhoto": "Bin photo"
+    },
+    "reportsPanel": {
+      "title": "Reports for this bin",
+      "total": "total",
+      "unresolved": "Unresolved:",
+      "resolved": "Resolved:",
+      "recentReports": "Recent reports:",
+      "noDescription": "No description",
+      "resolvedLabel": "Resolved",
+      "activeLabel": "Active",
+      "noReports": "No reports for this bin yet"
+    },
+    "alerts": {
+      "reportSuccess": "Report submitted successfully! It may be reviewed by an administrator.",
+      "editSuccess": "Edit suggestion submitted successfully! It may be reviewed by an administrator.",
+      "binSuccess": "Bin added successfully! It will be reviewed by an administrator before appearing on the map.",
+      "errorPrefix": "Error:",
+      "retryMessage": "Please try again.",
+      "reportNotAllowed": "Reporting is not allowed at this time.",
+      "noBinSelected": "Error: No bin selected.",
+      "noLocation": "Bin location has not been set."
+    },
+    "spamProtection": {
+      "binMinTime": "You must wait {{minutes}} minutes before reporting this bin again.",
+      "binMaxReports": "You have reached the maximum number of reports ({{limit}}) for this bin today.",
+      "userMaxReports": "You have reached the limit of {{limit}} reports per hour. Please wait.",
+      "userMinTime": "Please wait {{seconds}} seconds before the next report."
+    },
+    "geolocation": {
+      "error": "Geolocation error:",
+      "locationError": "Error determining location:"
     }
   }
 }

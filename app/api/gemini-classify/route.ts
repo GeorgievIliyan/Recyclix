@@ -3,14 +3,19 @@ import crypto from "crypto";
 import sharp from "sharp";
 import { supabase } from "@/lib/supabase-browser";
 
-// CORS headers за frontend достъп
+/**
+ * OBJECTIVE WASTE CLASSIFIER
+ * Logic: Uses Gemini 2.0 Flash with a pre-defined material reference table 
+ * to estimate weight and CO2 based on object volume and material type.
+ */
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type",
 };
 
-// Прост rate-limiting по IP
+// Simple In-memory rate limiting
 const ipLastCalls = new Map<string, number>();
 const COOLDOWN_MS = 5000;
 
@@ -21,189 +26,150 @@ export async function OPTIONS() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const binId = body.binId;
-    const image = body.image;
-    const target = body.target;
+    const { binId, image, target } = body;
 
-    // Проверка на задължителни полета
-    if (!binId)
+    // 1. Validation
+    if (!binId || !image) {
       return NextResponse.json(
-        { result: "NO", error: "Missing binId" },
-        { status: 400, headers: corsHeaders },
+        { result: "NO", error: "Missing binId or image" },
+        { status: 400, headers: corsHeaders }
       );
-    if (!image)
-      return NextResponse.json(
-        { result: "NO", error: "No image provided" },
-        { status: 400, headers: corsHeaders },
-      );
+    }
 
+    // 2. Rate Limiting
     const ip = req.headers.get("x-forwarded-for") || "unknown";
     const now = Date.now();
-    const last = ipLastCalls.get(ip) || 0;
-    if (now - last < COOLDOWN_MS) {
+    if (now - (ipLastCalls.get(ip) || 0) < COOLDOWN_MS) {
       return NextResponse.json(
-        { result: "NO", error: "Cooldown active" },
-        { status: 429, headers: corsHeaders },
+        { result: "NO", error: "Slow down! Wait a few seconds." },
+        { status: 429, headers: corsHeaders }
       );
     }
     ipLastCalls.set(ip, now);
 
-    // Проверка на API ключ
     const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) throw new Error("Missing Gemini API key");
+    if (!apiKey) throw new Error("GEMINI_API_KEY is not configured");
 
-    // Извличане на base64 от dataURL
+    // 3. Image Processing (Hashing for uniqueness & deduplication)
     const base64Image = image.includes(",") ? image.split(",")[1] : image;
-
-    // SHA256 хеш за уникална идентификация
-    const shaHash = crypto
-      .createHash("sha256")
-      .update(base64Image, "base64")
-      .digest("hex");
-
-    // pHash за сравняване на изображения (resize + grayscale)
     const imgBuffer = Buffer.from(base64Image, "base64");
+
+    const shaHash = crypto.createHash("sha256").update(imgBuffer).digest("hex");
+
+    // Generate a pHash (Perceptual Hash) using sharp for visual similarity checking
     const { data: pixels } = await sharp(imgBuffer)
       .resize(8, 8)
       .grayscale()
       .raw()
       .toBuffer({ resolveWithObject: true });
+    
     const avg = pixels.reduce((sum, px) => sum + px, 0) / pixels.length;
-    const pHash = Array.from(pixels)
-      .map((px) => (px >= avg ? "1" : "0"))
-      .join("");
+    const pHash = Array.from(pixels).map((px) => (px >= avg ? "1" : "0")).join("");
 
-    // Запис в Supabase таблица images
+    // Log the attempt to Supabase
     const { error: dbError } = await supabase
       .from("images")
       .insert({ bin_id: binId, sha_hash: shaHash, p_hash: pHash });
-    if (dbError) console.error("Supabase error:", dbError);
+    if (dbError) console.error("Database log error:", dbError.message);
 
-    // Подготовка на prompt за Gemini API с добавено поле за превод само на материала
+    // 4. Construct the Objective Prompt
+    // We provide the AI with a "Unit Scale" so it can calculate mass properly.
+    const systemInstruction = `
+      Act as a high-precision waste audit system. Analyze the object size relative to the environment.
+      
+      REFERENCE UNIT WEIGHTS (Approximate):
+      - Plastic: Small bottle (0.5L) = 0.02kg, Large Jug = 0.12kg, Plastic Bag = 0.005kg.
+      - Metal: Aluminum Can = 0.015kg, Steel Food Tin = 0.05kg.
+      - Glass: Beer Bottle = 0.25kg, Large Jar = 0.4kg.
+      - Paper: A4 Sheet = 0.005kg, Cardboard Box (Medium) = 0.3kg.
+      
+      CO2 SAVINGS FACTORS (kg of CO2 saved per 1kg of material recycled):
+      - Aluminum: 9.0 | Plastic: 1.5 | Glass: 0.3 | Paper: 1.0 | Steel: 1.5
+      
+      CALCULATION LOGIC:
+      1. Identify Material.
+      2. Estimate Volume/Size (Small/Medium/Large).
+      3. Total Weight = Count * (Unit Weight based on size).
+      4. Total CO2 = Total Weight * CO2 Factor.
+    `;
+
     const prompt = target
-      ? `You are verifying waste material. 
-          Target: ${target}
-          Question: Does the object belong to the target material? 
-          Also, count how many distinct items of this material are visible.
-          Give a rough estimate of save CO2.
-          Estimate the total weight in kilograms.
-          Respond exactly in this format:
-          RESULT: [YES/NO]
-          COUNT: [number]
-          CO2: [float]
-          WEIGHT_KG: [float] (x.xxx)
-          `
-      : `Classify the recycling objects in the image. 
-          Categories: plastic, paper, glass, metal, textile, organic, wood, bio (food and etc.).
-          Give a rough estimate of save CO2.
-          Estimate the total weight in kilograms.
-          Respond exactly in this format:
-          MATERIAL: [category]
-          MATERIAL_BG: [category in bulgarian]
-          COUNT: [number]
-          CO2: [float]
-          WEIGHT_KG: [float] (x.xx) (strictly kilograms and 2 decimal places)
-          If unsure, MATERIAL: unknown | MATERIAL_BG: неизвестно`;
+      ? `Target Material: ${target}.
+         Does the object match the target? 
+         Respond exactly:
+         RESULT: [YES/NO]
+         COUNT: [number]
+         WEIGHT_KG: [float]
+         CO2_SAVED_KG: [float]`
+      : `Classify the waste in the image. 
+         Categories: plastic, paper, glass, metal, textile, organic, wood.
+         Respond exactly:
+         MATERIAL: [category]
+         MATERIAL_BG: [category in Bulgarian]
+         COUNT: [number]
+         WEIGHT_KG: [float]
+         CO2_SAVED_KG: [float]`;
 
+    // 5. Call Gemini 2.0 Flash
     const MODEL = "gemini-2.0-flash";
     const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`;
 
-    const response = await fetch(API_URL, {
+    const geminiResponse = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              { text: prompt },
-              {
-                inlineData: {
-                  mimeType: "image/jpeg",
-                  data: base64Image.replace(/\s/g, ""),
-                },
-              },
-            ],
-          },
-        ],
-      }),
+        contents: [{
+          parts: [
+            { text: systemInstruction + "\n" + prompt },
+            { inlineData: { mimeType: "image/jpeg", data: base64Image.replace(/\s/g, "") } }
+          ]
+        }]
+      })
     });
 
-    if (!response.ok) {
-      const text = await response.text();
-      console.error("Gemini error:", text);
-      throw new Error("Gemini server error");
-    }
+    if (!geminiResponse.ok) throw new Error("Gemini API failed");
 
-    const data = await response.json();
+    const data = await geminiResponse.json();
     const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
 
-    if (process.env.NODE_ENV === "development") {
-      console.log("Raw response:", rawText);
-    }
+    // 6. Objective Parsing using Regex
+    const parse = (regex: RegExp, fallback: string) => (rawText.match(regex)?.[1] || fallback).trim();
 
-    // Парсване на общи полета
-    const countMatch = rawText.match(/COUNT:\s*(\d+)/i);
-    const count = countMatch ? parseInt(countMatch[1], 10) : 1;
-
-    const co2Match = rawText.match(/CO2:\s*([\d.]+)/i);
-    const co2 = co2Match ? parseFloat(co2Match[1]) : 0;
-    const weightKg = parseFloat(
-      rawText.match(/WEIGHT_KG:\s*([\d.]+)/i)?.[1] || "0",
-    );
+    const count = parseInt(parse(/COUNT:\s*([\d.]+)/i, "1"), 10);
+    const weightKg = parseFloat(parse(/WEIGHT_KG:\s*([\d.]+)/i, "0"));
+    const co2 = parseFloat(parse(/CO2_SAVED_KG:\s*([\d.]+)/i, "0"));
 
     if (target) {
-      const result = rawText.toUpperCase().includes("RESULT: YES")
-        ? "YES"
-        : "NO";
-      const points = result === "YES" ? count * 10 : 0;
-
-      return NextResponse.json(
-        { result, count, points, co2, weight_kg: weightKg },
-        { headers: corsHeaders },
-      );
+      const result = rawText.toUpperCase().includes("RESULT: YES") ? "YES" : "NO";
+      return NextResponse.json({
+        result,
+        count,
+        weight_kg: weightKg,
+        co2,
+        points: result === "YES" ? count * 10 : 0
+      }, { headers: corsHeaders });
     } else {
-      const matMatch = rawText.match(/MATERIAL:\s*(\w+)/i);
-      const matBgMatch = rawText.match(/MATERIAL_BG:\s*(.+)/i);
-
-      const material = matMatch ? matMatch[1].toLowerCase().trim() : "unknown";
-      const materialBg = matBgMatch ? matBgMatch[1].trim() : "неизвестно";
-
-      const points = material !== "unknown" ? count * 10 : 0;
-
-      return NextResponse.json(
-        { material, materialBg, count, points, co2, weight_kg: weightKg },
-        { headers: corsHeaders },
-      );
+      const material = parse(/MATERIAL:\s*(\w+)/i, "unknown").toLowerCase();
+      const materialBg = parse(/MATERIAL_BG:\s*(.+)/i, "неизвестно");
+      
+      return NextResponse.json({
+        material,
+        materialBg,
+        count,
+        weight_kg: weightKg,
+        co2,
+        points: material !== "unknown" ? count * 10 : 0
+      }, { headers: corsHeaders });
     }
+
   } catch (err: any) {
-    console.error("POST error:", err);
-    return NextResponse.json(
-      {
-        result: "NO",
-        error: err.message,
-        material: "unknown",
-        materialBg: "неизвестно",
-        count: 0,
-        points: 0,
-        weight_kg: 0,
-      },
-      { status: 500, headers: corsHeaders },
-    );
+    console.error("Critical Error:", err);
+    return NextResponse.json({
+      result: "NO",
+      error: err.message,
+      weight_kg: 0,
+      co2: 0,
+      count: 0
+    }, { status: 500, headers: corsHeaders });
   }
-}
-
-export async function GET(req: NextRequest) {
-  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
-}
-
-export async function PUT(req: NextRequest) {
-  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
-}
-
-export async function DELETE(req: NextRequest) {
-  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
-}
-
-export async function PATCH(req: NextRequest) {
-  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
 }

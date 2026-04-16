@@ -417,7 +417,12 @@
       "login": "Вход",
       "register": "Регистрация",
       "admin": "Администрация",
-      "management": "Мениджмънт"
+      "management": "Мениджмънт",
+      "customization": "Персонализиране",
+      "language": "Език",
+      "theme": "Тема",
+      "appearance": "Външен вид",
+      "selectLanguage": "Изберете език"
     }
   },
   "auth": {
@@ -786,6 +791,119 @@
     "1a2b3c20": {
       "title": "Рециклирай стъклена бутилка от напитка",
       "description": "Снимай и предай една стъклена бутилка от напитка."
+    }
+  },
+  "map": {
+    "loading": "Картата се зарежда...",
+    "marker": {
+      "wasteBin": "Кошче за боклук",
+      "recyclingPoint": "Място за рециклиране",
+      "openingHours": "Работно време:",
+      "smart": "Smart",
+      "smartBin": "кош",
+      "accepts": "Приема:",
+      "googleMaps": "Google Maps",
+      "reportDisabled": "Отчетът е временно деактивиран",
+      "reportProblem": "Докладвай проблем",
+      "suggestEdit": "Предложи редактиране"
+    },
+    "modal": {
+      "reportProblem": "Докладване на проблем",
+      "suggestEdit": "Предложи редактиране",
+      "addBin": "Добавяне на ново кошче",
+      "reportLimitsTitle": "Лимити на отчети:",
+      "binReportsToday": "Отчети за това кошче днес:",
+      "userReportsThisHour": "Ваши отчети този час:",
+      "cancel": "Отказ",
+      "submitReport": "Изпрати доклад",
+      "submitEdit": "Предложи промени",
+      "add": "Добави",
+      "uploading": "Качване на снимки...",
+      "addPhoto": "Добави снимка"
+    },
+    "report": {
+      "problemType": "Тип проблем",
+      "select": "Избери",
+      "incorrectLocation": "Грешна локация",
+      "binMissing": "Липсва",
+      "binDamaged": "Повредено",
+      "wrongMaterials": "Грешни материали",
+      "overflowing": "Препълнено",
+      "duplicate": "Дубликат",
+      "other": "Друго",
+      "title": "Заглавие",
+      "titlePlaceholder": "Напр. Кошчето е препълнено",
+      "description": "Описание (по избор)",
+      "descriptionPlaceholder": "Опишете по-подробно проблема...",
+      "photo": "Снимка"
+    },
+    "edit": {
+      "nameLabel": "Име на обекта (по избор)",
+      "namePlaceholder": "Например: Рециклиране за квартал 'Младост'",
+      "openingHoursLabel": "Работно време (по избор)",
+      "openingHoursPlaceholder": "Например: 08:00-20:00",
+      "materialsLabel": "Материали за рециклиране (разделени със запетая)",
+      "materialsPlaceholder": "Например: пластмаса, стъкло, хартия",
+      "materialsHint": "Въведете материали, разделени със запетая",
+      "notesLabel": "Допълнителни бележки",
+      "notesPlaceholder": "Други предложения или корекции..."
+    },
+    "addBin": {
+      "facilityType": "Тип съоръжение",
+      "facilityTypePlaceholder": "Изберете тип съоръжение",
+      "wasteBin": "Кошче за боклук",
+      "container": "Контейнер",
+      "recyclingCentre": "Център за рециклиране",
+      "dropoff": "Пункт за отпадаци",
+      "other": "Друго",
+      "recyclingType": "Тип рециклиране",
+      "plastic": "Пластмаса",
+      "glass": "Стъкло",
+      "paper": "Хартия",
+      "cardboard": "Картон",
+      "metal": "Метал",
+      "aluminum": "Алуминий",
+      "electronics": "Електроника",
+      "batteries": "Батерии",
+      "textiles": "Текстил",
+      "clothes": "Дрехи",
+      "organic": "Органични отпадъци",
+      "general": "Общи отпадъци",
+      "operator": "Оператор",
+      "operatorPlaceholder": "Име на организацията",
+      "count": "Брой контейнери",
+      "binPhoto": "Снимка на коша"
+    },
+    "reportsPanel": {
+      "title": "Отчети за това кошче",
+      "total": "общо",
+      "unresolved": "Неразрешени:",
+      "resolved": "Разрешени:",
+      "recentReports": "Последни отчети:",
+      "noDescription": "Без описание",
+      "resolvedLabel": "Разрешен",
+      "activeLabel": "Активен",
+      "noReports": "Все още няма отчети за това кошче"
+    },
+    "alerts": {
+      "reportSuccess": "Отчетът е изпратен успешно! Може да бъде прегледан от администратор.",
+      "editSuccess": "Предложението за редактиране е изпратено успешно! Може да бъде прегледано от администратор.",
+      "binSuccess": "Кошчето е добавено успешно! Ще бъде прегледано от администратор преди да се появи на картата.",
+      "errorPrefix": "Грешка:",
+      "retryMessage": "Моля, опитайте отново.",
+      "reportNotAllowed": "Отчетът не е позволен в момента.",
+      "noBinSelected": "Грешка: Не е избрано кошче.",
+      "noLocation": "Локацията на кошчето не е зададена."
+    },
+    "spamProtection": {
+      "binMinTime": "Трябва да изчакате {{minutes}} минути преди нов отчет за това кошче.",
+      "binMaxReports": "Достигнахте максималния брой отчети ({{limit}}) за това кошче за деня.",
+      "userMaxReports": "Достигнахте лимита от {{limit}} отчета на час. Моля, изчакайте.",
+      "userMinTime": "Моля, изчакайте {{seconds}} секунди преди следващия отчет."
+    },
+    "geolocation": {
+      "error": "Грешка при геолокация:",
+      "locationError": "Грешка при определяне на локация:"
     }
   }
 }

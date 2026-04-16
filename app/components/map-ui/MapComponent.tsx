@@ -1,7 +1,6 @@
 "use client";
 
 import type React from "react";
-import "leaflet/dist/leaflet.css";
 import {
   MapContainer,
   TileLayer,
@@ -30,6 +29,7 @@ import MapHome from "./MapHome";
 import MapFilter from "./MapFilter";
 import { isDev } from "@/lib/isDev";
 import FilterPanel from "./FilterPanel";
+import { useTranslation } from "react-i18next";
 
 // Типизация за данни от OpenStreetMap (OSM)
 export interface Bin {
@@ -558,7 +558,8 @@ const useReportSpamProtection = () => {
           );
           return {
             allowed: false,
-            message: `Трябва да изчакате ${minutesLeft} минути преди нов отчет за това кошче.`,
+            // i18n key emitted here so callers can pass it to t()
+            message: `spamProtection.binMinTime:${minutesLeft}`,
             timeLeft: minutesLeft,
           };
         }
@@ -566,7 +567,7 @@ const useReportSpamProtection = () => {
         if (reportsInLastDay >= LIMITS.BIN_MAX_REPORTS_PER_DAY) {
           return {
             allowed: false,
-            message: `Достигнахте максималния брой отчети (${LIMITS.BIN_MAX_REPORTS_PER_DAY}) за това кошче за деня.`,
+            message: `spamProtection.binMaxReports:${LIMITS.BIN_MAX_REPORTS_PER_DAY}`,
           };
         }
       }
@@ -579,7 +580,7 @@ const useReportSpamProtection = () => {
       if (recentUserReports.length >= LIMITS.USER_MAX_REPORTS_PER_HOUR) {
         return {
           allowed: false,
-          message: `Достигнахте лимита от ${LIMITS.USER_MAX_REPORTS_PER_HOUR} отчета на час. Моля, изчакайте.`,
+          message: `spamProtection.userMaxReports:${LIMITS.USER_MAX_REPORTS_PER_HOUR}`,
         };
       }
 
@@ -598,7 +599,7 @@ const useReportSpamProtection = () => {
           );
           return {
             allowed: false,
-            message: `Моля, изчакайте ${secondsLeft} секунди преди следващия отчет.`,
+            message: `spamProtection.userMinTime:${secondsLeft}`,
             timeLeft: secondsLeft,
           };
         }
@@ -670,6 +671,26 @@ const useReportSpamProtection = () => {
   };
 };
 
+// Helper: resolve the encoded spam-protection message into a translated string
+const resolveSpamMessage = (
+  message: string,
+  t: (key: string, opts?: Record<string, unknown>) => string,
+): string => {
+  if (message.startsWith("spamProtection.")) {
+    const [key, value] = message.split(":");
+    const numValue = Number(value);
+    if (key === "spamProtection.binMinTime")
+      return t("map.spamProtection.binMinTime", { minutes: numValue });
+    if (key === "spamProtection.binMaxReports")
+      return t("map.spamProtection.binMaxReports", { limit: numValue });
+    if (key === "spamProtection.userMaxReports")
+      return t("map.spamProtection.userMaxReports", { limit: numValue });
+    if (key === "spamProtection.userMinTime")
+      return t("map.spamProtection.userMinTime", { seconds: numValue });
+  }
+  return message;
+};
+
 const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
   filteredBins,
   zoom,
@@ -683,6 +704,7 @@ const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
   onEdit: (bin: Bin) => void;
   isReportDisabled: (binId: number) => boolean;
 }) {
+  const { t } = useTranslation();
   const map = useMap();
   const [visibleBins, setVisibleBins] = useState<Bin[]>([]);
   const prevFilteredBinsRef = useRef<Bin[]>([]);
@@ -804,8 +826,8 @@ const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
                     }`}
                   title={
                     isReportDisabledForThisBin
-                      ? "Отчетът е временно деактивиран"
-                      : "Докладвай проблем"
+                      ? t("map.marker.reportDisabled")
+                      : t("map.marker.reportProblem")
                   }
                   onClick={() => !isReportDisabledForThisBin && onReport(bin)}
                   disabled={isReportDisabledForThisBin}
@@ -815,7 +837,7 @@ const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
 
                 <button
                   className="p-1.5 rounded-md hover:bg-green-100 hover:text-green-500 text-gray-600 dark:text-neutral-300 transition dark:hover:bg-green-500/10 dark:hover:text-green-500 duration-150"
-                  title="Предложи редактиране"
+                  title={t("map.marker.suggestEdit")}
                   onClick={() => onEdit(bin)}
                 >
                   <PenLine className="w-4 h-4" />
@@ -841,8 +863,8 @@ const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
                 <div className="min-w-0">
                   <h3 className="font-semibold text-sm sm:text-base text-gray-800 dark:text-white leading-tight">
                     {bin.tags?.amenity === "waste_basket"
-                      ? "Кошче за боклук"
-                      : "Място за рециклиране"}
+                      ? t("map.marker.wasteBin")
+                      : t("map.marker.recyclingPoint")}
                   </h3>
                   {bin.tags?.name && (
                     <p className="text-xs sm:text-sm text-gray-600 dark:text-neutral-300 mt-0.5">
@@ -872,7 +894,7 @@ const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
                             />
                           </svg>
                           <span className="leading-tight">
-                            <span className="opacity-80">Работно време:</span>{" "}
+                            <span className="opacity-80">{t("map.marker.openingHours")}</span>{" "}
                             <span className="font-semibold">
                               {translateDays(bin.tags.opening_hours)}
                             </span>
@@ -885,9 +907,9 @@ const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
                       <div className="text-xs sm:text-sm font-semibold text-gray-800 dark:text-white flex gap-2 items-center mb-0">
                         <CheckCircle className="text-green-500 h-4 w-4" />
                         <span className="bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-emerald-400">
-                          Smart
+                          {t("map.marker.smart")}
                         </span>{" "}
-                        кош
+                        {t("map.marker.smartBin")}
                       </div>
                     )}
 
@@ -895,7 +917,7 @@ const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
                       <div>
                         <div className="text-xs sm:text-sm font-semibold text-gray-800 dark:text-white flex gap-2 items-center">
                           <CircleCheckBig className="text-green-500 w-4 h-4" />
-                          <p>Приема:</p>
+                          <p>{t("map.marker.accepts")}</p>
                         </div>
                         <div className="flex flex-wrap gap-1.5">
                           {acceptedMaterials.map((material, idx) => {
@@ -936,7 +958,7 @@ const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
                 className="!text-green-500 !mt-5 !font-semibold !flex !gap-1"
               >
                 <MapIcon className="!text-green-500 !h-4 !w-4" />
-                Google Maps
+                {t("map.marker.googleMaps")}
               </a>
             </div>
           </div>
@@ -994,7 +1016,7 @@ const getBinReports = async (
     if (error) throw error;
     return data || [];
   } catch (error) {
-    console.error("Грешка при зареждане на отчети:", error);
+    console.error("Error loading reports:", error);
     return [];
   }
 };
@@ -1053,6 +1075,7 @@ const AddBinModal = memo(function AddBinModal({
   handleBinImageSelect?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleRemoveBinImage?: (index: number) => void;
 }) {
+  const { t } = useTranslation();
   const [materialsInput, setMaterialsInput] = useState(
     editData.materials.join(", "),
   );
@@ -1067,10 +1090,10 @@ const AddBinModal = memo(function AddBinModal({
               <Trash2 className="text-green-500" />
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
                 {modalMode === "report"
-                  ? "Докладване на проблем"
+                  ? t("map.modal.reportProblem")
                   : modalMode === "edit"
-                    ? "Предложи редактиране"
-                    : "Добавяне на ново кошче"}
+                    ? t("map.modal.suggestEdit")
+                    : t("map.modal.addBin")}
               </h2>
             </div>
             <button
@@ -1088,15 +1111,15 @@ const AddBinModal = memo(function AddBinModal({
               <div className="flex items-start gap-2">
                 <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
                 <div className="text-sm text-red-700 dark:text-red-300">
-                  <p className="font-medium">Лимити на отчети:</p>
+                  <p className="font-medium">{t("map.modal.reportLimitsTitle")}</p>
                   <div className="mt-1 space-y-1">
                     <p>
-                      • Отчети за това кошче днес:{" "}
+                      • {t("map.modal.binReportsToday")}{" "}
                       {reportLimitsInfo.binReportsToday}/
                       {reportLimitsInfo.binReportsLimit}
                     </p>
                     <p>
-                      • Ваши отчети този час:{" "}
+                      • {t("map.modal.userReportsThisHour")}{" "}
                       {reportLimitsInfo.userReportsThisHour}/
                       {reportLimitsInfo.userReportsLimit}
                     </p>
@@ -1111,7 +1134,7 @@ const AddBinModal = memo(function AddBinModal({
               <>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Тип проблем
+                    {t("map.report.problemType")}
                   </label>
                   <select
                     value={reportData.type}
@@ -1120,34 +1143,34 @@ const AddBinModal = memo(function AddBinModal({
                     required
                     disabled={isSubmitting || uploadingImages}
                   >
-                    <option value="">Избери</option>
-                    <option value="incorrect_location">Грешна локация</option>
-                    <option value="bin_missing">Липсва</option>
-                    <option value="bin_damaged">Повредено</option>
-                    <option value="wrong_materials">Грешни материали</option>
-                    <option value="overflowing">Препълнено</option>
-                    <option value="duplicate">Дубликат</option>
-                    <option value="other">Друго</option>
+                    <option value="">{t("map.report.select")}</option>
+                    <option value="incorrect_location">{t("map.report.incorrectLocation")}</option>
+                    <option value="bin_missing">{t("map.report.binMissing")}</option>
+                    <option value="bin_damaged">{t("map.report.binDamaged")}</option>
+                    <option value="wrong_materials">{t("map.report.wrongMaterials")}</option>
+                    <option value="overflowing">{t("map.report.overflowing")}</option>
+                    <option value="duplicate">{t("map.report.duplicate")}</option>
+                    <option value="other">{t("map.report.other")}</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Заглавие
+                    {t("map.report.title")}
                   </label>
                   <input
                     value={reportData.title}
                     onChange={(e) => updateReport("title", e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-900 dark:text-white dark:bg-neutral-800 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                     required
-                    placeholder="Напр. Кошчето е препълнено"
+                    placeholder={t("map.report.titlePlaceholder")}
                     disabled={isSubmitting || uploadingImages}
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Описание (по избор)
+                    {t("map.report.description")}
                   </label>
                   <textarea
                     value={reportData.description}
@@ -1156,14 +1179,14 @@ const AddBinModal = memo(function AddBinModal({
                     }
                     className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-900 dark:text-white dark:bg-neutral-800 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                     rows={3}
-                    placeholder="Опишете по-подробно проблема..."
+                    placeholder={t("map.report.descriptionPlaceholder")}
                     disabled={isSubmitting || uploadingImages}
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Снимка
+                    {t("map.report.photo")}
                   </label>
                   <div className="space-y-3">
                     {reportImages.length < 5 && (
@@ -1182,7 +1205,7 @@ const AddBinModal = memo(function AddBinModal({
                               d="M12 4v16m8-8H4"
                             />
                           </svg>
-                          <span>Добави снимка</span>
+                          <span>{t("map.modal.addPhoto")}</span>
                         </div>
                         <input
                           type="file"
@@ -1223,7 +1246,7 @@ const AddBinModal = memo(function AddBinModal({
                     {uploadingImages && (
                       <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                         <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                        <span>Качване на снимки...</span>
+                        <span>{t("map.modal.uploading")}</span>
                       </div>
                     )}
                   </div>
@@ -1233,19 +1256,19 @@ const AddBinModal = memo(function AddBinModal({
               <>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Име на обекта (по избор)
+                    {t("map.edit.nameLabel")}
                   </label>
                   <input
                     value={editData.name}
                     onChange={(e) => updateEdit("name", e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-900 dark:text-white dark:bg-neutral-800 focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                    placeholder="Например: Рециклиране за квартал 'Младост'"
+                    placeholder={t("map.edit.namePlaceholder")}
                     disabled={isSubmitting}
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Работно време (по избор)
+                    {t("map.edit.openingHoursLabel")}
                   </label>
                   <input
                     value={editData.opening_hours}
@@ -1253,13 +1276,13 @@ const AddBinModal = memo(function AddBinModal({
                       updateEdit("opening_hours", e.target.value)
                     }
                     className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-900 dark:text-white dark:bg-neutral-800 focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                    placeholder="Например: 08:00-20:00"
+                    placeholder={t("map.edit.openingHoursPlaceholder")}
                     disabled={isSubmitting}
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Материали за рециклиране (разделени със запетая)
+                    {t("map.edit.materialsLabel")}
                   </label>
                   <textarea
                     value={materialsInput}
@@ -1273,23 +1296,23 @@ const AddBinModal = memo(function AddBinModal({
                       updateEdit("materials", materialsArray);
                     }}
                     className="w-full h-32 resize-none px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-900 dark:text-white dark:bg-neutral-800 focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                    placeholder="Например: пластмаса, стъкло, хартия"
+                    placeholder={t("map.edit.materialsPlaceholder")}
                     rows={3}
                     disabled={isSubmitting}
                   />
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    Въведете материали, разделени със запетая
+                    {t("map.edit.materialsHint")}
                   </p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Допълнителни бележки
+                    {t("map.edit.notesLabel")}
                   </label>
                   <textarea
                     value={editData.notes}
                     onChange={(e) => updateEdit("notes", e.target.value)}
                     className="w-full h-32 resize-none px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-900 dark:text-white dark:bg-neutral-800 focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                    placeholder="Други предложения или корекции..."
+                    placeholder={t("map.edit.notesPlaceholder")}
                     rows={3}
                     disabled={isSubmitting}
                   />
@@ -1299,7 +1322,7 @@ const AddBinModal = memo(function AddBinModal({
               <>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Тип съоръжение
+                    {t("map.addBin.facilityType")}
                   </label>
                   <select
                     value={formData.amenity}
@@ -1309,35 +1332,32 @@ const AddBinModal = memo(function AddBinModal({
                     className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-900 dark:text-white dark:bg-neutral-800 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                     disabled={isSubmitting}
                   >
-                    <option value="">Изберете тип съоръжение</option>
-                    <option value="waste_basket">Кошче за боклук</option>
-                    <option value="container">Контейнер</option>
-                    <option value="centre">Център за рециклиране</option>
-                    <option value="dropoff">Пункт за отпадаци</option>
-                    <option value="other">Друго</option>
+                    <option value="">{t("map.addBin.facilityTypePlaceholder")}</option>
+                    <option value="waste_basket">{t("map.addBin.wasteBin")}</option>
+                    <option value="container">{t("map.addBin.container")}</option>
+                    <option value="centre">{t("map.addBin.recyclingCentre")}</option>
+                    <option value="dropoff">{t("map.addBin.dropoff")}</option>
+                    <option value="other">{t("map.addBin.other")}</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Тип рециклиране
+                    {t("map.addBin.recyclingType")}
                   </label>
                   <div className="grid grid-cols-2 gap-2">
                     {[
-                      { value: "пластмаса", label: "Пластмаса" },
-                      { value: "стъкло", label: "Стъкло" },
-                      { value: "хартия", label: "Хартия" },
-                      { value: "картон", label: "Картон" },
-                      { value: "метал", label: "Метал" },
-                      { value: "алуминий", label: "Алуминий" },
-                      { value: "електроника", label: "Електроника" },
-                      { value: "батерии", label: "Батерии" },
-                      { value: "текстил", label: "Текстил" },
-                      { value: "дрехи", label: "Дрехи" },
-                      {
-                        value: "органични отпадъци",
-                        label: "Органични отпадъци",
-                      },
-                      { value: "общи отпадъци", label: "Общи отпадъци" },
+                      { value: "пластмаса", labelKey: "map.addBin.plastic" },
+                      { value: "стъкло", labelKey: "map.addBin.glass" },
+                      { value: "хартия", labelKey: "map.addBin.paper" },
+                      { value: "картон", labelKey: "map.addBin.cardboard" },
+                      { value: "метал", labelKey: "map.addBin.metal" },
+                      { value: "алуминий", labelKey: "map.addBin.aluminum" },
+                      { value: "електроника", labelKey: "map.addBin.electronics" },
+                      { value: "батерии", labelKey: "map.addBin.batteries" },
+                      { value: "текстил", labelKey: "map.addBin.textiles" },
+                      { value: "дрехи", labelKey: "map.addBin.clothes" },
+                      { value: "органични отпадъци", labelKey: "map.addBin.organic" },
+                      { value: "общи отпадъци", labelKey: "map.addBin.general" },
                     ].map((option) => {
                       const currentTypes = formData.recycling_type
                         ? formData.recycling_type
@@ -1374,7 +1394,7 @@ const AddBinModal = memo(function AddBinModal({
                             htmlFor={`recycling-${option.value}`}
                             className="ml-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer"
                           >
-                            {option.label}
+                            {t(option.labelKey)}
                           </label>
                         </div>
                       );
@@ -1383,7 +1403,7 @@ const AddBinModal = memo(function AddBinModal({
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Оператор
+                    {t("map.addBin.operator")}
                   </label>
                   <input
                     value={formData.operator}
@@ -1391,13 +1411,13 @@ const AddBinModal = memo(function AddBinModal({
                       handleInputChange("operator", e.target.value)
                     }
                     className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-900 dark:text-white dark:bg-neutral-800 focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                    placeholder="Име на организацията"
+                    placeholder={t("map.addBin.operatorPlaceholder")}
                     disabled={isSubmitting}
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Брой контейнери
+                    {t("map.addBin.count")}
                   </label>
                   <input
                     type="number"
@@ -1416,7 +1436,7 @@ const AddBinModal = memo(function AddBinModal({
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Снимка на коша
+                    {t("map.addBin.binPhoto")}
                   </label>
                   <div className="space-y-3">
                     {binImages.length < 5 && (
@@ -1435,7 +1455,7 @@ const AddBinModal = memo(function AddBinModal({
                               d="M12 4v16m8-8H4"
                             />
                           </svg>
-                          <span>Добави снимка</span>
+                          <span>{t("map.modal.addPhoto")}</span>
                         </div>
                         <input
                           type="file"
@@ -1480,7 +1500,7 @@ const AddBinModal = memo(function AddBinModal({
                     {uploadingBinImages && (
                       <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                         <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                        <span>Качване на снимки...</span>
+                        <span>{t("map.modal.uploading")}</span>
                       </div>
                     )}
                   </div>
@@ -1495,7 +1515,7 @@ const AddBinModal = memo(function AddBinModal({
                 className="flex-1 px-4 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-gray-700 dark:text-gray-300 hover:bg-red-500 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors transition duration-150 hover:border-red-400"
                 disabled={isSubmitting || uploadingImages || uploadingBinImages}
               >
-                Отказ
+                {t("map.modal.cancel")}
               </button>
               <button
                 type="submit"
@@ -1506,10 +1526,10 @@ const AddBinModal = memo(function AddBinModal({
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                 )}
                 {modalMode === "report"
-                  ? "Изпрати доклад"
+                  ? t("map.modal.submitReport")
                   : modalMode === "edit"
-                    ? "Предложи промени"
-                    : "Добави"}
+                    ? t("map.modal.submitEdit")
+                    : t("map.modal.add")}
               </button>
             </div>
           </form>
@@ -1525,6 +1545,8 @@ export default function MapComponent({
   onNewBinCreated,
   jawgApiKey,
 }: MapProps) {
+  const { t } = useTranslation();
+
   const supabase = useMemo(
     () =>
       createBrowserClient(
@@ -1732,7 +1754,7 @@ export default function MapComponent({
           });
         }
       },
-      (err) => console.warn("Грешка при геолокация:", err),
+      (err) => console.warn(t("map.geolocation.error"), err),
       { enableHighAccuracy: true },
     );
   }, []);
@@ -1788,7 +1810,7 @@ export default function MapComponent({
         const reports = await getBinReports(supabase, binId);
         setBinReports(reports);
       } catch (error) {
-        console.error("Грешка при зареждане на отчети:", error);
+        console.error("Error loading reports:", error);
       } finally {
         setIsLoadingReports(false);
       }
@@ -1812,7 +1834,7 @@ export default function MapComponent({
       });
     };
     const onLocationError = (e: L.ErrorEvent) =>
-      console.warn("Грешка при определяне на локация:", e.message);
+      console.warn(t("map.geolocation.locationError"), e.message);
 
     map.once("locationfound", onLocationFound);
     map.once("locationerror", onLocationError);
@@ -1882,7 +1904,10 @@ export default function MapComponent({
     (bin: Bin) => {
       const canReport = spamProtection.canReportBin(bin.id);
       if (!canReport.allowed) {
-        alert(canReport.message || "Отчетът не е позволен в момента.");
+        const message = canReport.message
+          ? resolveSpamMessage(canReport.message, t)
+          : t("map.alerts.reportNotAllowed");
+        alert(message);
         return;
       }
       setSelectedBin(bin);
@@ -1891,7 +1916,7 @@ export default function MapComponent({
       setReportData({ type: "", title: "", description: "" });
       loadBinReports(bin.id.toString());
     },
-    [spamProtection, loadBinReports],
+    [spamProtection, loadBinReports, t],
   );
 
   const handleEdit = useCallback((bin: Bin) => {
@@ -2120,11 +2145,15 @@ export default function MapComponent({
 
       try {
         if (modalMode === "report") {
-          if (!selectedBin) throw new Error("Грешка: Не е избрано кошче.");
+          if (!selectedBin) throw new Error(t("map.alerts.noBinSelected"));
 
           const canReport = spamProtection.canReportBin(selectedBin.id);
-          if (!canReport.allowed)
-            throw new Error(canReport.message || "Отчетът вече не е позволен.");
+          if (!canReport.allowed) {
+            const message = canReport.message
+              ? resolveSpamMessage(canReport.message, t)
+              : t("map.alerts.reportNotAllowed");
+            throw new Error(message);
+          }
 
           await submitReportToSupabase({
             bin_id: selectedBin.id.toString(),
@@ -2134,9 +2163,7 @@ export default function MapComponent({
           });
 
           spamProtection.recordReport(selectedBin.id);
-          alert(
-            "Отчетът е изпратен успешно! Може да бъде прегледан от администратор.",
-          );
+          alert(t("map.alerts.reportSuccess"));
           setIsModalOpen(false);
           setReportData({ type: "", title: "", description: "" });
           setReportImages([]);
@@ -2146,7 +2173,7 @@ export default function MapComponent({
         }
 
         if (modalMode === "edit") {
-          if (!selectedBin) throw new Error("Грешка: Не е избрано кошче.");
+          if (!selectedBin) throw new Error(t("map.alerts.noBinSelected"));
 
           await submitEditSuggestionToSupabase({
             bin_id: selectedBin.id.toString(),
@@ -2156,9 +2183,7 @@ export default function MapComponent({
             notes: editData.notes || undefined,
           });
 
-          alert(
-            "Предложението за редактиране е изпратено успешно! Може да бъде прегледано от администратор.",
-          );
+          alert(t("map.alerts.editSuccess"));
           setIsModalOpen(false);
           setEditData({
             name: "",
@@ -2171,7 +2196,7 @@ export default function MapComponent({
         }
 
         if (!tempMarkerPosition)
-          throw new Error("Локацията на кошчето не е зададена.");
+          throw new Error(t("map.alerts.noLocation"));
 
         const recyclingTags: Record<string, string> = {};
         if (formData.recycling_type) {
@@ -2236,12 +2261,10 @@ export default function MapComponent({
           count: 1,
         });
         setBinImages([]);
-        alert(
-          "Кошчето е добавено успешно! Ще бъде прегледано от администратор преди да се появи на картата.",
-        );
+        alert(t("map.alerts.binSuccess"));
       } catch (error: any) {
-        console.error("Грешка при изпращане на формата:", error);
-        alert(`Грешка: ${error.message || "Моля, опитайте отново."}`);
+        console.error("Form submission error:", error);
+        alert(`${t("map.alerts.errorPrefix")} ${error.message || t("map.alerts.retryMessage")}`);
       } finally {
         setIsSubmitting(false);
       }
@@ -2259,6 +2282,7 @@ export default function MapComponent({
       spamProtection,
       onNewBinCreated,
       loadBinReports,
+      t,
     ],
   );
 
@@ -2299,7 +2323,7 @@ export default function MapComponent({
   if (!isMounted) {
     return (
       <div className="h-[500px] w-full flex items-center justify-center bg-gray-100">
-        Картата се зарежда...
+        {t("map.loading")}
       </div>
     );
   }
@@ -2356,12 +2380,12 @@ export default function MapComponent({
       {modalMode === "report" && selectedBin && (
         <div className="absolute top-[160px] right-[10px] z-[1000] bg-white p-3 rounded-md shadow-md border max-w-xs w-64">
           <div className="flex items-center justify-between mb-2">
-            <h4 className="font-medium text-gray-800">Отчети за това кошче</h4>
+            <h4 className="font-medium text-gray-800">{t("map.reportsPanel.title")}</h4>
             {isLoadingReports ? (
               <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
             ) : (
               <span className="text-xs text-gray-500">
-                {getTotalReportsCount} общо
+                {getTotalReportsCount} {t("map.reportsPanel.total")}
               </span>
             )}
           </div>
@@ -2369,20 +2393,20 @@ export default function MapComponent({
           {!isLoadingReports && binReports.length > 0 ? (
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Неразрешени:</span>
+                <span className="text-gray-600">{t("map.reportsPanel.unresolved")}</span>
                 <span className="font-medium text-red-600">
                   {getUnresolvedReportsCount}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Разрешени:</span>
+                <span className="text-gray-600">{t("map.reportsPanel.resolved")}</span>
                 <span className="font-medium text-green-600">
                   {getTotalReportsCount - getUnresolvedReportsCount}
                 </span>
               </div>
               <div className="mt-3 pt-3 border-t">
                 <p className="text-xs font-medium text-gray-500 mb-2">
-                  Последни отчети:
+                  {t("map.reportsPanel.recentReports")}
                 </p>
                 <div className="space-y-1.5">
                   {binReports.slice(0, 3).map((report) => (
@@ -2397,11 +2421,13 @@ export default function MapComponent({
                         <span
                           className={`px-1 py-0.5 rounded text-[10px] ${report.resolved ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}
                         >
-                          {report.resolved ? "Разрешен" : "Активен"}
+                          {report.resolved
+                            ? t("map.reportsPanel.resolvedLabel")
+                            : t("map.reportsPanel.activeLabel")}
                         </span>
                       </div>
                       <p className="text-gray-600 truncate mt-1">
-                        {report.description || "Без описание"}
+                        {report.description || t("map.reportsPanel.noDescription")}
                       </p>
                     </div>
                   ))}
@@ -2414,7 +2440,7 @@ export default function MapComponent({
             </div>
           ) : (
             <p className="text-sm text-gray-500 text-center py-2">
-              Все още няма отчети за това кошче
+              {t("map.reportsPanel.noReports")}
             </p>
           )}
         </div>

@@ -270,8 +270,7 @@
     "dashboard": "Panel",
     "map": "Mapa",
     "tasks": "Tareas",
-    "rewards": "Recompensas",
-    "account": "Cuenta"
+    "rewards": "Recompensas"
   },
   "hero": {
     "heading": {
@@ -417,7 +416,13 @@
       "login": "Iniciar sesión",
       "register": "Registrarse",
       "admin": "Administración",
-      "management": "Gestión"
+      "management": "Gestión",
+      "account": "Cuenta",
+      "customization": "Personalización",
+      "language": "Idioma",
+      "theme": "Tema",
+      "appearance": "Apariencia",
+      "selectLanguage": "Seleccionar idioma"
     }
   },
   "auth": {
@@ -786,6 +791,119 @@
     "1a2b3c20": {
       "title": "Переработать бутылку",
       "description": "Отсканируйте бутылку."
+    }
+  },
+  "map": {
+    "loading": "El mapa está cargando...",
+    "marker": {
+      "wasteBin": "Papelera",
+      "recyclingPoint": "Punto de reciclaje",
+      "openingHours": "Horario de apertura:",
+      "smart": "Inteligente",
+      "smartBin": "contenedor",
+      "accepts": "Acepta:",
+      "googleMaps": "Google Maps",
+      "reportDisabled": "Los informes están temporalmente desactivados",
+      "reportProblem": "Reportar un problema",
+      "suggestEdit": "Sugerir una edición"
+    },
+    "modal": {
+      "reportProblem": "Reportar un problema",
+      "suggestEdit": "Sugerir una edición",
+      "addBin": "Añadir un nuevo contenedor",
+      "reportLimitsTitle": "Límites de informes:",
+      "binReportsToday": "Informes para este contenedor hoy:",
+      "userReportsThisHour": "Sus informes esta hora:",
+      "cancel": "Cancelar",
+      "submitReport": "Enviar informe",
+      "submitEdit": "Sugerir cambios",
+      "add": "Añadir",
+      "uploading": "Subiendo fotos...",
+      "addPhoto": "Añadir foto"
+    },
+    "report": {
+      "problemType": "Tipo de problema",
+      "select": "Seleccionar",
+      "incorrectLocation": "Ubicación incorrecta",
+      "binMissing": "Contenedor desaparecido",
+      "binDamaged": "Contenedor dañado",
+      "wrongMaterials": "Materiales incorrectos",
+      "overflowing": "Desbordado",
+      "duplicate": "Duplicado",
+      "other": "Otro",
+      "title": "Título",
+      "titlePlaceholder": "Ej. El contenedor está desbordado",
+      "description": "Descripción (opcional)",
+      "descriptionPlaceholder": "Describa el problema con más detalle...",
+      "photo": "Foto"
+    },
+    "edit": {
+      "nameLabel": "Nombre del lugar (opcional)",
+      "namePlaceholder": "Ej. Punto de reciclaje del barrio Mladost",
+      "openingHoursLabel": "Horario de apertura (opcional)",
+      "openingHoursPlaceholder": "Ej. 08:00-20:00",
+      "materialsLabel": "Materiales de reciclaje (separados por comas)",
+      "materialsPlaceholder": "Ej. plástico, vidrio, papel",
+      "materialsHint": "Introduzca los materiales separados por comas",
+      "notesLabel": "Notas adicionales",
+      "notesPlaceholder": "Otras sugerencias o correcciones..."
+    },
+    "addBin": {
+      "facilityType": "Tipo de instalación",
+      "facilityTypePlaceholder": "Seleccione el tipo de instalación",
+      "wasteBin": "Papelera",
+      "container": "Contenedor",
+      "recyclingCentre": "Centro de reciclaje",
+      "dropoff": "Punto de entrega",
+      "other": "Otro",
+      "recyclingType": "Tipo de reciclaje",
+      "plastic": "Plástico",
+      "glass": "Vidrio",
+      "paper": "Papel",
+      "cardboard": "Cartón",
+      "metal": "Metal",
+      "aluminum": "Aluminio",
+      "electronics": "Electrónica",
+      "batteries": "Pilas",
+      "textiles": "Textiles",
+      "clothes": "Ropa",
+      "organic": "Residuos orgánicos",
+      "general": "Residuos generales",
+      "operator": "Operador",
+      "operatorPlaceholder": "Nombre de la organización",
+      "count": "Número de contenedores",
+      "binPhoto": "Foto del contenedor"
+    },
+    "reportsPanel": {
+      "title": "Informes para este contenedor",
+      "total": "total",
+      "unresolved": "Sin resolver:",
+      "resolved": "Resueltos:",
+      "recentReports": "Informes recientes:",
+      "noDescription": "Sin descripción",
+      "resolvedLabel": "Resuelto",
+      "activeLabel": "Activo",
+      "noReports": "Aún no hay informes para este contenedor"
+    },
+    "alerts": {
+      "reportSuccess": "¡Informe enviado correctamente! Puede ser revisado por un administrador.",
+      "editSuccess": "¡Sugerencia de edición enviada correctamente! Puede ser revisada por un administrador.",
+      "binSuccess": "¡Contenedor añadido correctamente! Será revisado por un administrador antes de aparecer en el mapa.",
+      "errorPrefix": "Error:",
+      "retryMessage": "Por favor, inténtelo de nuevo.",
+      "reportNotAllowed": "Los informes no están permitidos en este momento.",
+      "noBinSelected": "Error: No se ha seleccionado ningún contenedor.",
+      "noLocation": "La ubicación del contenedor no ha sido establecida."
+    },
+    "spamProtection": {
+      "binMinTime": "Debe esperar {{minutes}} minutos antes de volver a reportar este contenedor.",
+      "binMaxReports": "Ha alcanzado el número máximo de informes ({{limit}}) para este contenedor hoy.",
+      "userMaxReports": "Ha alcanzado el límite de {{limit}} informes por hora. Por favor, espere.",
+      "userMinTime": "Por favor, espere {{seconds}} segundos antes del próximo informe."
+    },
+    "geolocation": {
+      "error": "Error de geolocalización:",
+      "locationError": "Error al determinar la ubicación:"
     }
   }
 }

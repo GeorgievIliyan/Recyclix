@@ -6,7 +6,7 @@ const LANGUAGES = [
   { code: 'es', label: 'ES' },
   { code: 'fr', label: 'FR' },
   { code: 'de', label: 'DE' },
-  { code: 'ru', label: 'RU' },
+  { code: 'ru', label: 'РУ' },
 ];
 
 function LanguageSelector() {

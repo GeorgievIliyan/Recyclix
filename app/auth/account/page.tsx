@@ -12,6 +12,8 @@ import { LogoutButton } from "@/app/components/ui/LogoutButton";
 import { Navigation } from "@/app/components/ui/Navigation";
 import { useRouter } from "next/navigation";
 import LanguageSelector from '@/app/components/other/LanguageSelector';
+import { Settings2 } from "lucide-react";
+import { ThemeToggle } from '@/app/components/other/ThemeToggle';
 
 interface UserProfile {
   id: string;
@@ -21,9 +23,7 @@ interface UserProfile {
 }
 
 export default function ProfilePage() {
-
   const { t } = useTranslation('common');
-
   const router = useRouter();
 
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -35,9 +35,9 @@ export default function ProfilePage() {
       setLoading(true);
 
       const { data: authData, error: authError } = await supabase.auth.getUser();
+
       if (authError || !authData.user) {
-        console.error(authError);
-        setLoading(false);
+        router.push('/auth/login');
         return;
       }
 
@@ -62,12 +62,11 @@ export default function ProfilePage() {
         .single();
 
       setLastPasswordChange(profile?.password_changed_at ?? null);
-
       setLoading(false);
     }
 
     fetchUser();
-  }, []);
+  }, [router]);
 
   if (loading)
     return (
@@ -82,10 +81,10 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-neutral-100 to-zinc-100 dark:from-neutral-950 dark:via-neutral-900 dark:to-zinc-900">
       <Navigation />
       <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8 md:pt-16 lg:pt-22">
-        {/* Картичка за профила */}
+        {/* Карта за профила */}
         <Card className="mb-6 border-neutral-200/50 dark:border-neutral-800/50 hover:border-green-500/30 transition-colors duration-300 overflow-hidden">
           <CardContent className="items-center">
-            <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
+            <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-center">
               <Avatar className="size-20 sm:size-24 ring-2 ring-green-500/20 ring-offset-2 ring-offset-background">
                 <AvatarFallback className="bg-gradient-to-br from-green-400 via-green-500 to-emerald-600 text-2xl text-white">
                   {user.initials}
@@ -99,15 +98,12 @@ export default function ProfilePage() {
                   <span className="inline-block size-2 rounded-full bg-gradient-to-r from-green-400 to-green-500 shadow-sm shadow-green-500/50"></span>
                   {t('activeAccount')}
                 </p>
-                <div className="mt-3 flex justify-center sm:justify-start"> {/* 👈 added */}
-                  <LanguageSelector />
-                </div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Детайли за акаунта */}
+        {/* Карта с детайли за акаунта */}
         <Card className="mb-6 gap-2 border-neutral-200/50 dark:border-neutral-800/50 hover:border-green-500/20 transition-colors duration-300 overflow-hidden">
           <CardHeader>
             <CardTitle className="text-xl flex flex-row gap-2 items-center">
@@ -179,10 +175,39 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
 
+        {/* Карта за персонализация */}
+        <Card className="mb-6 border-neutral-200/50 dark:border-neutral-800/50 hover:border-green-500/20 transition-colors duration-300 overflow-hidden">
+          <CardHeader>
+            <CardTitle className="text-xl flex flex-row gap-2 items-center">
+              <div className="p-1.5 rounded-lg bg-gradient-to-br from-green-400/10 to-green-500/10">
+                <Settings2 className="w-5 h-5 text-green-500" />
+              </div>
+              <p>{t('footer.account.customization')}</p>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between p-3 rounded-lg hover:bg-gradient-to-r hover:from-green-500/5 hover:to-transparent transition-colors duration-200">
+              <div className="space-y-0.5">
+                <p className="text-sm font-medium text-foreground">{t('footer.account.language')}</p>
+                <p className="text-xs text-muted-foreground">{t('footer.account.selectLanguage')}</p>
+              </div>
+              <LanguageSelector />
+            </div>
+
+            <div className="flex items-center justify-between p-3 rounded-lg hover:bg-gradient-to-r hover:from-green-500/5 hover:to-transparent transition-colors duration-200">
+              <div className="space-y-0.5">
+                <p className="text-sm font-medium text-foreground">{t('footer.account.appearance')}</p>
+                <p className="text-xs text-muted-foreground">{t('footer.account.theme')}</p>
+              </div>
+              <ThemeToggle />
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Бутони */}
         <div className="flex flex-col gap-3 sm:flex-row">
           <Button className="group w-full text-white dark:text-white sm:flex-1 bg-gradient-to-r from-green-400 via-green-500 to-emerald-600 hover:from-green-500 hover:via-green-600 hover:to-emerald-700 transition-all duration-200 items-center hover:shadow-lg hover:shadow-green-500/20">
-            {t('editProfile')}
+            {t('footer.footer.account.editProfile')}
             <SquarePen className="h-4 w-4 transition-transform duration-200" />
           </Button>
           <LogoutButton />

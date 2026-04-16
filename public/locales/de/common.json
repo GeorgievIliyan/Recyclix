@@ -417,7 +417,12 @@
       "login": "Anmelden",
       "register": "Registrieren",
       "admin": "Verwaltung",
-      "management": "Management"
+      "management": "Management",
+      "customization": "Personalisierung",
+      "language": "Sprache",
+      "theme": "Thema",
+      "appearance": "Erscheinungsbild",
+      "selectLanguage": "Sprache auswählen"
     }
   },
   "auth": {
@@ -786,6 +791,119 @@
     "1a2b3c20": {
       "title": "Getränkeflasche recyceln",
       "description": "Scanne und recycele eine Flasche."
+    }
+  },
+  "map": {
+    "loading": "Karte wird geladen...",
+    "marker": {
+      "wasteBin": "Mülleimer",
+      "recyclingPoint": "Recycling-Standort",
+      "openingHours": "Öffnungszeiten:",
+      "smart": "Smart",
+      "smartBin": "Behälter",
+      "accepts": "Nimmt an:",
+      "googleMaps": "Google Maps",
+      "reportDisabled": "Meldungen sind vorübergehend deaktiviert",
+      "reportProblem": "Problem melden",
+      "suggestEdit": "Bearbeitung vorschlagen"
+    },
+    "modal": {
+      "reportProblem": "Problem melden",
+      "suggestEdit": "Bearbeitung vorschlagen",
+      "addBin": "Neuen Behälter hinzufügen",
+      "reportLimitsTitle": "Meldelimits:",
+      "binReportsToday": "Meldungen für diesen Behälter heute:",
+      "userReportsThisHour": "Ihre Meldungen in dieser Stunde:",
+      "cancel": "Abbrechen",
+      "submitReport": "Meldung absenden",
+      "submitEdit": "Änderungen vorschlagen",
+      "add": "Hinzufügen",
+      "uploading": "Fotos werden hochgeladen...",
+      "addPhoto": "Foto hinzufügen"
+    },
+    "report": {
+      "problemType": "Problemtyp",
+      "select": "Auswählen",
+      "incorrectLocation": "Falscher Standort",
+      "binMissing": "Behälter fehlt",
+      "binDamaged": "Behälter beschädigt",
+      "wrongMaterials": "Falsche Materialien",
+      "overflowing": "Überfüllt",
+      "duplicate": "Duplikat",
+      "other": "Sonstiges",
+      "title": "Titel",
+      "titlePlaceholder": "z. B. Der Behälter ist überfüllt",
+      "description": "Beschreibung (optional)",
+      "descriptionPlaceholder": "Beschreiben Sie das Problem genauer...",
+      "photo": "Foto"
+    },
+    "edit": {
+      "nameLabel": "Name des Standorts (optional)",
+      "namePlaceholder": "z. B. Recycling-Standort Mladost-Viertel",
+      "openingHoursLabel": "Öffnungszeiten (optional)",
+      "openingHoursPlaceholder": "z. B. 08:00-20:00",
+      "materialsLabel": "Recyclingmaterialien (kommagetrennt)",
+      "materialsPlaceholder": "z. B. Plastik, Glas, Papier",
+      "materialsHint": "Materialien durch Kommas getrennt eingeben",
+      "notesLabel": "Zusätzliche Anmerkungen",
+      "notesPlaceholder": "Weitere Vorschläge oder Korrekturen..."
+    },
+    "addBin": {
+      "facilityType": "Anlagentyp",
+      "facilityTypePlaceholder": "Anlagentyp auswählen",
+      "wasteBin": "Mülleimer",
+      "container": "Container",
+      "recyclingCentre": "Recyclingzentrum",
+      "dropoff": "Abgabestelle",
+      "other": "Sonstiges",
+      "recyclingType": "Recyclingart",
+      "plastic": "Plastik",
+      "glass": "Glas",
+      "paper": "Papier",
+      "cardboard": "Karton",
+      "metal": "Metall",
+      "aluminum": "Aluminium",
+      "electronics": "Elektronik",
+      "batteries": "Batterien",
+      "textiles": "Textilien",
+      "clothes": "Kleidung",
+      "organic": "Bioabfall",
+      "general": "Restmüll",
+      "operator": "Betreiber",
+      "operatorPlaceholder": "Name der Organisation",
+      "count": "Anzahl der Behälter",
+      "binPhoto": "Foto des Behälters"
+    },
+    "reportsPanel": {
+      "title": "Meldungen für diesen Behälter",
+      "total": "gesamt",
+      "unresolved": "Ungelöst:",
+      "resolved": "Gelöst:",
+      "recentReports": "Aktuelle Meldungen:",
+      "noDescription": "Keine Beschreibung",
+      "resolvedLabel": "Gelöst",
+      "activeLabel": "Aktiv",
+      "noReports": "Noch keine Meldungen für diesen Behälter"
+    },
+    "alerts": {
+      "reportSuccess": "Meldung erfolgreich gesendet! Sie kann von einem Administrator überprüft werden.",
+      "editSuccess": "Bearbeitungsvorschlag erfolgreich gesendet! Er kann von einem Administrator überprüft werden.",
+      "binSuccess": "Behälter erfolgreich hinzugefügt! Er wird von einem Administrator überprüft, bevor er auf der Karte erscheint.",
+      "errorPrefix": "Fehler:",
+      "retryMessage": "Bitte versuchen Sie es erneut.",
+      "reportNotAllowed": "Meldungen sind derzeit nicht zulässig.",
+      "noBinSelected": "Fehler: Kein Behälter ausgewählt.",
+      "noLocation": "Der Standort des Behälters wurde nicht festgelegt."
+    },
+    "spamProtection": {
+      "binMinTime": "Sie müssen {{minutes}} Minuten warten, bevor Sie diesen Behälter erneut melden.",
+      "binMaxReports": "Sie haben die maximale Anzahl von Meldungen ({{limit}}) für diesen Behälter heute erreicht.",
+      "userMaxReports": "Sie haben das Limit von {{limit}} Meldungen pro Stunde erreicht. Bitte warten Sie.",
+      "userMinTime": "Bitte warten Sie {{seconds}} Sekunden bis zur nächsten Meldung."
+    },
+    "geolocation": {
+      "error": "Geolokalisierungsfehler:",
+      "locationError": "Fehler bei der Standortbestimmung:"
     }
   }
 }
