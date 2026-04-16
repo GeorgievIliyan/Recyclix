@@ -21,7 +21,7 @@ export function LogoutButton() {
   return (
     <Button
       variant="outline"
-      className="w-full sm:flex-1 bg-background items-center hover:bg-red-500 transition duration-200 delay-50 hover:text-white"
+      className="w-full sm:flex-1 bg-background items-center hover:bg-red-500 dark:hover:bg-red-500 transition duration-200 delay-50 hover:text-white"
       onClick={handleLogout}
     >
       {t("logout")} <LogOut className="h-4 w-4" />

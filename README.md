@@ -56,6 +56,8 @@ NEXT_PUBLIC_GEMINI_API_KEY=your_api_key
 NEXT_PUBLIC_API_URL=http://localhost:3000
 ```
 
+> Check `.env.example` for all required variables.
+
 ### Installation
 
 1. Clone the repository:
@@ -134,6 +136,7 @@ Recyclix/
 - 🎓 [Learn Next.js](https://nextjs.org/learn) - Interactive Next.js tutorial
 - 🗂️ [App Router Documentation](https://nextjs.org/docs/app)
 - 🎨 [Geist Font](https://vercel.com/font) - Modern font by Vercel for optimized typography
+- 3-rd place in National Competition in Blagoevgrad, Bulgaria
 
 ## 📝 License
 
@@ -143,7 +146,7 @@ This project is licensed under the GNU=GPL 3 License - see the [LICENSE](LICENSE
   
 <div align="center">
 
-Made with love ♻️ by the Recyclix founder
+Made with love ♻️ by the Iliyan Georgiev
 
 [Star us on GitHub](#) • [Report an Issue](#) • [Request a Feature](#)
 

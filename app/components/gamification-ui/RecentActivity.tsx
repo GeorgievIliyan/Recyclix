@@ -1,4 +1,4 @@
-import { Clock, Sparkles } from "lucide-react";
+import { Clock, Sparkles, ClockAlert } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getPreferredLanguage } from "@/lib/utils";
@@ -90,8 +90,11 @@ export function RecentActivity({ activities }: RecentActivityProps) {
             ))}
           </div>
         ) : (
-          <div className="py-8 text-center">
-            <p className="text-muted-foreground dark:text-gray-400 text-sm">
+          <div className="flex flex-col items-center justify-center min-h-[250px] w-full py-8 text-center gap-4">
+            <div>
+              <ClockAlert className="text-neutral-300 dark:text-neutral-600 w-12 h-12" />
+            </div>
+            <p className="text-neutral-300 dark:text-neutral-600 text-sm">
               {t("gamification.recentActivity.noActivity", { defaultValue: "Няма скорошна активност" })}
             </p>
           </div>

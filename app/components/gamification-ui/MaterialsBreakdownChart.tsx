@@ -9,12 +9,13 @@ import {
   Legend,
   Tooltip,
 } from "recharts";
-import { Recycle } from "lucide-react";
+import { Recycle, Grid2x2X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getPreferredLanguage } from "@/lib/utils";
 import { RECYCLING_COLORS } from "@/app/components/map-ui/MapComponent";
 
+// типизация
 interface MaterialData {
   name: string;
   value: number;
@@ -28,7 +29,6 @@ interface MaterialDefinition {
   aliases: string[];
 }
 
-// Unified material definitions with all language aliases
 const MATERIAL_DEFINITIONS: Record<string, MaterialDefinition> = {
   glass: {
     translationKey: "gamification.recentActivity.materials.glass",
@@ -156,14 +156,14 @@ const getMaterialDefinition = (materialName: string): MaterialDefinition | null 
 
   const normalized = materialName.toLowerCase().trim();
 
-  // Exact match first
+  // при точен съответствие
   for (const definition of Object.values(MATERIAL_DEFINITIONS)) {
     if (definition.aliases.includes(normalized)) {
       return definition;
     }
   }
 
-  // Partial match as fallback
+  // при частично съответствие
   for (const definition of Object.values(MATERIAL_DEFINITIONS)) {
     if (definition.aliases.some((alias) => normalized.includes(alias) || alias.includes(normalized))) {
       return definition;
@@ -173,6 +173,7 @@ const getMaterialDefinition = (materialName: string): MaterialDefinition | null 
   return null;
 };
 
+// помощни фунцкии за извличане на превод и цвят
 const getMaterialTranslationKey = (materialName: string): string => {
   const definition = getMaterialDefinition(materialName);
   return definition?.translationKey || "";
@@ -302,8 +303,9 @@ export function MaterialsBreakdownChart({
             </PieChart>
           </ResponsiveContainer>
         ) : (
-          <div className="h-[260px] flex items-center justify-center">
-            <p className="text-muted-foreground dark:text-gray-400 text-xs sm:text-sm">
+          <div className="h-[260px] flex flex-col items-center justify-center gap-4">
+            <Grid2x2X className="text-neutral-300 dark:text-neutral-600 w-14 h-14" />
+            <p className="text-neutral-300 dark:text-neutral-600 text-xs sm:text-sm">
               {t("gamification.materialsBreakdown.noData", { defaultValue: "No data" })}
             </p>
           </div>

@@ -30,6 +30,7 @@ import MapFilter from "./MapFilter";
 import { isDev } from "@/lib/isDev";
 import FilterPanel from "./FilterPanel";
 import { useTranslation } from "react-i18next";
+import { useTheme } from "next-themes";
 
 // Типизация за данни от OpenStreetMap (OSM)
 export interface Bin {
@@ -821,8 +822,8 @@ const ViewportAwareMarkers = memo(function ViewportAwareMarkers({
               <div className="absolute top-2 right-2 flex gap-1.5">
                 <button
                   className={`p-1.5 rounded-md transition ${isReportDisabledForThisBin
-                      ? "bg-gray-100 dark:bg-neutral-700 text-gray-400 dark:text-neutral-400 cursor-not-allowed"
-                      : "hover:bg-red-50 dark:hover:bg-red-900/30 text-red-500 hover:text-red-600 dark:hover:text-red-500"
+                    ? "bg-gray-100 dark:bg-neutral-700 text-gray-400 dark:text-neutral-400 cursor-not-allowed"
+                    : "hover:bg-red-50 dark:hover:bg-red-900/30 text-red-500 hover:text-red-600 dark:hover:text-red-500"
                     }`}
                   title={
                     isReportDisabledForThisBin
@@ -1546,6 +1547,9 @@ export default function MapComponent({
   jawgApiKey,
 }: MapProps) {
   const { t } = useTranslation();
+  // теми
+  const { theme, resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
 
   const supabase = useMemo(
     () =>
@@ -1589,7 +1593,6 @@ export default function MapComponent({
   const [userLocation, setUserLocation] = useState<[number, number] | null>(
     null,
   );
-  const [prefersDark, setPrefersDark] = useState(false);
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const [showFilterPanel, setShowFilterPanel] = useState(false);
 
@@ -1732,10 +1735,6 @@ export default function MapComponent({
     });
     return cache;
   }, [validBins]);
-
-  useEffect(() => {
-    setPrefersDark(window.matchMedia("(prefers-color-scheme: dark)").matches);
-  }, []);
 
   useEffect(() => {
     if (!navigator.geolocation) return;
@@ -2466,10 +2465,10 @@ export default function MapComponent({
         <MapClickHandler onMapClick={handleMapClick} />
 
         <TileLayer
-          key={prefersDark ? "dark" : "light"}
+          key={isDark ? "dark" : "light"}
           url={
             jawgApiKey
-              ? `https://tile.jawg.io/jawg-${prefersDark ? "dark" : "streets"}/{z}/{x}/{y}.png?access-token=${jawgApiKey}`
+              ? `https://tile.jawg.io/jawg-${isDark ? "dark" : "streets"}/{z}/{x}/{y}.png?access-token=${jawgApiKey}`
               : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           }
           attribution="&copy; OpenStreetMap contributors"
